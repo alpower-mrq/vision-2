@@ -26,14 +26,14 @@ export function TopNav() {
   return (
     <>
       {/* Sticky brand bar — logo + balance/avatar.
-          `padding-top: env(safe-area-inset-top)` reserves space for the real
-          iOS status bar when running as a PWA (so content doesn't slip
-          underneath it). In a regular browser without a notch it's 0px.
-          10px bottom padding gives the avatar pill consistent breathing
-          room whether the sub-filter pills are showing or slid away. */}
+          Top padding: `env(safe-area-inset-top) + 10px` — the safe-area inset
+          reserves space for the real iOS status bar when running as a PWA;
+          the extra 10px keeps the logo/avatar from being flush against the
+          top, matching the 10px rhythm used for the brand bar's own bottom
+          padding (and the pills band's bottom padding). */}
       <header
         className="sticky top-0 z-30 bg-mrq-blue pb-[10px]"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 10px)" }}
       >
         <div className="relative h-[48px] px-[23px] flex items-center justify-between">
           {/* MrQ logo — tap to return to the lobby home view */}

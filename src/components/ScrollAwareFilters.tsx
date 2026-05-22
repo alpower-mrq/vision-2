@@ -15,10 +15,11 @@ import { useFilter, type LobbyFilter } from "@/lib/filter-context";
  *   - Tapping the active pill again toggles back to `home`.
  *
  * Layout:
- *   - `position: sticky; top: calc(env(safe-area-inset-top) + 58px)` — sticks
- *     immediately under the brand bar (iOS safe-area inset + 48 brand row +
- *     10 bottom padding) so the two read as one continuous blue header at the
- *     top, whether in a regular browser or launched as an iOS PWA.
+ *   - `position: sticky; top: calc(env(safe-area-inset-top) + 68px)` — sticks
+ *     immediately under the brand bar (iOS safe-area inset + 10 top padding +
+ *     48 brand row + 10 bottom padding) so the two read as one continuous
+ *     blue header at the top, whether in a regular browser or launched as an
+ *     iOS PWA.
  *   - z-20, brand bar is z-30. The brand bar's solid blue bg means the
  *     pills disappear cleanly under it as they slide up.
  *
@@ -71,7 +72,7 @@ export function ScrollAwareFilters() {
 
   return (
     <motion.div
-      className="sticky top-[calc(env(safe-area-inset-top)+58px)] z-20 bg-mrq-blue"
+      className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-mrq-blue"
       initial={false}
       animate={{ y: visible ? 0 : -BAND_HEIGHT }}
       transition={transition}
