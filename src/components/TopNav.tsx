@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { StatusBar } from "./StatusBar";
 import { ScrollAwareFilters } from "./ScrollAwareFilters";
 import { useFilter } from "@/lib/filter-context";
 
@@ -9,7 +8,10 @@ import { useFilter } from "@/lib/filter-context";
  * MrQ top nav — from Figma node 43:13039.
  *
  * Two sibling sticky sections:
- *   1. Brand bar (this file) — status bar + logo + balance/avatar.
+ *   1. Brand bar (this file) — logo + balance/avatar.
+ *      • `padding-top: env(safe-area-inset-top)` so when the app launches as
+ *        a PWA on iOS the content sits below the real status bar (the fake
+ *        iOS status bar we used during design has been removed).
  *      • Logo tap → resets the filter to "home" and scrolls to top.
  *      • Balance/avatar pill tap → opens the side nav drawer.
  *   2. Sub-filter pills (ScrollAwareFilters) — sticky just below the brand
@@ -23,12 +25,16 @@ export function TopNav() {
 
   return (
     <>
-      {/* Sticky brand bar — status + logo + balance/avatar.
-          10px bottom padding gives the avatar pill consistent breathing room
-          whether the sub-filter pills are showing or slid away. */}
-      <header className="sticky top-0 z-30 bg-mrq-blue pb-[10px]">
-        <StatusBar />
-
+      {/* Sticky brand bar — logo + balance/avatar.
+          `padding-top: env(safe-area-inset-top)` reserves space for the real
+          iOS status bar when running as a PWA (so content doesn't slip
+          underneath it). In a regular browser without a notch it's 0px.
+          10px bottom padding gives the avatar pill consistent breathing
+          room whether the sub-filter pills are showing or slid away. */}
+      <header
+        className="sticky top-0 z-30 bg-mrq-blue pb-[10px]"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="relative h-[48px] px-[23px] flex items-center justify-between">
           {/* MrQ logo — tap to return to the lobby home view */}
           <button
