@@ -20,12 +20,23 @@ const anton = Anton({
 export const metadata: Metadata = {
   title: "MrQ — Concept",
   description: "MrQ mobile app concept",
+  // PWA / Add-to-Home-Screen
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "MrQ",
+    // "black-translucent" lets the app content extend behind the status bar,
+    // matching how native iOS apps look when launched from home screen.
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  // `viewport-fit: cover` lets the app draw under the iOS notch / home indicator.
+  viewportFit: "cover",
   themeColor: "#0a2ecb",
 };
 

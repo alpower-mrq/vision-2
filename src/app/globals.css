@@ -66,10 +66,26 @@
 }
 
 html, body {
-  background: #e9ebef;          /* outside-the-phone backdrop on desktop */
+  /* On desktop the "outside the phone" area uses MrQ brand blue so the
+     centred phone looks like it's floating on a brand backdrop rather than
+     against random grey sidebars. */
+  background: var(--mrq-blue);
   color: var(--foreground);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+  /* Disable bounce / overscroll glow at the page edges. */
+  overscroll-behavior-y: none;
+}
+
+/* Hide the document scrollbar across the whole site. The page still scrolls,
+   but the bar itself is invisible — matches how iOS Safari renders. */
+html, body {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE 10+ */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;                 /* WebKit (Safari, Chrome) */
 }
 
 /* ---------- Hero carousel ---------- */
@@ -105,6 +121,21 @@ html, body {
   background: #ffffff;
   min-height: 100dvh;
   position: relative;
-  /* subtle shadow on desktop so the frame feels like a device */
-  box-shadow: 0 24px 64px -16px rgba(12, 34, 135, 0.18);
+  /* Floating-phone shadow on desktop so the frame visually sits on top of
+     the brand-blue backdrop. Invisible on mobile (where the frame fills
+     the viewport edge-to-edge). */
+  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.35);
+}
+
+/* When the app is launched from the home screen (display-mode: standalone),
+   it owns the whole device screen. Drop the floating-phone treatment so
+   the lobby content fills the device edge-to-edge. */
+@media (display-mode: standalone) {
+  html, body {
+    background: #ffffff;
+  }
+  .mobile-frame {
+    max-width: none;
+    box-shadow: none;
+  }
 }
