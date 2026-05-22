@@ -116,20 +116,24 @@ body::-webkit-scrollbar {
    scroll container and break `position: sticky` for the top nav. */
 .mobile-frame {
   width: 100%;
-  max-width: var(--mobile-width);
   margin-inline: auto;
   background: #ffffff;
   min-height: 100dvh;
   position: relative;
-  /* Floating-phone shadow on desktop so the frame visually sits on top of
-     the brand-blue backdrop. Invisible on mobile (where the frame fills
-     the viewport edge-to-edge). */
-  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.35);
+}
+
+/* Only show the "floating phone" preview treatment on actual desktop windows.
+   On phones (≤ 600px viewport, which covers every iPhone including Pro Max
+   at 430px) the frame fills the device edge-to-edge with no blue side bars. */
+@media (min-width: 600px) {
+  .mobile-frame {
+    max-width: var(--mobile-width);
+    box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.35);
+  }
 }
 
 /* When the app is launched from the home screen (display-mode: standalone),
-   it owns the whole device screen. Drop the floating-phone treatment so
-   the lobby content fills the device edge-to-edge. */
+   it owns the whole device screen — no frame, no shadow, no blue backdrop. */
 @media (display-mode: standalone) {
   html, body {
     background: #ffffff;
