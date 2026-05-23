@@ -65,19 +65,25 @@ export function BottomBar() {
   const transition = reduce ? { duration: 0 } : SPRING;
 
   return (
+    // Solid white tray anchored at the viewport bottom. iOS Safari's own
+    // floating chrome overlays this white tray on a clean surface, so the
+    // app visibly *ends* at the top of the tray and Safari's UI sits below
+    // it rather than competing with our pills.
     <div
-      className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 bg-white"
       style={{
-        // Lifted clear of iOS Safari's own floating bottom chrome.
-        // Safari's URL bar adds ~50pt of its own UI on mobile; sitting 36px
-        // above the safe-area inset keeps our pills visually distinct.
-        bottom: "max(36px, calc(env(safe-area-inset-bottom) + 36px))",
+        // Padding-bottom matches the iOS safe-area inset; the home indicator
+        // / Safari chrome lives in this area.
+        paddingBottom: "env(safe-area-inset-bottom)",
+        // Soft hairline above the tray so it reads as a deliberate boundary
+        // between the lobby content and the chrome region.
+        boxShadow: "0 -1px 0 rgba(10, 46, 203, 0.06)",
       }}
       data-node-id="50:3305"
     >
       <nav
         aria-label="Quick actions"
-        className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] items-center justify-between gap-[10px] px-[20px]"
+        className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] mx-auto items-center justify-between gap-[10px] px-[20px] pt-[16px] pb-[14px]"
       >
         {/* Left pill: home + search.
             Solid Figma blue/50 fill — no transparency / backdrop-blur so the
