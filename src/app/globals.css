@@ -66,15 +66,21 @@
 }
 
 html, body {
-  /* On desktop the "outside the phone" area uses MrQ brand blue so the
-     centred phone looks like it's floating on a brand backdrop rather than
-     against random grey sidebars. */
-  background: var(--mrq-blue);
+  /* Mobile default — white, so the bottom translucent floor reads as pure
+     white (no blue tint bleeding through). Desktop overrides below paint
+     the brand-blue "outside the phone" backdrop. */
+  background: #ffffff;
   color: var(--foreground);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
   /* Disable bounce / overscroll glow at the page edges. */
   overscroll-behavior-y: none;
+}
+
+@media (min-width: 600px) {
+  html, body {
+    background: var(--mrq-blue);
+  }
 }
 
 /* Hide the document scrollbar across the whole site. The page still scrolls,

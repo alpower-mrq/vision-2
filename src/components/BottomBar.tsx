@@ -64,35 +64,33 @@ export function BottomBar() {
 
   const transition = reduce ? { duration: 0 } : SPRING;
 
-  // The bar's bottom edge sits at the top of a fixed translucent floor that
-  // hugs exactly the iOS safe-area inset — which is the same height iOS
-  // Safari reports for its bottom chrome. Floor height matches Safari chrome
-  // height, no extra padding.
-  const floorOffset = "env(safe-area-inset-bottom)";
+  // White floor exactly matches Safari's chrome height (env reports the
+  // chrome height when viewport-fit:cover is set). Bar lifted ~12px above
+  // the floor for breathing room between our nav and Safari's UI.
+  const floorHeight = "env(safe-area-inset-bottom)";
+  const barOffset = "calc(env(safe-area-inset-bottom) + 12px)";
 
   return (
     <>
-      {/* Translucent floor — sized to match Safari's chrome height exactly
-          (env(safe-area-inset-bottom) reports the chrome height when the
-          URL bar is visible). Slightly tinted white + backdrop-blur so the
-          lobby content behind it softens out and Safari's chrome reads as
-          part of a unified bottom region. */}
+      {/* White floor — sized to Safari chrome height. Slightly translucent
+          (92% white) with a backdrop-blur, so it reads as a frosted-white
+          surface. Body bg is white on mobile so no colour bleeds through. */}
       <div
         className="pointer-events-none fixed bottom-0 inset-x-0 z-30"
         style={{
-          height: floorOffset,
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          height: floorHeight,
+          backgroundColor: "rgba(255, 255, 255, 0.92)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
         }}
         aria-hidden
       />
 
-      {/* Floating bar — sits right at the top of the floor; pills are
-          transparent so lobby content still shows above and behind them. */}
+      {/* Floating bar — 12px above the floor; pills stay transparent so
+          lobby content shows above and through them. */}
       <div
         className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
-        style={{ bottom: floorOffset }}
+        style={{ bottom: barOffset }}
         data-node-id="50:3305"
       >
       <nav
