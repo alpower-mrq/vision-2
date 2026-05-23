@@ -65,25 +65,25 @@ export function BottomBar() {
   const transition = reduce ? { duration: 0 } : SPRING;
 
   return (
-    // Solid white tray anchored at the viewport bottom. iOS Safari's own
-    // floating chrome overlays this white tray on a clean surface, so the
-    // app visibly *ends* at the top of the tray and Safari's UI sits below
-    // it rather than competing with our pills.
+    // Floating bar that sits OVER the lobby content (content scrolls visibly
+    // behind it). The mobile-frame's white bg fills the entire viewport
+    // beneath, so the area below the bar — where iOS Safari's chrome lands —
+    // is already a clean white surface. Page content stays clear of that
+    // chrome zone via the bottom safe-area spacer in page.tsx.
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 bg-white"
+      className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
       style={{
-        // Padding-bottom matches the iOS safe-area inset; the home indicator
-        // / Safari chrome lives in this area.
-        paddingBottom: "env(safe-area-inset-bottom)",
-        // Soft hairline above the tray so it reads as a deliberate boundary
-        // between the lobby content and the chrome region.
-        boxShadow: "0 -1px 0 rgba(10, 46, 203, 0.06)",
+        // Lifted well above iOS Safari's own bottom chrome (~50-80pt) so
+        // there's clear white space between our floating pills and Safari's
+        // UI. The bar isn't sitting next to the chrome — it's hovering over
+        // the lobby content above it.
+        bottom: "max(72px, calc(env(safe-area-inset-bottom) + 64px))",
       }}
       data-node-id="50:3305"
     >
       <nav
         aria-label="Quick actions"
-        className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] mx-auto items-center justify-between gap-[10px] px-[20px] pt-[16px] pb-[14px]"
+        className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] items-center justify-between gap-[10px] px-[20px]"
       >
         {/* Left pill: home + search.
             Solid Figma blue/50 fill — no transparency / backdrop-blur so the
