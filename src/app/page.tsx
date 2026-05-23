@@ -3,6 +3,7 @@ import { BottomBar } from "@/components/BottomBar";
 import { LobbyContent } from "@/components/LobbyContent";
 import { SideNav } from "@/components/SideNav";
 import { SearchOverlay } from "@/components/SearchOverlay";
+import { LoadingSplash } from "@/components/LoadingSplash";
 import { FilterProvider } from "@/lib/filter-context";
 
 /**
@@ -29,6 +30,9 @@ export default function Home() {
         <SideNav />
         <SearchOverlay />
       </div>
+      {/* Mounted last + outside the mobile-frame so it covers the whole
+          viewport during the boot moment. */}
+      <LoadingSplash />
     </FilterProvider>
   );
 }

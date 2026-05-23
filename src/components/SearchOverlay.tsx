@@ -104,8 +104,9 @@ export function SearchOverlay() {
       aria-hidden={!searchOpen}
       className="fixed inset-0 z-50 flex flex-col bg-white"
       // Always rendered. When closed, slid below the viewport.
-      // `inset-0` makes the overlay fill the whole screen — no max-width,
-      // no centering, no border.
+      // `initial` locks the starting position to off-screen so Framer doesn't
+      // play a slide-out animation on the very first render.
+      initial={{ y: "100%" }}
       animate={{ y: searchOpen ? 0 : "100%" }}
       transition={{ type: "spring", stiffness: 380, damping: 38, mass: 0.9 }}
       style={{
