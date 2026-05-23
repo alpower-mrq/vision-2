@@ -41,20 +41,19 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  const scrollToTop = () => {
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  };
+  // NOTE: we intentionally do NOT scroll the page when switching filters
+  // anymore. On iOS Safari, an instant scroll-to-top causes the browser's
+  // URL bar to expand, which grows env(safe-area-inset-bottom), which makes
+  // the floating bottom bar visually shift upward — the "bar hovers up
+  // from the bottom" behaviour. Keeping scroll position stable keeps the
+  // bar persistently visible in the same spot across filter changes.
 
   const togglePill = (f: Exclude<LobbyFilter, "home">) => {
     setFilter((curr) => (curr === f ? "home" : f));
-    scrollToTop();
   };
 
   const goHome = () => {
     setFilter("home");
-    scrollToTop();
   };
 
   return (
