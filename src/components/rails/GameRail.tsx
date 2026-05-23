@@ -58,8 +58,13 @@ export function GameRail({
       {/* Tile rail — free scrolling, no snapping (mobile-app feel) */}
       <div
         ref={railRef}
-        className="no-scrollbar flex gap-[8px] overflow-x-auto pl-[16px] pr-[16px] pb-2"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="no-scrollbar flex gap-[8px] overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-2"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          // Lock touch gestures to horizontal pan only — vertical swipes
+          // bubble up to the page scroll instead of nudging the rail.
+          touchAction: "pan-x",
+        }}
       >
         {tiles.map((tile, i) => (
           <GameTile

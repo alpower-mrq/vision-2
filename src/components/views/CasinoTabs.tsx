@@ -30,8 +30,13 @@ export function CasinoTabs() {
     >
       <div
         ref={railRef}
-        className="no-scrollbar flex gap-[20px] overflow-x-auto px-[16px]"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="no-scrollbar flex gap-[20px] overflow-x-auto overflow-y-hidden px-[16px]"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          // Lock touch gestures to horizontal pan only — vertical swipes
+          // bubble up to the page scroll instead of nudging the rail itself.
+          touchAction: "pan-x",
+        }}
       >
         {TABS.map((tab) => {
           const isActive = tab === active;
