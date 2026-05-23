@@ -68,8 +68,10 @@ export function BottomBar() {
     <div
       className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
       style={{
-        // Lifted off the bottom — 20px gap + safe-area inset.
-        bottom: "max(20px, calc(env(safe-area-inset-bottom) + 20px))",
+        // Lifted clear of iOS Safari's own floating bottom chrome.
+        // Safari's URL bar adds ~50pt of its own UI on mobile; sitting 36px
+        // above the safe-area inset keeps our pills visually distinct.
+        bottom: "max(36px, calc(env(safe-area-inset-bottom) + 36px))",
       }}
       data-node-id="50:3305"
     >
@@ -78,17 +80,17 @@ export function BottomBar() {
         className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] items-center justify-between gap-[10px] px-[20px]"
       >
         {/* Left pill: home + search.
-            Outer container has its own bg + stroke (Figma blue/50 + blue/100).
-            Backdrop-blur lifts it off whatever content sits beneath. */}
+            Solid Figma blue/50 fill — no transparency / backdrop-blur so the
+            pill stays opaque against iOS Safari's own floating chrome, which
+            otherwise bleeds gradient + colour through and looks identical to
+            our UI. */}
         <motion.div
           className="relative flex items-center gap-[6px] rounded-full p-[4px]"
           style={{
-            backgroundColor: "rgba(230, 234, 250, 0.85)",
+            backgroundColor: "#e6eafa",
             border: "1px solid #ced5f5",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
             boxShadow:
-              "0 12px 32px -16px rgba(10, 46, 203, 0.28), 0 2px 8px -2px rgba(10, 46, 203, 0.1)",
+              "0 16px 36px -12px rgba(10, 46, 203, 0.32), 0 2px 8px -2px rgba(10, 46, 203, 0.12)",
           }}
           animate={{
             width: collapsed ? 104 : "100%",
