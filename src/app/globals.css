@@ -139,7 +139,10 @@ body::-webkit-scrollbar {
 }
 
 /* When the app is launched from the home screen (display-mode: standalone),
-   it owns the whole device screen — no frame, no shadow, no blue backdrop. */
+   it owns the whole device screen — no frame, no shadow, no blue backdrop.
+   The bottom-bar's white floor is also hidden because there's no Safari
+   chrome to land on it; without that, the floor just shows as an empty
+   white strip at the device edge. */
 @media (display-mode: standalone) {
   html, body {
     background: #ffffff;
@@ -147,5 +150,8 @@ body::-webkit-scrollbar {
   .mobile-frame {
     max-width: none;
     box-shadow: none;
+  }
+  .bottom-bar-floor {
+    display: none;
   }
 }

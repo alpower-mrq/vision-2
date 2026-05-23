@@ -84,9 +84,13 @@ export function BottomBar() {
     <>
       {/* White floor — sized to Safari chrome height. Slightly translucent
           (92% white) with a backdrop-blur, so it reads as a frosted-white
-          surface. Body bg is white on mobile so no colour bleeds through. */}
+          surface. Body bg is white on mobile so no colour bleeds through.
+          Hidden when launched as a PWA (display-mode: standalone) because
+          there's no Safari chrome to land on it — the floor would just be
+          an empty white bar at the device edge. The `bottom-bar-floor`
+          class is targeted by a CSS rule in globals.css. */}
       <div
-        className="pointer-events-none fixed bottom-0 inset-x-0 z-30"
+        className="bottom-bar-floor pointer-events-none fixed bottom-0 inset-x-0 z-30"
         style={{
           height: floorHeight,
           backgroundColor: "rgba(255, 255, 255, 0.92)",
