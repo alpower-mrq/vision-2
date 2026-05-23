@@ -38,7 +38,17 @@ const FAST_SPRING = { type: "spring" as const, stiffness: 500, damping: 40, mass
 export function BottomBar() {
   const [collapsed, setCollapsed] = useState(false);
   const reduce = useReducedMotion();
-  const { goHome, openSearch } = useFilter();
+  const { goHome, openSearch, searchInputRef } = useFilter();
+
+  // Open the search overlay AND focus the input in one synchronous call
+  // stack. iOS requires `.focus()` to happen inside the user-gesture handler
+  // for the on-screen keyboard to appear automatically.
+  const handleSearchTap = () => {
+    openSearch();
+    // The SearchOverlay's input is always mounted (just translated off-screen
+    // when closed), so the ref is non-null here.
+    searchInputRef.current?.focus({ preventScroll: true });
+  };
 
   useEffect(() => {
     let frame = 0;
@@ -134,7 +144,7 @@ export function BottomBar() {
           <motion.button
             type="button"
             aria-label="Search all games"
-            onClick={openSearch}
+            onClick={handleSearchTap}
             className="flex h-[44px] flex-1 items-center overflow-hidden rounded-full pl-[12px] pr-[12px] text-left"
             style={{
               backgroundColor: "#ffffff",

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 
 export type LobbyFilter = "home" | "casino" | "live" | "bingo";
 
@@ -22,6 +22,10 @@ type FilterContextValue = {
   searchOpen: boolean;
   openSearch: () => void;
   closeSearch: () => void;
+  /** Ref to the search input — exposed so the BottomBar's click handler
+   *  can focus it synchronously (iOS requires focus inside the user-gesture
+   *  call stack to auto-open the keyboard). */
+  searchInputRef: { current: HTMLInputElement | null };
 };
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -35,6 +39,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [filter, setFilter] = useState<LobbyFilter>("home");
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const scrollToTop = () => {
     if (typeof window !== "undefined") {
@@ -65,6 +70,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         searchOpen,
         openSearch: () => setSearchOpen(true),
         closeSearch: () => setSearchOpen(false),
+        searchInputRef,
       }}
     >
       {children}

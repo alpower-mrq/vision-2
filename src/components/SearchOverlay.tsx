@@ -1,25 +1,34 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useFilter } from "@/lib/filter-context";
 
 /**
  * Search overlay — full-screen search experience opened by tapping the
  * Search all games pill in the bottom bar.
  *
+ * Key implementation choice: this component is ALWAYS mounted (just slid
+ * off-screen when closed via translateY). Why?
+ *
+ *   iOS Safari only opens the on-screen keyboard if `.focus()` is called
+ *   inside the call stack of a user gesture (e.g. inside the click
+ *   handler). If the input is mounted via AnimatePresence on state change
+ *   and we focus it later (in an effect or setTimeout), iOS treats it as
+ *   programmatic focus *outside* the gesture and the keyboard stays
+ *   hidden — the user would have to tap the input again.
+ *
+ *   By keeping the input mounted at all times (just translated below the
+ *   viewport with translateY:100%), the BottomBar's onClick handler can
+ *   `searchInputRef.current.focus()` synchronously, inside the gesture's
+ *   call stack — and iOS pops the keyboard immediately.
+ *
  * UX:
  *   - Slides in from below with a spring
- *   - Autofocused `<input>` triggers the native iOS keyboard immediately
- *   - Empty state: shows "Popular searches" chips
- *   - Typing: live-filters the game pool and renders matching tiles in a grid
- *   - Back arrow (top-left) closes the overlay
- *
- * Implementation notes:
- *   - The overlay is fixed and z-50 (above everything except the side nav).
- *   - Body scroll is locked while open so the lobby underneath doesn't move.
- *   - Game pool is hard-coded here to keep the demo self-contained — easy to
- *     swap for a real catalogue or backend search later.
+ *   - Empty state: "Popular searches" chips
+ *   - Typing: live-filters the game pool and renders matching tiles
+ *   - Back arrow (top-left) or Esc closes the overlay
+ *   - Fills the entire viewport — no max-width / centering / borders
  */
 
 type Game = { src: string; name: string; provider: string; tags?: string[] };
@@ -50,20 +59,12 @@ const GAMES: Game[] = [
 ];
 
 export function SearchOverlay() {
-  const { searchOpen, closeSearch } = useFilter();
+  const { searchOpen, closeSearch, searchInputRef } = useFilter();
   const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset the query each time the overlay opens; autofocus the input so iOS
-  // immediately brings up the keyboard.
+  // Reset query when the overlay closes so it's empty next time we open.
   useEffect(() => {
-    if (searchOpen) {
-      setQuery("");
-      // Small delay so the slide-in animation finishes before focusing,
-      // otherwise iOS can ignore the focus call mid-transition.
-      const t = setTimeout(() => inputRef.current?.focus(), 250);
-      return () => clearTimeout(t);
-    }
+    if (!searchOpen) setQuery("");
   }, [searchOpen]);
 
   // Lock body scroll while open.
@@ -97,83 +98,79 @@ export function SearchOverlay() {
     : [];
 
   return (
-    <AnimatePresence>
-      {searchOpen && (
-        <motion.div
-          role="dialog"
-          aria-label="Search games"
-          className="fixed inset-0 z-50 flex flex-col bg-white"
-          // Constrain to the mobile-frame width on desktop.
-          style={{
-            maxWidth: "var(--mobile-width)",
-            margin: "0 auto",
-            left: "max(0px, calc(50vw - var(--mobile-width) / 2))",
-            right: "max(0px, calc(50vw - var(--mobile-width) / 2))",
-          }}
-          initial={{ y: "100%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "100%", opacity: 0 }}
-          transition={{ type: "spring", stiffness: 380, damping: 38, mass: 0.9 }}
+    <motion.div
+      role="dialog"
+      aria-label="Search games"
+      aria-hidden={!searchOpen}
+      className="fixed inset-0 z-50 flex flex-col bg-white"
+      // Always rendered. When closed, slid below the viewport.
+      // `inset-0` makes the overlay fill the whole screen — no max-width,
+      // no centering, no border.
+      animate={{ y: searchOpen ? 0 : "100%" }}
+      transition={{ type: "spring", stiffness: 380, damping: 38, mass: 0.9 }}
+      style={{
+        pointerEvents: searchOpen ? "auto" : "none",
+      }}
+    >
+      {/* Search bar */}
+      <div
+        className="flex items-center gap-[10px] px-[16px] pb-[12px]"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
+      >
+        <button
+          type="button"
+          onClick={closeSearch}
+          aria-label="Back"
+          tabIndex={searchOpen ? 0 : -1}
+          className="grid size-[40px] shrink-0 place-items-center rounded-full active:bg-[#f2f3f3] transition-colors"
         >
-          {/* Search bar */}
-          <div
-            className="flex items-center gap-[10px] px-[16px] pb-[12px]"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
-          >
+          <BackIcon className="size-[20px] text-[var(--mrq-blue-dark)]" />
+        </button>
+
+        <label
+          className="flex flex-1 items-center gap-[8px] h-[44px] rounded-full bg-white px-[14px]"
+          style={{ border: "1px solid #ced5f5" }}
+        >
+          <SearchIcon className="size-[18px] shrink-0 text-mrq-blue" />
+          <input
+            ref={searchInputRef}
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            placeholder="Search all games"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            tabIndex={searchOpen ? 0 : -1}
+            className="flex-1 outline-none text-[15px] font-semibold text-[var(--mrq-blue-dark)] placeholder:text-[#9ca0aa] bg-transparent"
+          />
+          {query && (
             <button
               type="button"
-              onClick={closeSearch}
-              aria-label="Back"
-              className="grid size-[40px] shrink-0 place-items-center rounded-full active:bg-[#f2f3f3] transition-colors"
+              onClick={() => {
+                setQuery("");
+                searchInputRef.current?.focus();
+              }}
+              aria-label="Clear search"
+              className="shrink-0 size-[20px] grid place-items-center rounded-full bg-[#e6eafa] active:scale-[0.92] transition-transform"
             >
-              <BackIcon className="size-[20px] text-[var(--mrq-blue-dark)]" />
+              <ClearIcon className="size-[10px] text-[var(--mrq-blue-dark)]" />
             </button>
+          )}
+        </label>
+      </div>
 
-            <label
-              className="flex flex-1 items-center gap-[8px] h-[44px] rounded-full bg-white px-[14px]"
-              style={{ border: "1px solid #ced5f5" }}
-            >
-              <SearchIcon className="size-[18px] shrink-0 text-mrq-blue" />
-              <input
-                ref={inputRef}
-                type="search"
-                inputMode="search"
-                enterKeyHint="search"
-                autoComplete="off"
-                placeholder="Search all games"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 outline-none text-[15px] font-semibold text-[var(--mrq-blue-dark)] placeholder:text-[#9ca0aa] bg-transparent"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setQuery("");
-                    inputRef.current?.focus();
-                  }}
-                  aria-label="Clear search"
-                  className="shrink-0 size-[20px] grid place-items-center rounded-full bg-[#e6eafa] active:scale-[0.92] transition-transform"
-                >
-                  <ClearIcon className="size-[10px] text-[var(--mrq-blue-dark)]" />
-                </button>
-              )}
-            </label>
-          </div>
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-[16px] pb-[24px]">
-            {trimmed.length === 0 ? (
-              <EmptyState onPick={(term) => setQuery(term)} />
-            ) : results.length === 0 ? (
-              <NoResults query={query} />
-            ) : (
-              <Results games={results} />
-            )}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-[16px] pb-[24px]">
+        {trimmed.length === 0 ? (
+          <EmptyState onPick={(term) => setQuery(term)} />
+        ) : results.length === 0 ? (
+          <NoResults query={query} />
+        ) : (
+          <Results games={results} />
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -229,7 +226,7 @@ function Results({ games }: { games: Game[] }) {
           <button
             key={g.name}
             type="button"
-            className="flex flex-col gap-[6px] text-left active:scale-[0.98] transition-transform"
+            className="flex flex-col gap-[6px] text-left active:scale-[0.99] transition-transform"
           >
             <div
               className="aspect-square w-full overflow-hidden rounded-[12px]"
