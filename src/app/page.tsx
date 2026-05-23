@@ -2,6 +2,7 @@ import { TopNav } from "@/components/TopNav";
 import { BottomBar } from "@/components/BottomBar";
 import { LobbyContent } from "@/components/LobbyContent";
 import { SideNav } from "@/components/SideNav";
+import { SearchOverlay } from "@/components/SearchOverlay";
 import { FilterProvider } from "@/lib/filter-context";
 
 /**
@@ -26,6 +27,7 @@ export default function Home() {
 
         <BottomBar />
         <SideNav />
+        <SearchOverlay />
       </div>
     </FilterProvider>
   );

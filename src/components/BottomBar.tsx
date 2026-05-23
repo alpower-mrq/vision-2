@@ -38,7 +38,7 @@ const FAST_SPRING = { type: "spring" as const, stiffness: 500, damping: 40, mass
 export function BottomBar() {
   const [collapsed, setCollapsed] = useState(false);
   const reduce = useReducedMotion();
-  const { goHome } = useFilter();
+  const { goHome, openSearch } = useFilter();
 
   useEffect(() => {
     let frame = 0;
@@ -134,6 +134,7 @@ export function BottomBar() {
           <motion.button
             type="button"
             aria-label="Search all games"
+            onClick={openSearch}
             className="flex h-[44px] flex-1 items-center overflow-hidden rounded-full pl-[12px] pr-[12px] text-left"
             style={{
               backgroundColor: "#ffffff",

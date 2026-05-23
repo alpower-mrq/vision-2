@@ -17,6 +17,11 @@ type FilterContextValue = {
   sideNavOpen: boolean;
   openSideNav: () => void;
   closeSideNav: () => void;
+
+  /** Search overlay state (opened by tapping the search pill). */
+  searchOpen: boolean;
+  openSearch: () => void;
+  closeSearch: () => void;
 };
 
 const FilterContext = createContext<FilterContextValue | null>(null);
@@ -29,6 +34,7 @@ const FilterContext = createContext<FilterContextValue | null>(null);
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filter, setFilter] = useState<LobbyFilter>("home");
   const [sideNavOpen, setSideNavOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const scrollToTop = () => {
     if (typeof window !== "undefined") {
@@ -56,6 +62,9 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         sideNavOpen,
         openSideNav: () => setSideNavOpen(true),
         closeSideNav: () => setSideNavOpen(false),
+        searchOpen,
+        openSearch: () => setSearchOpen(true),
+        closeSearch: () => setSearchOpen(false),
       }}
     >
       {children}
