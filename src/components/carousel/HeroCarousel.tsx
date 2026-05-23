@@ -89,10 +89,7 @@ export function HeroCarousel() {
         // squashed against the top. Mouse drag inertia comes from the
         // useDraggableScroll hook.
         className="no-scrollbar flex gap-[12px] overflow-x-auto overflow-y-hidden px-[16px] pt-[28px] pb-[14px]"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          touchAction: "pan-x",
-        }}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {CARDS.map((card, i) => {
           const isActive = i === activeIndex;

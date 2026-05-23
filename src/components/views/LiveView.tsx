@@ -73,10 +73,7 @@ function MostPopularRail({ tables }: { tables: Table[] }) {
       <div
         ref={railRef}
         className="no-scrollbar flex gap-[12px] overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-2"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          touchAction: "pan-x",
-        }}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {tables.map((t, i) => (
           <LiveTableCard key={`${t.name}-${i}`} table={t} />
