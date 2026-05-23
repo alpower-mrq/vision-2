@@ -65,19 +65,14 @@ export function BottomBar() {
   const transition = reduce ? { duration: 0 } : SPRING;
 
   return (
-    // Floating bar that sits OVER the lobby content (content scrolls visibly
-    // behind it). The mobile-frame's white bg fills the entire viewport
-    // beneath, so the area below the bar — where iOS Safari's chrome lands —
-    // is already a clean white surface. Page content stays clear of that
-    // chrome zone via the bottom safe-area spacer in page.tsx.
+    // Floating bar — sits OVER lobby content (transparent backdrop, content
+    // scrolls visibly behind it). The mobile-frame's white bg already fills
+    // the entire viewport bottom, so Safari's chrome lands on white without
+    // any extra structure. Just a simple 20px lift above the safe-area inset.
     <div
       className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
       style={{
-        // Lifted well above iOS Safari's own bottom chrome (~50-80pt) so
-        // there's clear white space between our floating pills and Safari's
-        // UI. The bar isn't sitting next to the chrome — it's hovering over
-        // the lobby content above it.
-        bottom: "max(72px, calc(env(safe-area-inset-bottom) + 64px))",
+        bottom: "max(20px, calc(env(safe-area-inset-bottom) + 20px))",
       }}
       data-node-id="50:3305"
     >

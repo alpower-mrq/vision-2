@@ -19,11 +19,9 @@ export default function Home() {
 
         <main className="bg-white">
           <LobbyContent />
-          {/* Bottom safe area — clears both the floating bottom bar (~52px
-              tall, lifted 72px above viewport bottom) AND iOS Safari's own
-              bottom chrome. Everything below the last content row should be
-              empty white so Safari's UI lands on a clean white surface. */}
-          <div style={{ height: "max(140px, calc(env(safe-area-inset-bottom) + 140px))" }} aria-hidden />
+          {/* Bottom safe area — just enough to clear the floating bottom bar
+              (44px home + ~20px lift + safe-area inset). */}
+          <div style={{ height: "max(96px, calc(env(safe-area-inset-bottom) + 96px))" }} aria-hidden />
         </main>
 
         <BottomBar />
