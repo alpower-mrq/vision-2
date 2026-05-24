@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 
@@ -45,6 +46,7 @@ export function HeroCarousel() {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const rail = railRef.current;
@@ -77,10 +79,15 @@ export function HeroCarousel() {
   }, []);
 
   return (
-    <section
+    <motion.section
       aria-label="Featured promotions"
       className="relative"
       data-node-id="48:1732"
+      // Casino "deal-in" entrance: subtle slide-up + scale-in on first paint.
+      // Respects prefers-reduced-motion (skips the animation entirely).
+      initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
     >
       <div
         ref={railRef}
@@ -116,7 +123,7 @@ export function HeroCarousel() {
           );
         })}
       </div>
-    </section>
+    </motion.section>
   );
 }
 

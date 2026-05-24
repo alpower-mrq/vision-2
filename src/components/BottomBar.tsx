@@ -80,6 +80,13 @@ export function BottomBar() {
   const floorHeight = "env(safe-area-inset-bottom)";
   const barOffset = "calc(env(safe-area-inset-bottom) + 12px)";
 
+  // Casino "deal-in" entrance: bar + floor fade/scale in LAST, after the hero
+  // and rails have settled (~500ms delay puts us at the tail end of the
+  // 600–800ms total page-load transition window).
+  const entranceTransition = reduce
+    ? { duration: 0 }
+    : { duration: 0.3, delay: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] };
+
   return (
     <>
       {/* White floor — sized to Safari chrome height. Slightly translucent
@@ -89,7 +96,7 @@ export function BottomBar() {
           there's no Safari chrome to land on it — the floor would just be
           an empty white bar at the device edge. The `bottom-bar-floor`
           class is targeted by a CSS rule in globals.css. */}
-      <div
+      <motion.div
         className="bottom-bar-floor pointer-events-none fixed bottom-0 inset-x-0 z-30"
         style={{
           height: floorHeight,
@@ -97,15 +104,21 @@ export function BottomBar() {
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
         }}
+        initial={reduce ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={entranceTransition}
         aria-hidden
       />
 
       {/* Floating bar — 12px above the floor; pills stay transparent so
           lobby content shows above and through them. */}
-      <div
+      <motion.div
         className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
         style={{ bottom: barOffset }}
         data-node-id="50:3305"
+        initial={reduce ? false : { opacity: 0, y: 12, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={entranceTransition}
       >
       <nav
         aria-label="Quick actions"
@@ -205,7 +218,7 @@ export function BottomBar() {
           />
         </motion.button>
       </nav>
-      </div>
+      </motion.div>
     </>
   );
 }
