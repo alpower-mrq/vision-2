@@ -43,7 +43,9 @@ const PANEL_H_PCT = (490 / FH) * 100;          // 60.34%
 
 // Logo inside the blue panel (positions relative to the *panel*, not the
 // viewport, so the logo travels with the panel on exit).
-const LOGO_TOP_PCT = (327 / 490) * 100;        // 66.73%
+// Pulled up from the Figma-exact 66.73% — the Q's curl was sitting too close
+// to the blue/white seam and visually bleeding into the tagline area.
+const LOGO_TOP_PCT = (290 / 490) * 100;        // 59.18%
 const LOGO_LEFT_PCT = (15 / FW) * 100;          // 4%
 const LOGO_W_PCT = (347 / FW) * 100;            // 92.53%
 // Width-only sizing + aspect-ratio: avoid setting an explicit height (which
