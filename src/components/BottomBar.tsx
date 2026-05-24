@@ -32,8 +32,17 @@ const EXPAND_AT = 8;
 
 // Spring tuned to feel like a stock iOS list bar — slightly damped, no bounce
 // on the small text shrink, a tiny bit of follow-through on the wide pill.
+// Used for scroll-driven collapse/expand.
 const SPRING = { type: "spring" as const, stiffness: 380, damping: 36, mass: 0.9 };
 const FAST_SPRING = { type: "spring" as const, stiffness: 500, damping: 40, mass: 0.7 };
+// Slower, smoother easing for the one-shot intro expansion — feels
+// deliberate and premium rather than snappy. Used only for the first
+// closed→open transition after page load; scroll-driven motion still
+// uses SPRING for snappy feedback.
+const INTRO_TRANSITION = {
+  duration: 0.7,
+  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+};
 
 export function BottomBar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -41,23 +50,36 @@ export function BottomBar() {
   // closed (circle) state, then expands to "Search all games" to draw the
   // eye to it. `introClosed` is true during the bar's entrance, then
   // flipped off ~300ms after the bar lands so the user sees the expansion
-  // as a distinct, deliberate motion.
+  // as a distinct, deliberate motion. `introAnimating` tracks whether the
+  // expansion is currently playing — used to swap in a slower, smoother
+  // transition for that one moment so the open feels graceful, not
+  // snappy. After the intro, scroll-driven motion uses the fast SPRING.
   const [introClosed, setIntroClosed] = useState(true);
+  const [introAnimating, setIntroAnimating] = useState(false);
   const reduce = useReducedMotion();
   const { goHome, openSearch, searchInputRef, bootDone } = useFilter();
 
   // Trigger the search-pill expansion after the bar's slide-in completes.
   // Bar timing: bootDone + 900ms delay + 300ms duration = 1200ms → bar
   // landed. Add a 300ms beat so the expansion reads as a follow-up motion,
-  // not a continuation of the slide-up. Total: 1500ms post-bootDone.
+  // not a continuation of the slide-up. Total: 1500ms post-bootDone. The
+  // expansion itself runs for 700ms (INTRO_TRANSITION.duration), after
+  // which we exit intro mode and let SPRING take over for scroll.
   useEffect(() => {
     if (!bootDone || reduce) {
       // Reduced motion: open immediately, no intro choreography.
       if (reduce) setIntroClosed(false);
       return;
     }
-    const t = setTimeout(() => setIntroClosed(false), 1500);
-    return () => clearTimeout(t);
+    const openTimer = setTimeout(() => {
+      setIntroClosed(false);
+      setIntroAnimating(true);
+    }, 1500);
+    const settledTimer = setTimeout(() => setIntroAnimating(false), 1500 + 750);
+    return () => {
+      clearTimeout(openTimer);
+      clearTimeout(settledTimer);
+    };
   }, [bootDone, reduce]);
 
   // The pill is shown in compact form during the intro AND when scrolled.
@@ -95,7 +117,14 @@ export function BottomBar() {
     };
   }, []);
 
-  const transition = reduce ? { duration: 0 } : SPRING;
+  // While the intro expansion is playing, swap in the slower, smoother
+  // tween. Once it's settled, fall back to SPRING for snappy
+  // scroll-driven motion.
+  const transition = reduce
+    ? { duration: 0 }
+    : introAnimating
+      ? INTRO_TRANSITION
+      : SPRING;
 
   // White floor exactly matches Safari's chrome height (env reports the
   // chrome height when viewport-fit:cover is set). Bar lifted ~12px above
