@@ -4,89 +4,124 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 /**
- * App loading splash — covers the lobby for ~2.6s on first paint, then fades
- * out. Frame-by-frame inspired by Figma nodes 66:14396, 66:14433, 66:14444:
+ * App loading splash — full storyboard inspired by Figma node 71:14585.
  *
- *   Frame A  (0–280ms):    oversized MrQ mark fills the screen, scales down + blurs
- *   Frame B  (280–650ms):  white MrQ logo bounces in from the centre with a spring
- *   Hold     (650–2400ms): logo stays put so the brand reads
- *   Frame C  (2400–2600ms): whole splash fades out, revealing the lobby
+ * Beats:
  *
- * Stays at z-[60] so it sits above every other overlay (BottomBar/SideNav/
+ *   0ms       white screen
+ *   0–500ms   blue panel slides + bounces down from the top (covers top ~58%
+ *             of the viewport)
+ *   300–900ms MrQ logo bounces down from the top, lands centred in the blue
+ *             panel (delayed so the panel is already in place when it lands)
+ *   900–1300  tagline "THE CASINO YOU / LOVE TO HATE" fades in below the
+ *             blue, in the white half
+ *   1300–2800 hold — finished frame visible
+ *   2800–3200 blue panel (with logo inside it) slides up off the top; the
+ *             tagline fades down out of view at the same time
+ *   3200      whole splash fades out, revealing the lobby underneath
+ *
+ * Total ≈ 3.2s.
+ *
+ * Stays at z-[60] so it sits above every other overlay (BottomBar / SideNav /
  * SearchOverlay) during the boot moment.
- *
- * Logo aspect: the logo SVG is 83 × 32 viewBox with `preserveAspectRatio
- * ="none"`, so we have to set BOTH width and height explicitly to keep it
- * from stretching when the parent isn't the same aspect. We use the 83:32
- * ratio (each frame just picks a width and computes the matching height).
  */
 
 const LOGO_RATIO = 32 / 83; // height / width
 const lh = (w: number) => Math.round(w * LOGO_RATIO);
 
+// Blue panel takes the top portion. 58% leaves room for the tagline beneath.
+const BLUE_PCT = 58;
+
 export function LoadingSplash() {
-  // 0 = huge mark, 1 = bounce-in logo, 2 = exit fade, 3 = unmounted.
-  const [phase, setPhase] = useState<0 | 1 | 2 | 3>(0);
+  const [mounted, setMounted] = useState(true);
+  const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 280),
-      setTimeout(() => setPhase(2), 2400),
-      setTimeout(() => setPhase(3), 2600),
-    ];
-    return () => timers.forEach(clearTimeout);
+    // Kick off the exit phase after the hold; unmount shortly after so the
+    // splash doesn't sit invisibly above the lobby.
+    const exitTimer = setTimeout(() => setExiting(true), 2800);
+    const unmountTimer = setTimeout(() => setMounted(false), 3400);
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(unmountTimer);
+    };
   }, []);
+
+  const dropSpring = { type: "spring" as const, stiffness: 220, damping: 14, mass: 1 };
+  const dropSpringSoft = { type: "spring" as const, stiffness: 260, damping: 18, mass: 0.9 };
+  const exitEase = { duration: 0.4, ease: [0.55, 0, 0.45, 1] as [number, number, number, number] };
 
   return (
     <AnimatePresence>
-      {phase < 3 && (
+      {mounted && (
         <motion.div
           key="splash"
-          className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-mrq-blue"
+          className="fixed inset-0 z-[60] overflow-hidden bg-white"
           initial={{ opacity: 1 }}
-          animate={{ opacity: phase < 2 ? 1 : 0 }}
+          // Final fade-out reveals the lobby underneath.
+          animate={{ opacity: exiting ? 0 : 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.25, delay: exiting ? 0.18 : 0 }}
           aria-hidden
         >
-          {/* Frame A: oversized MrQ mark that fills the screen, then scales
-              down and blurs out as the bounce-in logo takes over. Width +
-              height set explicitly so the 83:32 aspect ratio is preserved
-              (the SVG itself uses preserveAspectRatio=none). */}
-          <motion.img
-            src="/assets/logo-mrq.svg"
-            alt=""
-            className="absolute"
-            initial={{ scale: 6, opacity: 1, filter: "blur(0px)" }}
-            animate={
-              phase === 0
-                ? { scale: 6, opacity: 1, filter: "blur(0px)" }
-                : { scale: 3, opacity: 0, filter: "blur(20px)" }
-            }
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            style={{ width: "180px", height: `${lh(180)}px` }}
-          />
+          {/* Blue top panel — bounces in from above on entrance, slides back
+              up on exit. The logo lives inside it so it travels with the
+              panel on the way out. */}
+          <motion.div
+            className="absolute left-0 right-0 top-0 bg-mrq-blue overflow-hidden flex items-center justify-center"
+            style={{ height: `${BLUE_PCT}%` }}
+            initial={{ y: "-100%" }}
+            animate={{ y: exiting ? "-100%" : 0 }}
+            transition={exiting ? exitEase : dropSpringSoft}
+          >
+            {/* MrQ logo — bounces down from the top after a small delay so
+                it visibly lands in an already-settled blue panel. Width +
+                height set explicitly so the 83:32 aspect is locked. */}
+            <motion.img
+              src="/assets/logo-mrq.svg"
+              alt="MrQ"
+              initial={{ y: "-260%", opacity: 0 }}
+              animate={{
+                y: exiting ? 0 : 0,
+                opacity: 1,
+              }}
+              transition={
+                exiting
+                  ? { duration: 0 } // logo moves with the panel; no separate exit
+                  : { ...dropSpring, delay: 0.32 }
+              }
+              style={{ width: "240px", height: `${lh(240)}px` }}
+            />
+          </motion.div>
 
-          {/* Frame B: the MrQ logo bounces in from the centre with a spring.
-              Explicit width AND height again to lock the 83:32 aspect. */}
-          <motion.img
-            src="/assets/logo-mrq.svg"
-            alt="MrQ"
-            className="relative"
-            style={{ width: "140px", height: `${lh(140)}px` }}
-            initial={{ scale: 0.3, opacity: 0 }}
-            animate={
-              phase >= 1
-                ? { scale: 1, opacity: 1 }
-                : { scale: 0.3, opacity: 0 }
-            }
-            transition={{
-              type: "spring",
-              stiffness: 380,
-              damping: 14,
-              mass: 0.9,
+          {/* Tagline — sits in the white bottom area, fades in once the
+              logo has landed; fades + slides down on exit. */}
+          <motion.div
+            className="absolute left-0 right-0 flex flex-col items-center text-center"
+            style={{
+              top: `${BLUE_PCT}%`,
+              paddingTop: "44px",
+              color: "var(--mrq-blue)",
+              fontFamily: "var(--font-display)",
+              fontWeight: 900,
+              fontSize: "30px",
+              lineHeight: 1.0,
+              letterSpacing: "0.5px",
             }}
-          />
+            initial={{ opacity: 0, y: 0 }}
+            animate={{
+              opacity: exiting ? 0 : 1,
+              y: exiting ? 24 : 0,
+            }}
+            transition={
+              exiting
+                ? { duration: 0.35, ease: [0.55, 0, 0.45, 1] }
+                : { duration: 0.5, delay: 0.95, ease: [0.22, 1, 0.36, 1] }
+            }
+          >
+            <span>THE CASINO YOU</span>
+            <span style={{ marginTop: "8px" }}>LOVE TO HATE</span>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
