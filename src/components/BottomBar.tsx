@@ -81,13 +81,19 @@ export function BottomBar() {
   const barOffset = "calc(env(safe-area-inset-bottom) + 12px)";
 
   // Casino "deal-in" entrance: bar + floor fade/scale in LAST, after the
-  // hero and rails have settled. Gated on `bootDone` (flipped by the loading
-  // splash on its way out), then a 500ms delay puts the bar's arrival at
-  // the tail end of the deal-in choreography.
-  const entranceTransition = reduce
-    ? { duration: 0 }
-    : { duration: 0.3, delay: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] };
+  // hero and rails have settled. Gated on `bootDone` (flipped by the
+  // loading splash as it dissolves), then a 500ms delay puts the bar's
+  // arrival at the tail end of the deal-in choreography.
+  //
+  // NOTE: we use CSS transitions for the entrance — NOT Framer's animate
+  // prop. Framer was re-evaluating its delayed transition on every
+  // context re-render (e.g. when switching filter pills) and visually
+  // re-firing the slide-up from below. A CSS transition fires once when
+  // the class flips and never re-triggers, so the bar stays put.
   const shown = reduce || bootDone;
+  const entranceCss = reduce
+    ? "none"
+    : "opacity 0.3s 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s 0.5s cubic-bezier(0.22, 1, 0.36, 1)";
 
   return (
     <>
@@ -98,33 +104,30 @@ export function BottomBar() {
           there's no Safari chrome to land on it — the floor would just be
           an empty white bar at the device edge. The `bottom-bar-floor`
           class is targeted by a CSS rule in globals.css. */}
-      <motion.div
+      <div
         className="bottom-bar-floor pointer-events-none fixed bottom-0 inset-x-0 z-30"
         style={{
           height: floorHeight,
           backgroundColor: "rgba(255, 255, 255, 0.92)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
+          opacity: shown ? 1 : 0,
+          transition: entranceCss,
         }}
-        initial={reduce ? false : { opacity: 0 }}
-        animate={{ opacity: shown ? 1 : 0 }}
-        transition={entranceTransition}
         aria-hidden
       />
 
       {/* Floating bar — 12px above the floor; pills stay transparent so
           lobby content shows above and through them. */}
-      <motion.div
+      <div
         className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
-        style={{ bottom: barOffset }}
+        style={{
+          bottom: barOffset,
+          opacity: shown ? 1 : 0,
+          transform: shown ? "translateY(0) scale(1)" : "translateY(12px) scale(0.96)",
+          transition: entranceCss,
+        }}
         data-node-id="50:3305"
-        initial={reduce ? false : { opacity: 0, y: 12, scale: 0.96 }}
-        animate={
-          shown
-            ? { opacity: 1, y: 0, scale: 1 }
-            : { opacity: 0, y: 12, scale: 0.96 }
-        }
-        transition={entranceTransition}
       >
       <nav
         aria-label="Quick actions"
@@ -224,7 +227,7 @@ export function BottomBar() {
           />
         </motion.button>
       </nav>
-      </motion.div>
+      </div>
     </>
   );
 }

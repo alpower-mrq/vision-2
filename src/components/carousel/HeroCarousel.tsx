@@ -31,7 +31,6 @@ import { useFilter } from "@/lib/filter-context";
 const CARDS = [
   { key: "get-spicy", src: "/assets/carousel/card-get-spicy.png", alt: "Play Now — Get Spicy with Spicy Meatballs Megaways" },
   { key: "limits-in-check", src: "/assets/carousel/card-limits-in-check.png", alt: "Keep your limits in check" },
-  { key: "u-vs-q", src: "/assets/carousel/card-u-vs-q.png", alt: "U vs Q — head-to-head" },
   { key: "ready-to-play", src: "/assets/carousel/card-ready-to-play.png", alt: "Ready to play together? Join the Arena with 200K+ players" },
 ];
 
