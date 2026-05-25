@@ -113,7 +113,19 @@ export function LoadingSplash() {
       {mounted && (
         <motion.div
           key="splash"
-          className="fixed inset-0 z-[60] overflow-hidden bg-white"
+          // Fixed so the height is always exactly one viewport (avoids
+          // the logo getting pushed below the fold by tall lobby
+          // content under the splash). Horizontally constrained via
+          // --frame-right-offset (defined in globals.css) so on
+          // desktop the splash hugs the same 375px column as the
+          // mobile-frame, instead of taking over the whole monitor.
+          // On mobile the frame is full-width so the offset is 0
+          // and the splash fills the viewport edge-to-edge.
+          className="fixed top-0 bottom-0 z-[60] overflow-hidden bg-white"
+          style={{
+            left: "var(--frame-right-offset)",
+            right: "var(--frame-right-offset)",
+          }}
           initial={{ opacity: 1 }}
           // The whole splash wrapper (including the white background)
           // fades QUICKLY (250ms) so the lobby behind is revealed while

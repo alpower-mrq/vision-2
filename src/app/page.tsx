@@ -30,8 +30,10 @@ export default function Home() {
         <SideNav />
         <SearchOverlay />
       </div>
-      {/* Mounted last + outside the mobile-frame so it covers the whole
-          viewport during the boot moment. */}
+      {/* Splash is position:fixed and constrains its own width via the
+          --frame-right-offset CSS var — on desktop it hugs the 375px
+          frame column instead of taking over the whole monitor; on
+          mobile the offset is 0 so it fills the viewport edge-to-edge. */}
       <LoadingSplash />
     </FilterProvider>
   );
