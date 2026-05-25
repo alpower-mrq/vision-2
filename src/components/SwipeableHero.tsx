@@ -48,10 +48,8 @@ const SWIPE_EXIT_DISTANCE = 600;
 
 export function SwipeableHero({ games }: { games: HeroGame[] }) {
   const [index, setIndex] = useState(0);
-  // Bumping `cardId` forces React to remount the SwipeCard with a fresh
-  // motion value at the centre. Keying on `index` would do it too, but
-  // explicit IDs make the intent clearer.
-  const cardId = index;
+  const current = games[index % games.length];
+  const next = games[(index + 1) % games.length];
 
   return (
     <div
@@ -64,12 +62,47 @@ export function SwipeableHero({ games }: { games: HeroGame[] }) {
         margin: "0 auto",
       }}
     >
+      {/* Underlay: the NEXT card, peeking from behind. Slightly
+          smaller and pushed down a few pixels so the user can see
+          there's another card waiting. When the top card swipes
+          away, this underlay grows into the front position (handled
+          by the `key`-driven remount on the front card). */}
+      <NextCardPreview key={`peek-${index}`} game={next} />
+
+      {/* Front: the active draggable card. Remounted (via the
+          changing key) each time the user swipes one away, so the
+          motion value resets cleanly to centre. */}
       <SwipeCard
-        key={cardId}
-        game={games[index % games.length]}
+        key={`top-${index}`}
+        game={current}
         onSwiped={() => setIndex((i) => i + 1)}
       />
     </div>
+  );
+}
+
+/** The peek behind the active card — non-interactive, slightly
+ *  smaller, dimmed by a soft scrim. When the front card swipes off,
+ *  this one expands into the front position with a quick spring. */
+function NextCardPreview({ game }: { game: HeroGame }) {
+  return (
+    <motion.div
+      className="absolute inset-0 pointer-events-none"
+      initial={{ scale: 0.92, y: 14, opacity: 0.75 }}
+      animate={{ scale: 0.95, y: 10, opacity: 0.92 }}
+      transition={{ type: "spring", stiffness: 280, damping: 32, mass: 0.9 }}
+      aria-hidden
+    >
+      <CardSurface game={game} />
+      {/* Subtle scrim so the back card reads as "behind" rather than
+          competing for attention with the front. Goes away as the
+          front card is dragged (could be wired to drag progress
+          later; static for now). */}
+      <div
+        className="absolute inset-0 rounded-[18px] pointer-events-none"
+        style={{ backgroundColor: "rgba(245, 245, 245, 0.22)" }}
+      />
+    </motion.div>
   );
 }
 

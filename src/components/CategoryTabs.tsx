@@ -96,10 +96,10 @@ export function CategoryTabs({
                 setActive(tab);
                 onChange?.(tab);
               }}
-              className="relative shrink-0 pt-[8px] pb-[6px]"
+              className="relative shrink-0 pt-[8px] pb-[8px]"
             >
               <span
-                className="text-[18px] font-extrabold leading-none whitespace-nowrap"
+                className="text-[15px] font-extrabold leading-none whitespace-nowrap"
                 style={{
                   color: isActive ? "#ffd400" : "#ffffff",
                   // Subtle de-emphasis on inactive labels.
@@ -111,12 +111,19 @@ export function CategoryTabs({
               </span>
 
               {/* Active underline — shared layoutId means a single bar
-                  slides between tabs instead of fading two in/out. */}
+                  slides between tabs instead of fading two in/out.
+                  Extended ~10px on each side so it spans wider than the
+                  label and reads as a heavier emphasis. */}
               {isActive && (
                 <motion.span
                   layoutId="category-tab-underline"
-                  className="absolute left-0 right-0 -bottom-[1px] h-[3px] rounded-full"
-                  style={{ backgroundColor: "#ffd400" }}
+                  className="absolute h-[3px] rounded-full"
+                  style={{
+                    backgroundColor: "#ffd400",
+                    left: "-10px",
+                    right: "-10px",
+                    bottom: "0",
+                  }}
                   transition={{ type: "spring", stiffness: 420, damping: 36 }}
                   aria-hidden
                 />

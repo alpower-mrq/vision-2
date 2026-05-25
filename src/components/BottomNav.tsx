@@ -39,15 +39,18 @@ const TABS: Tab[] = [
   { key: "rewards", href: "/rewards", label: "Rewards", Icon: GiftIcon },
 ];
 
-/** Which tab is "active" given the current pathname. Anything under
- *  `/search` counts as Search, etc. The Lobby tab catches `/` plus the
- *  category landing pages (`/casino`, `/live`, `/bingo`, `/arena`) so it
- *  stays lit when the user drills into a vertical from the top filters. */
-function activeTabFor(pathname: string): string {
+/** Which tab is "active" given the current pathname. Only the four
+ *  top-level destinations light their tab. Category pages (/casino,
+ *  /live, /bingo, /arena) return `null` — the user is "inside" one
+ *  of the verticals, no bottom-nav tab represents that, so none are
+ *  lit. (Previously these defaulted to "lobby"; the user noted it
+ *  felt wrong since they're on a Casino page, not on the Lobby.) */
+function activeTabFor(pathname: string): string | null {
+  if (pathname === "/" || pathname === "") return "lobby";
   if (pathname.startsWith("/search")) return "search";
   if (pathname.startsWith("/discover")) return "discover";
   if (pathname.startsWith("/rewards")) return "rewards";
-  return "lobby";
+  return null;
 }
 
 export function BottomNav() {
@@ -188,10 +191,28 @@ function SearchIcon({ className }: { className?: string }) {
 }
 
 function DiscoverIcon({ className }: { className?: string }) {
-  // Lightning bolt — "spark" for the Reels-style discover feed.
+  // Compass — clearer "discover/explore" affordance. The lightning
+  // bolt we shipped first was reading as a play triangle on the
+  // bar (and confusingly close to the play CTA on the hero card).
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden focusable={false}>
-      <path d="M13.5 2 4 14h6.5L9.5 22 20 9.5h-7L13.5 2Z" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+      focusable={false}
+    >
+      <circle cx="12" cy="12" r="9" />
+      {/* Needle: a slim rhombus pointing NNE */}
+      <path
+        d="m15.3 8.7-2.3 5.6-5.6 2.3 2.3-5.6 5.6-2.3Z"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
