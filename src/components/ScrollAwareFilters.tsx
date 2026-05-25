@@ -140,13 +140,16 @@ function FilterPill({
       transition={{ type: "spring", stiffness: 500, damping: 35 }}
     >
       {/* Icon rendered as a mask so its colour follows the text colour —
-          single SVG asset works for both active and inactive states. */}
+          single SVG asset works for both active and inactive states.
+          Square box (18×18) sized to fit both the wider Casino/Live/Bingo
+          icons and the square Arena crossed-swords icon — `mask-size:
+          contain` letterboxes each within the box without distorting. */}
       <span
         aria-hidden
         className="block bg-current shrink-0"
         style={{
           width: "18px",
-          height: "14px",
+          height: "18px",
           maskImage: `url(${icon})`,
           WebkitMaskImage: `url(${icon})`,
           maskRepeat: "no-repeat",

@@ -131,12 +131,29 @@ function MatchupCard({ matchup }: { matchup: Matchup }) {
         boxShadow: "0 4px 10px -6px rgba(10, 46, 203, 0.15)",
       }}
     >
-      {/* Versus emblem — mirrors the Arena pill icon */}
+      {/* Crossed-swords emblem — same SVG asset as the Arena pill icon,
+          masked so it picks up the brand pink. */}
       <div
         className="grid size-[44px] shrink-0 place-items-center rounded-full"
         style={{ background: `${ARENA_PINK}14` /* 8% tint */ }}
       >
-        <VsIcon style={{ color: ARENA_PINK }} />
+        <span
+          aria-hidden
+          className="block"
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: ARENA_PINK,
+            maskImage: "url(/assets/icon-arena.svg)",
+            WebkitMaskImage: "url(/assets/icon-arena.svg)",
+            maskRepeat: "no-repeat",
+            WebkitMaskRepeat: "no-repeat",
+            maskPosition: "center",
+            WebkitMaskPosition: "center",
+            maskSize: "contain",
+            WebkitMaskSize: "contain",
+          }}
+        />
       </div>
 
       {/* Title block */}
@@ -169,18 +186,3 @@ function MatchupCard({ matchup }: { matchup: Matchup }) {
   );
 }
 
-function VsIcon({ style }: { style?: React.CSSProperties }) {
-  return (
-    <svg
-      viewBox="0 0 18 14"
-      width="18"
-      height="14"
-      fill="currentColor"
-      style={style}
-      aria-hidden
-    >
-      <path d="M1.5 1.5 L4 1.5 L9 7 L4 12.5 L1.5 12.5 L6.5 7 Z" />
-      <path d="M16.5 1.5 L14 1.5 L9 7 L14 12.5 L16.5 12.5 L11.5 7 Z" />
-    </svg>
-  );
-}
