@@ -1,8 +1,14 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useFilter, type LobbyFilter } from "@/lib/filter-context";
+import {
+  ArenaIcon,
+  BingoIcon,
+  CasinoIcon,
+  LiveIcon,
+} from "./FilterIcons";
 
 /**
  * Sub-filter pills (Casino / Live / Bingo) that hide on scroll-down and
@@ -83,15 +89,14 @@ export function ScrollAwareFilters() {
           comfortably in the 375px viewport with breathing room. */}
       <div className="px-[16px] pb-[10px]">
         <nav className="flex items-center gap-[6px]" aria-label="Section filters">
-          <FilterPill pillKey="casino" icon="/assets/icon-casino.svg" label="Casino" />
-          <FilterPill pillKey="live" icon="/assets/icon-live.svg" label="Live" />
-          <FilterPill pillKey="bingo" icon="/assets/icon-bingo.svg" label="Bingo" />
-          {/* Arena uses pink as its brand accent — passed through to the
-              text/icon when the pill is active, and as the pill fill when
-              another filter is selected. */}
+          <FilterPill pillKey="casino" Icon={CasinoIcon} label="Casino" />
+          <FilterPill pillKey="live" Icon={LiveIcon} label="Live" />
+          <FilterPill pillKey="bingo" Icon={BingoIcon} label="Bingo" />
+          {/* Arena uses pink as its brand accent — applied to the icon +
+              label only when the pill is active. */}
           <FilterPill
             pillKey="arena"
-            icon="/assets/icon-arena.svg"
+            Icon={ArenaIcon}
             label="Arena"
             accent="#e0007a"
           />
@@ -103,26 +108,25 @@ export function ScrollAwareFilters() {
 
 function FilterPill({
   pillKey,
-  icon,
+  Icon,
   label,
   accent,
 }: {
   pillKey: Exclude<LobbyFilter, "home">;
-  icon: string;
+  /** Inline SVG component — renders with `currentColor` so it inherits
+   *  the pill's text colour. Inlining (vs `mask-image`) sidesteps the
+   *  browser quirk where Figma's `width="100%" height="100%"` SVGs got
+   *  stretched in the mask box regardless of `mask-size: contain`. */
+  Icon: ComponentType<{ className?: string }>;
   label: string;
-  /** Per-pill accent colour. When the pill is active the icon + label
-   *  take this colour (defaults to navy). When inactive, the pill fill
-   *  takes this colour (defaults to dark navy). Used for Arena's pink. */
+  /** Per-pill accent colour applied to the active foreground (icon +
+   *  text). Inactive pills always use the standard navy + white. */
   accent?: string;
 }) {
   const { filter, togglePill } = useFilter();
   // In `home`, every pill reads as active so the row matches the original
   // unfiltered look. Once a filter is selected, only that pill stays active.
   const active = filter === "home" || filter === pillKey;
-  // The accent ONLY affects the active state's foreground (icon + text).
-  // Inactive pills always use the standard dark-navy fill + white text,
-  // matching every other tab — so swiping away from Arena doesn't leave
-  // a stray pink pill in the row.
   const activeFg = accent ?? "#0c2287";
 
   return (
@@ -142,27 +146,12 @@ function FilterPill({
       whileTap={{ scale: 0.96 }}
       transition={{ type: "spring", stiffness: 500, damping: 35 }}
     >
-      {/* Icon rendered as a mask so its colour follows the text colour —
-          single SVG asset works for both active and inactive states.
-          Square box (18×18) sized to fit both the wider Casino/Live/Bingo
-          icons and the square Arena crossed-swords icon — `mask-size:
-          contain` letterboxes each within the box without distorting. */}
-      <span
-        aria-hidden
-        className="block bg-current shrink-0"
-        style={{
-          width: "18px",
-          height: "18px",
-          maskImage: `url(${icon})`,
-          WebkitMaskImage: `url(${icon})`,
-          maskRepeat: "no-repeat",
-          WebkitMaskRepeat: "no-repeat",
-          maskPosition: "center",
-          WebkitMaskPosition: "center",
-          maskSize: "contain",
-          WebkitMaskSize: "contain",
-        }}
-      />
+      {/* Inline SVG icon — fills currentColor so it tracks the pill's
+          text colour. Sized via `h-[16px]` with `width: auto` so each
+          icon scales uniformly from its own viewBox. No distortion
+          possible because the actual SVG geometry is rendered, not a
+          stretched mask. */}
+      <Icon className="h-[16px] w-auto shrink-0" />
       <span
         className="text-[13px] leading-none font-extrabold whitespace-nowrap"
         style={{ letterSpacing: "0" }}

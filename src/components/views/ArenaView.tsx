@@ -1,5 +1,7 @@
 "use client";
 
+import { ArenaIcon } from "../FilterIcons";
+
 /**
  * Arena view — MrQ's player-vs-player feature.
  *
@@ -131,29 +133,13 @@ function MatchupCard({ matchup }: { matchup: Matchup }) {
         boxShadow: "0 4px 10px -6px rgba(10, 46, 203, 0.15)",
       }}
     >
-      {/* Crossed-swords emblem — same SVG asset as the Arena pill icon,
-          masked so it picks up the brand pink. */}
+      {/* Crossed-swords emblem — shares the inline ArenaIcon component
+          with the pill, so any future tweak to the icon flows here too. */}
       <div
         className="grid size-[44px] shrink-0 place-items-center rounded-full"
-        style={{ background: `${ARENA_PINK}14` /* 8% tint */ }}
+        style={{ background: `${ARENA_PINK}14` /* 8% tint */, color: ARENA_PINK }}
       >
-        <span
-          aria-hidden
-          className="block"
-          style={{
-            width: "20px",
-            height: "20px",
-            backgroundColor: ARENA_PINK,
-            maskImage: "url(/assets/icon-arena.svg)",
-            WebkitMaskImage: "url(/assets/icon-arena.svg)",
-            maskRepeat: "no-repeat",
-            WebkitMaskRepeat: "no-repeat",
-            maskPosition: "center",
-            WebkitMaskPosition: "center",
-            maskSize: "contain",
-            WebkitMaskSize: "contain",
-          }}
-        />
+        <ArenaIcon className="h-[20px] w-auto" />
       </div>
 
       {/* Title block */}
