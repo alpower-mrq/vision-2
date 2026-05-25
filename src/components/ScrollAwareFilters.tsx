@@ -31,10 +31,11 @@ import { useEffect, useRef, useState } from "react";
  */
 const ALWAYS_VISIBLE_BELOW = 100;
 const DIRECTION_THRESHOLD = 4;
-// Bigger band for the new glass pills: 46px pill + 12px bottom padding.
-// The matching 12px above is supplied by the brand bar's own pb so the
-// vertical rhythm reads as consistent.
-const BAND_HEIGHT = 58;
+// 36px filter pill + 12px bottom padding. Matching 12px gap above is
+// supplied by the brand bar's pb so the vertical rhythm reads as
+// consistent. Compact enough that the pills feel like filters
+// (secondary controls), not primary CTAs.
+const BAND_HEIGHT = 48;
 
 export function ScrollAwareFilters() {
   const [visible, setVisible] = useState(true);
@@ -81,7 +82,7 @@ export function ScrollAwareFilters() {
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
       <div className="px-[16px] pb-[12px]">
-        <nav className="flex items-center gap-[8px]" aria-label="Categories">
+        <nav className="flex items-center gap-[6px]" aria-label="Categories">
           <FilterPill href="/casino" label="Casino" />
           <FilterPill href="/bingo" label="Bingo" />
           <FilterPill href="/live" label="Live" />
@@ -113,19 +114,22 @@ function FilterPill({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex flex-1 min-w-0 items-center justify-center rounded-full h-[46px] px-[16px] active:scale-[0.96] transition-transform"
+      className="flex flex-1 min-w-0 items-center justify-center rounded-full h-[36px] px-[14px] active:scale-[0.96] transition-transform"
       style={{
-        backgroundColor: "rgba(255, 255, 255, 0.16)",
-        border: "1px solid rgba(255, 255, 255, 0.22)",
+        backgroundColor: "rgba(255, 255, 255, 0.14)",
+        border: "1px solid rgba(255, 255, 255, 0.18)",
         backdropFilter: "blur(20px) saturate(140%)",
         WebkitBackdropFilter: "blur(20px) saturate(140%)",
+        // Softer highlight + shadow now that the pill is thinner —
+        // the previous values were tuned for a chunkier CTA-style
+        // pill and looked too lifted on a 36px filter chip.
         boxShadow:
-          "inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 4px 10px -4px rgba(0, 0, 0, 0.18)",
+          "inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 2px 6px -2px rgba(0, 0, 0, 0.14)",
         color: "#ffffff",
       }}
     >
       <span
-        className="text-[16px] leading-none font-extrabold whitespace-nowrap"
+        className="text-[14px] leading-none font-extrabold whitespace-nowrap"
         style={{ letterSpacing: "0.01em" }}
       >
         {label}
