@@ -99,7 +99,11 @@ export function BottomNav() {
         transition: entranceCss,
       }}
     >
-      <div className="flex items-stretch px-[8px] pt-[8px] pb-[6px] gap-[4px]">
+      {/* Inner row — tighter top padding now that the icons are
+          26px. Was pt-[8px] but the bar visually had too much air
+          above the icons; pt-[3px] keeps just enough breathing
+          room before the top border. */}
+      <div className="flex items-stretch px-[8px] pt-[3px] pb-[4px] gap-[4px]">
         {TABS.map((tab) => (
           <TabItem key={tab.key} tab={tab} active={tab.key === active} />
         ))}

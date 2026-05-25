@@ -38,45 +38,41 @@ const CASINO_TABS = [
   "Live",
 ];
 
-// Build the swipeable hero deck. Only the slot-XX images are used
-// because they share the 2:3 portrait aspect (320×480 or 640×960)
-// the SwipeableHero card is sized for — landscape promo art
-// (south-park, fruit-warp, birds-on-a-wire) and squares (wild-swarm)
-// got visibly cropped under `object-cover`. Drop those until we have
-// matching cinematic 2:3 hero artwork for each game.
+// Build the swipeable hero deck. The card is now 4:3 landscape (per
+// design feedback that the previous 2:3 portrait was too tall) so
+// we use only the landscape/wider promo art that fits naturally:
+//   birds-on-a-wire  800×600  → 4:3, perfect fit
+//   south-park       362×272  → 4:3, perfect fit
+//   fruit-warp       400×225  → 16:9, minor side crop
+//   wild-swarm       300×300  → 1:1,  small top/bottom crop
+// Slot-XX (2:3 portrait) artwork doesn't suit a landscape hero — it
+// gets harshly cropped — so it's dropped from the deck for now.
 const HERO_DECK: HeroGame[] = [
   {
-    src: "/assets/games/slot-01.png",
-    alt: "Buffalo Bills Hypercharged",
-    title: "Buffalo Bills",
-    rtp: "95%",
+    src: "/assets/games/birds-on-a-wire.png",
+    alt: "Birds on a Wire",
+    title: "Birds on a Wire",
+    rtp: "96.91%",
     exclusive: true,
   },
   {
-    src: "/assets/games/slot-04.png",
-    alt: "Jewel Stepper",
-    title: "Jewel Stepper",
-    rtp: "96.5%",
+    src: "/assets/games/south-park.png",
+    alt: "South Park",
+    title: "South Park",
+    rtp: "96.55%",
   },
   {
-    src: "/assets/games/slot-08.png",
-    alt: "Tiki Tumble",
-    title: "Tiki Tumble",
-    rtp: "96%",
+    src: "/assets/games/fruit-warp.png",
+    alt: "Fruit Warp",
+    title: "Fruit Warp",
+    rtp: "97%",
     exclusive: true,
   },
   {
-    src: "/assets/games/slot-11.png",
-    alt: "Maze Escape",
-    title: "Maze Escape",
-    rtp: "97.5%",
-  },
-  {
-    src: "/assets/games/slot-13.png",
-    alt: "Dragon Hoard",
-    title: "Dragon Hoard",
-    rtp: "96.85%",
-    exclusive: true,
+    src: "/assets/games/wild-swarm.png",
+    alt: "Wild Swarm",
+    title: "Wild Swarm",
+    rtp: "96.32%",
   },
 ];
 

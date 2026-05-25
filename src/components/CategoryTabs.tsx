@@ -24,6 +24,10 @@ import { useEffect, useRef, useState } from "react";
 
 type CategoryTab = string;
 
+// Same band height the Lobby uses (ScrollAwareFilters.BAND_HEIGHT) so
+// the total blue-header height on category pages matches the Lobby.
+const BAND_HEIGHT = 48;
+
 export function CategoryTabs({
   tabs,
   defaultTab,
@@ -74,14 +78,23 @@ export function CategoryTabs({
     <motion.div
       className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-mrq-blue"
       initial={false}
-      animate={{ y: visible ? 0 : -56 }}
+      // Hide translateY equals the band height so it parks exactly
+      // off-screen. Band height matches ScrollAwareFilters' BAND_HEIGHT
+      // so the blue header on /casino is the same total height as on
+      // the Lobby.
+      animate={{ y: visible ? 0 : -BAND_HEIGHT }}
       transition={transition}
       aria-hidden={!visible}
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
       <div
-        className="no-scrollbar flex items-end gap-[24px] overflow-x-auto px-[16px] pb-[10px]"
-        style={{ scrollbarWidth: "none" }}
+        // Pinned min-height + items-end so the tab buttons + their
+        // yellow underline sit FLUSH with the bottom edge of the blue
+        // band. No bottom padding on the container — the underline at
+        // bottom:0 of each button is the visual "end" of the blue
+        // header, butting straight up against the page canvas.
+        className="no-scrollbar flex items-end gap-[24px] overflow-x-auto px-[16px]"
+        style={{ scrollbarWidth: "none", minHeight: `${BAND_HEIGHT}px` }}
         role="tablist"
       >
         {tabs.map((tab) => {
@@ -96,7 +109,7 @@ export function CategoryTabs({
                 setActive(tab);
                 onChange?.(tab);
               }}
-              className="relative shrink-0 pt-[8px] pb-[8px]"
+              className="relative shrink-0 pt-[6px] pb-[8px]"
             >
               <span
                 className="text-[15px] font-extrabold leading-none whitespace-nowrap"
