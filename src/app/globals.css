@@ -48,6 +48,19 @@
 
   /* Mobile frame width (iPhone 14 design width) */
   --mobile-width: 375px;
+
+  /* Right-edge offset for fixed overlays (side-nav drawer, etc.) that
+     should hug the mobile-frame's right edge. On phones the frame is
+     full-width, so the offset is 0 — overlays sit flush against the
+     viewport edge. The desktop media query below overrides it to
+     centre-align with the 375px frame. */
+  --frame-right-offset: 0px;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --frame-right-offset: max(0px, calc(50vw - var(--mobile-width) / 2));
+  }
 }
 
 @theme inline {

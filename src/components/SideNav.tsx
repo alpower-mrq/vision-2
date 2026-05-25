@@ -69,11 +69,14 @@ export function SideNav() {
             aria-label="Account menu"
             className="fixed right-0 top-0 z-50 h-full overflow-y-auto"
             style={{
-              // Sits within the mobile frame; constrained to the same 375px
-              // max as the rest of the lobby on desktop.
+              // Sits within the mobile frame. On phones (any viewport
+              // wider than the 375px design width) the frame is
+              // full-width so --frame-right-offset is 0 and the drawer
+              // hugs the right edge. On desktop (≥600px) the offset
+              // centres the drawer against the clamped 375px frame.
               width: "85%",
               maxWidth: "320px",
-              right: "max(0px, calc(50vw - var(--mobile-width) / 2))",
+              right: "var(--frame-right-offset)",
               backgroundColor: "#f2f3f3",
               boxShadow: "-12px 0 32px -8px rgba(10, 46, 203, 0.25)",
               paddingTop: "max(20px, env(safe-area-inset-top))",
