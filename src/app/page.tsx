@@ -1,40 +1,13 @@
-import { TopNav } from "@/components/TopNav";
-import { BottomBar } from "@/components/BottomBar";
 import { LobbyContent } from "@/components/LobbyContent";
-import { SideNav } from "@/components/SideNav";
-import { SearchOverlay } from "@/components/SearchOverlay";
-import { LoadingSplash } from "@/components/LoadingSplash";
-import { FilterProvider } from "@/lib/filter-context";
 
 /**
- * MrQ concept lobby.
+ * Lobby — the app's landing page.
  *
- * Wrapped in <FilterProvider> so the sub-filter pills (inside TopNav) and the
- * content area (LobbyContent) share state — clicking Casino / Live / Bingo
- * highlights the pill AND swaps the content view below.
+ * Renders only the lobby-specific content (category pills + home
+ * feed). The mobile-frame, brand bar, bottom nav, side-nav drawer and
+ * loading splash all live in the shared AppShell (see
+ * `src/app/layout.tsx` → `AppShell`) and wrap every route.
  */
 export default function Home() {
-  return (
-    <FilterProvider>
-      <div className="mobile-frame">
-        <TopNav />
-
-        <main className="bg-white">
-          <LobbyContent />
-          {/* Bottom safe area — just enough to clear the floating bottom bar
-              (44px home + ~20px lift + safe-area inset). */}
-          <div style={{ height: "max(96px, calc(env(safe-area-inset-bottom) + 96px))" }} aria-hidden />
-        </main>
-
-        <BottomBar />
-        <SideNav />
-        <SearchOverlay />
-      </div>
-      {/* Splash is position:fixed and constrains its own width via the
-          --frame-right-offset CSS var — on desktop it hugs the 375px
-          frame column instead of taking over the whole monitor; on
-          mobile the offset is 0 so it fills the viewport edge-to-edge. */}
-      <LoadingSplash />
-    </FilterProvider>
-  );
+  return <LobbyContent />;
 }

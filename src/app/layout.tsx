@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Anton } from "next/font/google";
 import "./globals.css";
+import { ShellProvider } from "@/lib/filter-context";
+import { AppShell } from "@/components/AppShell";
 
 // Manrope: free stand-in for Gilroy ExtraBold (the proprietary brand font).
 const manrope = Manrope({
@@ -47,7 +49,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${manrope.variable} ${anton.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {/* ShellProvider holds side-nav + splash state that survives
+            navigation. AppShell renders the mobile-frame + brand bar +
+            bottom nav + side nav + splash — wrapping the per-route
+            `children` so every page inherits the same chrome. */}
+        <ShellProvider>
+          <AppShell>{children}</AppShell>
+        </ShellProvider>
+      </body>
     </html>
   );
 }

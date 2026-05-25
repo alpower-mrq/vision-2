@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { useFilter, type LobbyFilter } from "@/lib/filter-context";
 import {
   ArenaIcon,
   BingoIcon,
@@ -11,21 +11,21 @@ import {
 } from "./FilterIcons";
 
 /**
- * Sub-filter pills (Casino / Live / Bingo) that hide on scroll-down and
- * reveal on scroll-up — iOS-style.
+ * Lobby category pills — Casino / Live / Bingo / Arena.
  *
- * Each pill also acts as a content filter (see FilterContext):
- *   - In the `home` state, all three pills render in the active (white) style.
- *   - When one is selected, that pill stays white; the others switch to the
- *     dark-navy inactive style.
- *   - Tapping the active pill again toggles back to `home`.
+ * Hides on scroll-down and reveals on scroll-up (iOS-style sticky band).
+ * Each pill is a `<Link>` to its dedicated route (`/casino`, `/live`,
+ * `/bingo`, `/arena`) — previously they toggled a filter state in
+ * context, but each vertical now has its own real page so navigation
+ * goes through the router.
+ *
+ * Rendered ONLY on the Lobby page (imported by `src/app/page.tsx`).
+ * Other routes don't show these pills — they have their own designs.
  *
  * Layout:
- *   - `position: sticky; top: calc(env(safe-area-inset-top) + 68px)` — sticks
- *     immediately under the brand bar (iOS safe-area inset + 10 top padding +
- *     48 brand row + 10 bottom padding) so the two read as one continuous
- *     blue header at the top, whether in a regular browser or launched as an
- *     iOS PWA.
+ *   - `position: sticky; top: calc(env(safe-area-inset-top) + 68px)` —
+ *     tucks immediately under the brand bar so the two read as one
+ *     continuous blue header.
  *   - z-20, brand bar is z-30. The brand bar's solid blue bg means the
  *     pills disappear cleanly under it as they slide up.
  *
@@ -85,21 +85,12 @@ export function ScrollAwareFilters() {
       aria-hidden={!visible}
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
-      {/* Container padding tightened (was 23 → 16) so the 4 pills fit
-          comfortably in the 375px viewport with breathing room. */}
       <div className="px-[16px] pb-[10px]">
-        <nav className="flex items-center gap-[6px]" aria-label="Section filters">
-          <FilterPill pillKey="casino" Icon={CasinoIcon} label="Casino" />
-          <FilterPill pillKey="live" Icon={LiveIcon} label="Live" />
-          <FilterPill pillKey="bingo" Icon={BingoIcon} label="Bingo" />
-          {/* Arena uses pink as its brand accent — applied to the icon +
-              label only when the pill is active. */}
-          <FilterPill
-            pillKey="arena"
-            Icon={ArenaIcon}
-            label="Arena"
-            accent="#e0007a"
-          />
+        <nav className="flex items-center gap-[6px]" aria-label="Categories">
+          <FilterPill href="/casino" Icon={CasinoIcon} label="Casino" />
+          <FilterPill href="/live" Icon={LiveIcon} label="Live" />
+          <FilterPill href="/bingo" Icon={BingoIcon} label="Bingo" />
+          <FilterPill href="/arena" Icon={ArenaIcon} label="Arena" accent="#e0007a" />
         </nav>
       </div>
     </motion.div>
@@ -107,50 +98,31 @@ export function ScrollAwareFilters() {
 }
 
 function FilterPill({
-  pillKey,
+  href,
   Icon,
   label,
   accent,
 }: {
-  pillKey: Exclude<LobbyFilter, "home">;
-  /** Inline SVG component — renders with `currentColor` so it inherits
-   *  the pill's text colour. Inlining (vs `mask-image`) sidesteps the
-   *  browser quirk where Figma's `width="100%" height="100%"` SVGs got
-   *  stretched in the mask box regardless of `mask-size: contain`. */
+  href: string;
   Icon: ComponentType<{ className?: string }>;
   label: string;
-  /** Per-pill accent colour applied to the active foreground (icon +
-   *  text). Inactive pills always use the standard navy + white. */
+  /** Per-pill accent colour applied to the foreground. Pills on the
+   *  Lobby are always shown in their "ready" state (white fill) since
+   *  they're quick links into the categories. The accent colours the
+   *  icon + text — used for Arena's brand pink. */
   accent?: string;
 }) {
-  const { filter, togglePill } = useFilter();
-  // In `home`, every pill reads as active so the row matches the original
-  // unfiltered look. Once a filter is selected, only that pill stays active.
-  const active = filter === "home" || filter === pillKey;
-  const activeFg = accent ?? "#0c2287";
+  const foreground = accent ?? "#0c2287";
 
   return (
-    <motion.button
-      type="button"
-      onClick={() => togglePill(pillKey)}
-      aria-pressed={filter === pillKey}
-      // Tighter padding + smaller height + min-w-0 so 4 pills can share the
-      // 375px viewport without one being squeezed out. flex-1 keeps them
-      // evenly distributed, min-w-0 lets the flexbox actually shrink them
-      // (default min-width: auto would force them to their content width).
-      className="flex flex-1 min-w-0 items-center justify-center gap-[4px] rounded-full px-[8px] py-[6px] h-[34px]"
+    <Link
+      href={href}
+      className="flex flex-1 min-w-0 items-center justify-center gap-[4px] rounded-full px-[8px] py-[6px] h-[34px] active:scale-[0.96] transition-transform"
       style={{
-        backgroundColor: active ? "#ffffff" : "#0c2287",
-        color: active ? activeFg : "#ffffff",
+        backgroundColor: "#ffffff",
+        color: foreground,
       }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ type: "spring", stiffness: 500, damping: 35 }}
     >
-      {/* Inline SVG icon — fills currentColor so it tracks the pill's
-          text colour. Sized via `h-[16px]` with `width: auto` so each
-          icon scales uniformly from its own viewBox. No distortion
-          possible because the actual SVG geometry is rendered, not a
-          stretched mask. */}
       <Icon className="h-[16px] w-auto shrink-0" />
       <span
         className="text-[13px] leading-none font-extrabold whitespace-nowrap"
@@ -158,6 +130,6 @@ function FilterPill({
       >
         {label}
       </span>
-    </motion.button>
+    </Link>
   );
 }
