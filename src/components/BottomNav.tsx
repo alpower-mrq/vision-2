@@ -56,66 +56,47 @@ export function BottomNav() {
   const reduce = useReducedMotion();
   const { bootDone } = useShell();
 
-  // One-shot entrance on first paint after the splash dissolves —
-  // matches the cadence the previous bottom bar used. Controlled via
-  // CSS transition (not Framer's animate prop) so the entrance fires
-  // exactly once and never re-triggers on context re-renders.
+  // One-shot entrance on first paint after the splash dissolves.
+  // Controlled via CSS transition (not Framer's animate prop) so the
+  // entrance fires exactly once and never re-triggers on context
+  // re-renders. Bar slides up from below the bottom edge.
   const shown = reduce || bootDone;
   const entranceCss = reduce
     ? "none"
     : "opacity 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1)";
 
-  // Floor sits at env(safe-area-inset-bottom) — covers the iOS Safari
-  // chrome strip with a frosted white so the brand-blue pill on the
-  // bar above doesn't bleed into the device chrome.
-  const floorHeight = "env(safe-area-inset-bottom)";
-  const barOffset = "calc(env(safe-area-inset-bottom) + 12px)";
-
   return (
-    <>
-      {/* Frosted white floor — hidden in PWA standalone via the
-          `.bottom-bar-floor` rule in globals.css. */}
-      <div
-        className="bottom-bar-floor pointer-events-none fixed bottom-0 inset-x-0 z-30"
-        style={{
-          height: floorHeight,
-          backgroundColor: "rgba(255, 255, 255, 0.92)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          opacity: shown ? 1 : 0,
-          transition: entranceCss,
-        }}
-        aria-hidden
-      />
-
-      {/* Floating tab bar */}
-      <div
-        className="pointer-events-none fixed inset-x-0 z-40 flex justify-center"
-        style={{
-          bottom: barOffset,
-          opacity: shown ? 1 : 0,
-          transform: shown ? "translateY(0) scale(1)" : "translateY(12px) scale(0.96)",
-          transition: entranceCss,
-        }}
-      >
-        <nav
-          aria-label="Primary"
-          className="pointer-events-auto flex w-full max-w-[var(--mobile-width)] items-stretch gap-[4px] rounded-full p-[6px] mx-[16px]"
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.96)",
-            border: "1px solid #ced5f5",
-            boxShadow:
-              "0 16px 36px -12px rgba(10, 46, 203, 0.32), 0 2px 8px -2px rgba(10, 46, 203, 0.12)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}
-        >
-          {TABS.map((tab) => (
-            <TabItem key={tab.key} tab={tab} active={tab.key === active} />
-          ))}
-        </nav>
+    // Full-width flat tab bar anchored to the bottom of the
+    // mobile-frame. On desktop the --frame-right-offset CSS var keeps
+    // the bar clamped to the centred 375px column instead of spanning
+    // the entire monitor. On mobile the offset is 0 so the bar runs
+    // edge-to-edge. The bar itself absorbs the iOS safe-area-inset
+    // (replacing the old separate "floor" div).
+    <nav
+      aria-label="Primary"
+      className="fixed bottom-0 z-40"
+      style={{
+        left: "var(--frame-right-offset)",
+        right: "var(--frame-right-offset)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        backgroundColor: "rgba(255, 255, 255, 0.94)",
+        backdropFilter: "blur(24px) saturate(140%)",
+        WebkitBackdropFilter: "blur(24px) saturate(140%)",
+        borderTop: "1px solid rgba(10, 46, 203, 0.10)",
+        // Soft glow above the bar to lift it off the lobby content
+        // without going as heavy as a drop shadow.
+        boxShadow: "0 -8px 24px -12px rgba(10, 46, 203, 0.18)",
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(100%)",
+        transition: entranceCss,
+      }}
+    >
+      <div className="flex items-stretch px-[8px] pt-[8px] pb-[6px] gap-[4px]">
+        {TABS.map((tab) => (
+          <TabItem key={tab.key} tab={tab} active={tab.key === active} />
+        ))}
       </div>
-    </>
+    </nav>
   );
 }
 
