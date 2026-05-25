@@ -161,9 +161,9 @@ function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
         />
       )}
 
-      <Icon className="h-[20px] w-auto" />
+      <Icon className="h-[26px] w-auto" />
       <span
-        className="mt-[2px] text-[11px] font-extrabold leading-none whitespace-nowrap"
+        className="mt-[4px] text-[12px] font-extrabold leading-none whitespace-nowrap"
         style={{ letterSpacing: "0.01em" }}
       >
         {tab.label}
