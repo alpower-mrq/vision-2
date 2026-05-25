@@ -130,15 +130,22 @@ body::-webkit-scrollbar {
 }
 
 /* The mobile "frame" — centers and constrains everything to 375px on desktop,
-   takes full width on actual mobile devices. NOTE: we intentionally avoid
-   `overflow: hidden` here because it would silently turn the frame into a
-   scroll container and break `position: sticky` for the top nav. */
+   takes full width on actual mobile devices.
+
+   We use `overflow-x: clip` (not `overflow: hidden`) so the filter-strip
+   slide-in animation (which lives at x:100vw on entry) doesn't push the
+   viewport horizontally. `clip` is critical here: unlike `hidden` it does
+   NOT establish a new scroll container, so `position: sticky` on the top
+   nav still anchors against the page scroll rather than getting trapped
+   inside the frame. Vertical overflow is left untouched so the page
+   itself scrolls normally. */
 .mobile-frame {
   width: 100%;
   margin-inline: auto;
   background: #ffffff;
   min-height: 100dvh;
   position: relative;
+  overflow-x: clip;
 }
 
 /* Only show the "floating phone" preview treatment on actual desktop windows.
