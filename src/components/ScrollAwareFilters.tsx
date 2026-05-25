@@ -119,8 +119,11 @@ function FilterPill({
   // In `home`, every pill reads as active so the row matches the original
   // unfiltered look. Once a filter is selected, only that pill stays active.
   const active = filter === "home" || filter === pillKey;
-  const activeColor = accent ?? "#0c2287";
-  const inactiveColor = accent ?? "#0c2287";
+  // The accent ONLY affects the active state's foreground (icon + text).
+  // Inactive pills always use the standard dark-navy fill + white text,
+  // matching every other tab — so swiping away from Arena doesn't leave
+  // a stray pink pill in the row.
+  const activeFg = accent ?? "#0c2287";
 
   return (
     <motion.button
@@ -133,8 +136,8 @@ function FilterPill({
       // (default min-width: auto would force them to their content width).
       className="flex flex-1 min-w-0 items-center justify-center gap-[4px] rounded-full px-[8px] py-[6px] h-[34px]"
       style={{
-        backgroundColor: active ? "#ffffff" : inactiveColor,
-        color: active ? activeColor : "#ffffff",
+        backgroundColor: active ? "#ffffff" : "#0c2287",
+        color: active ? activeFg : "#ffffff",
       }}
       whileTap={{ scale: 0.96 }}
       transition={{ type: "spring", stiffness: 500, damping: 35 }}
