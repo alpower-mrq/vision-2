@@ -2,51 +2,68 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useShell } from "@/lib/filter-context";
 
 /**
- * Sticky brand bar — logo on the left, balance + avatar pill on the right.
+ * Sticky brand bar — left side switches by route, right side is the
+ * balance + avatar pill on every page.
  *
- * Lives in the AppShell so every page gets the same chrome. Two
- * interactions live here:
+ *   On `/` (Lobby)            : MrQ logo (Link to `/`)
+ *   On `/casino`, `/live`,
+ *      `/bingo`, `/arena`     : back arrow + category title (Link to `/`)
+ *   On `/search`, `/discover`,
+ *      `/rewards`             : MrQ logo (treated as top-level routes)
  *
- *   • Logo  →  routes to `/` (Lobby). Implemented as a `<Link>` so the
- *     Next.js router handles it (back button works, no full reload).
- *   • Avatar pill  →  opens the slide-in account drawer (SideNav).
- *
- * Previously this lived inside TopNav alongside the category filters,
- * but those filters now live on the Lobby page itself — only Lobby
- * shows them. Splitting the two lets every non-Lobby route inherit
- * just the brand bar without dragging the filter pills along.
+ * The back arrow always returns to `/` (the Lobby) rather than using
+ * router.back() — predictable behaviour regardless of how the user got
+ * to the page (deep link, share, history, etc.). If we later want it
+ * to "really go back" we can swap to router.back() guarded by a
+ * `history.length > 1` check.
  */
+
+const CATEGORY_TITLES: Record<string, string> = {
+  "/casino": "Casino",
+  "/live": "Live",
+  "/bingo": "Bingo",
+  "/arena": "Arena",
+};
+
 export function BrandBar() {
   const { openSideNav } = useShell();
+  const pathname = usePathname();
+  const categoryTitle = CATEGORY_TITLES[pathname];
 
   return (
-    // Sticky positioning under env(safe-area-inset-top) so the bar tucks
-    // under the iOS notch when launched as a PWA, and sits at the very
-    // top of the viewport in a browser.
     <header
       className="sticky top-0 z-30 bg-mrq-blue pb-[10px]"
       style={{ paddingTop: "calc(env(safe-area-inset-top) + 10px)" }}
     >
-      <div className="relative h-[48px] px-[23px] flex items-center justify-between">
-        {/* MrQ logo → Lobby */}
-        <Link
-          href="/"
-          aria-label="Go to lobby"
-          className="shrink-0 active:scale-[0.96] transition-transform"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo-mrq.svg" alt="MrQ" className="h-[32px] w-[83px]" />
-        </Link>
+      <div className="relative h-[48px] px-[16px] flex items-center justify-between">
+        {/* Left side: logo OR back-arrow + title, depending on route */}
+        {categoryTitle ? (
+          <Link
+            href="/"
+            aria-label="Back to lobby"
+            className="flex items-center gap-[10px] -ml-[6px] pr-[8px] active:scale-[0.96] transition-transform"
+          >
+            <BackIcon className="size-[24px] text-white" />
+            <h1 className="text-white text-[22px] font-extrabold leading-none">
+              {categoryTitle}
+            </h1>
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            aria-label="Go to lobby"
+            className="shrink-0 active:scale-[0.96] transition-transform"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/logo-mrq.svg" alt="MrQ" className="h-[32px] w-[83px]" />
+          </Link>
+        )}
 
-        {/* Balance + divider + avatar pill — tap to open the side nav.
-            Darker navy fill (smoked-glass-style: a deep-navy translucent
-            tint over the brand-blue header, so it reads noticeably
-            darker than the surrounding bar without going fully opaque).
-            Inset top highlight + soft outer shadow keep the glass feel
-            consistent with the new filter pills below. */}
+        {/* Right side: balance + divider + avatar pill (unchanged on every route) */}
         <button
           type="button"
           onClick={openSideNav}
@@ -69,9 +86,6 @@ export function BrandBar() {
             style={{ backgroundColor: "rgba(255, 255, 255, 0.22)" }}
             aria-hidden
           />
-          {/* Avatar — slightly smaller now that the pill is thinner.
-              Border colour pulled in to match the darker pill background
-              so the ring blends instead of standing out. */}
           <div
             className="relative size-[32px] rounded-full overflow-hidden bg-white"
             style={{
@@ -91,5 +105,23 @@ export function BrandBar() {
         </button>
       </div>
     </header>
+  );
+}
+
+function BackIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+      focusable={false}
+    >
+      <path d="m14 18-6-6 6-6" />
+    </svg>
   );
 }
