@@ -38,7 +38,12 @@ const CASINO_TABS = [
   "Live",
 ];
 
-// Build the swipeable hero deck from the existing game assets.
+// Build the swipeable hero deck. Only the slot-XX images are used
+// because they share the 2:3 portrait aspect (320×480 or 640×960)
+// the SwipeableHero card is sized for — landscape promo art
+// (south-park, fruit-warp, birds-on-a-wire) and squares (wild-swarm)
+// got visibly cropped under `object-cover`. Drop those until we have
+// matching cinematic 2:3 hero artwork for each game.
 const HERO_DECK: HeroGame[] = [
   {
     src: "/assets/games/slot-01.png",
@@ -48,29 +53,29 @@ const HERO_DECK: HeroGame[] = [
     exclusive: true,
   },
   {
-    src: "/assets/games/south-park.png",
-    alt: "South Park",
-    title: "South Park",
-    rtp: "96.55%",
+    src: "/assets/games/slot-04.png",
+    alt: "Jewel Stepper",
+    title: "Jewel Stepper",
+    rtp: "96.5%",
   },
   {
-    src: "/assets/games/fruit-warp.png",
-    alt: "Fruit Warp",
-    title: "Fruit Warp",
-    rtp: "97%",
+    src: "/assets/games/slot-08.png",
+    alt: "Tiki Tumble",
+    title: "Tiki Tumble",
+    rtp: "96%",
     exclusive: true,
   },
   {
-    src: "/assets/games/birds-on-a-wire.png",
-    alt: "Birds on a Wire",
-    title: "Birds on a Wire",
-    rtp: "96.91%",
+    src: "/assets/games/slot-11.png",
+    alt: "Maze Escape",
+    title: "Maze Escape",
+    rtp: "97.5%",
   },
   {
-    src: "/assets/games/wild-swarm.png",
-    alt: "Wild Swarm",
-    title: "Wild Swarm",
-    rtp: "96.32%",
+    src: "/assets/games/slot-13.png",
+    alt: "Dragon Hoard",
+    title: "Dragon Hoard",
+    rtp: "96.85%",
     exclusive: true,
   },
 ];

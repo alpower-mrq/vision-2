@@ -55,10 +55,13 @@ export function SwipeableHero({ games }: { games: HeroGame[] }) {
     <div
       className="relative w-full"
       style={{
-        // ~95% of mobile-frame width, taller than wide so the artwork
-        // dominates and the action buttons + bottom title fit naturally.
-        aspectRatio: "337 / 380",
-        maxWidth: "calc(var(--mobile-width) - 24px)",
+        // 2:3 — matches the slot-XX game artwork's native aspect ratio
+        // (320×480) exactly, so `object-cover` doesn't crop the top or
+        // bottom of the artwork. Narrower max-width (280px) keeps the
+        // card from dominating the page — feels like a hand-held card
+        // rather than a full-bleed promo.
+        aspectRatio: "2 / 3",
+        maxWidth: "280px",
         margin: "0 auto",
       }}
     >
