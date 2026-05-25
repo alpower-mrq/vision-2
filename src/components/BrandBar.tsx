@@ -41,31 +41,49 @@ export function BrandBar() {
           <img src="/assets/logo-mrq.svg" alt="MrQ" className="h-[32px] w-[83px]" />
         </Link>
 
-        {/* Balance + divider + avatar pill — tap to open the side nav */}
+        {/* Balance + divider + avatar pill — tap to open the side nav.
+            Darker navy fill (smoked-glass-style: a deep-navy translucent
+            tint over the brand-blue header, so it reads noticeably
+            darker than the surrounding bar without going fully opaque).
+            Inset top highlight + soft outer shadow keep the glass feel
+            consistent with the new filter pills below. */}
         <button
           type="button"
           onClick={openSideNav}
           aria-label="Open account menu"
-          className="flex items-center gap-[8px] h-[48px] pl-[16px] pr-[8px] py-[4px] rounded-full active:scale-[0.97] transition-transform"
+          className="flex items-center gap-[8px] h-[40px] pl-[16px] pr-[4px] rounded-full active:scale-[0.97] transition-transform"
           style={{
-            backgroundColor: "rgba(255,255,255,0.32)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
+            backgroundColor: "rgba(8, 24, 100, 0.65)",
+            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            border: "1px solid rgba(255, 255, 255, 0.10)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 10px -4px rgba(0, 0, 0, 0.25)",
           }}
         >
-          <span className="text-white text-[16px] leading-none font-extrabold pt-[2px]">
+          <span className="text-white text-[15px] leading-none font-extrabold pt-[1px]">
             £113.59
           </span>
-          <span className="h-[20px] w-px bg-mrq-divider" aria-hidden />
+          <span
+            className="h-[18px] w-px"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.22)" }}
+            aria-hidden
+          />
+          {/* Avatar — slightly smaller now that the pill is thinner.
+              Border colour pulled in to match the darker pill background
+              so the ring blends instead of standing out. */}
           <div
-            className="relative size-[36px] rounded-full overflow-hidden bg-white border-2 border-mrq-blue"
-            style={{ boxShadow: "4px 4px 8px 0 rgba(10,46,203,0.24)" }}
+            className="relative size-[32px] rounded-full overflow-hidden bg-white"
+            style={{
+              border: "2px solid rgba(8, 24, 100, 0.65)",
+              boxShadow: "0 2px 6px 0 rgba(0, 0, 0, 0.2)",
+            }}
           >
             <Image
               src="/assets/avatar.png"
               alt=""
               fill
-              sizes="36px"
+              sizes="32px"
               className="object-cover"
               priority
             />
