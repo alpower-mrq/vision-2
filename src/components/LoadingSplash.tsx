@@ -25,7 +25,9 @@ import { useFilter } from "@/lib/filter-context";
  *   0–500ms      blue panel slides + bounces down from the top
  *   400–1000ms   MrQ logo bounces (subtle, not springy) down from above,
  *                lands in its slot inside the blue panel
- *   1000–1500ms  tagline fades in below the blue
+ *   850–1550ms   tagline materialises (scale-up + blur-to-focus + spring
+ *                settle — not a flat fade, since it's the brand line and
+ *                should feel deliberate)
  *   1500–2000ms  hold
  *   2000ms       lobby is told it's safe to deal in (bootDone fires)
  *   2000–2500ms  blue panel slides back up + tagline fades + WHITE WRAPPER
@@ -161,8 +163,14 @@ export function LoadingSplash() {
           {/* Tagline — Figma SVG asset (the "LOVE TO HATE" lower line is
               intentionally taller than "THE CASINO YOU" so both lines read
               the same visual width). Positioned in the viewport per Figma
-              71:14591. Fades in after the logo lands; fades + slides down
-              on exit. */}
+              71:14591.
+              Entrance: a multi-property reveal that feels like the tagline
+              is materialising into focus, not just fading in.
+                • scale up from 0.85 with a subtle spring overshoot
+                • settle from y:14 into place
+                • blur(8px) → blur(0) so it sharpens into focus
+                • opacity 0 → 1
+              On exit: fades + slides down a touch. */}
           <motion.img
             src="/assets/splash-tagline.svg"
             alt="The casino you love to hate"
@@ -173,16 +181,30 @@ export function LoadingSplash() {
               width: `${TAG_W_PCT}%`,
               aspectRatio: TAG_ASPECT,
               height: "auto",
+              // willChange hint keeps the GPU compositor on the SVG while
+              // we animate filter — without it iOS Safari sometimes does
+              // the blur step on the CPU and stutters.
+              willChange: "transform, opacity, filter",
             }}
-            initial={{ opacity: 0, y: 0 }}
+            initial={{ opacity: 0, y: 14, scale: 0.85, filter: "blur(8px)" }}
             animate={{
               opacity: exiting ? 0 : 1,
               y: exiting ? 24 : 0,
+              scale: exiting ? 0.96 : 1,
+              filter: exiting ? "blur(2px)" : "blur(0px)",
             }}
             transition={
               exiting
                 ? { duration: 0.35, ease: [0.55, 0, 0.45, 1] }
-                : { duration: 0.5, delay: 1.0, ease: [0.22, 1, 0.36, 1] }
+                : {
+                    // Spring on the transforms — small bounce, single
+                    // overshoot, then settled. Tween on opacity + filter
+                    // so the focus-in feels uniform, not springy.
+                    opacity: { duration: 0.55, delay: 0.85, ease: [0.22, 1, 0.36, 1] },
+                    filter: { duration: 0.7, delay: 0.85, ease: [0.22, 1, 0.36, 1] },
+                    scale: { type: "spring", stiffness: 220, damping: 18, mass: 0.9, delay: 0.85 },
+                    y: { type: "spring", stiffness: 220, damping: 18, mass: 0.9, delay: 0.85 },
+                  }
             }
           />
         </motion.div>
