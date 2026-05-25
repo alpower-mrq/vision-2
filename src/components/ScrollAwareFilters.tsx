@@ -2,13 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ComponentType } from "react";
-import {
-  ArenaIcon,
-  BingoIcon,
-  CasinoIcon,
-  LiveIcon,
-} from "./FilterIcons";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Lobby category pills — Casino / Live / Bingo / Arena.
@@ -37,9 +31,10 @@ import {
  */
 const ALWAYS_VISIBLE_BELOW = 100;
 const DIRECTION_THRESHOLD = 4;
-const BAND_HEIGHT = 46; // pills (36) + pb-[10px] (10). The matching 10px
-// gap *above* the pills comes from the brand bar's own pb-[10px], so the
-// space above and below the pill row reads as visually consistent.
+// Bigger band for the new glass pills: 46px pill + 12px bottom padding.
+// The matching 12px above is supplied by the brand bar's own pb so the
+// vertical rhythm reads as consistent.
+const BAND_HEIGHT = 58;
 
 export function ScrollAwareFilters() {
   const [visible, setVisible] = useState(true);
@@ -85,48 +80,53 @@ export function ScrollAwareFilters() {
       aria-hidden={!visible}
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
-      <div className="px-[16px] pb-[10px]">
-        <nav className="flex items-center gap-[6px]" aria-label="Categories">
-          <FilterPill href="/casino" Icon={CasinoIcon} label="Casino" />
-          <FilterPill href="/live" Icon={LiveIcon} label="Live" />
-          <FilterPill href="/bingo" Icon={BingoIcon} label="Bingo" />
-          <FilterPill href="/arena" Icon={ArenaIcon} label="Arena" accent="#e0007a" />
+      <div className="px-[16px] pb-[12px]">
+        <nav className="flex items-center gap-[8px]" aria-label="Categories">
+          <FilterPill href="/casino" label="Casino" />
+          <FilterPill href="/bingo" label="Bingo" />
+          <FilterPill href="/live" label="Live" />
+          <FilterPill href="/arena" label="Arena" />
         </nav>
       </div>
     </motion.div>
   );
 }
 
-function FilterPill({
-  href,
-  Icon,
-  label,
-  accent,
-}: {
-  href: string;
-  Icon: ComponentType<{ className?: string }>;
-  label: string;
-  /** Per-pill accent colour applied to the foreground. Pills on the
-   *  Lobby are always shown in their "ready" state (white fill) since
-   *  they're quick links into the categories. The accent colours the
-   *  icon + text — used for Arena's brand pink. */
-  accent?: string;
-}) {
-  const foreground = accent ?? "#0c2287";
-
+/**
+ * Liquid-glass filter pill — translucent fill that picks up the
+ * brand-blue header behind it, with a subtle top highlight and outer
+ * shadow giving it depth. White extrabold label, no icon (matches the
+ * Figma direction).
+ *
+ * Effect layers (top → bottom):
+ *   1. `backdrop-filter: blur(20px)` — softens the colour behind
+ *      so the pill reads as glass, not a flat overlay.
+ *   2. `background: rgba(255,255,255,0.16)` — lifts the tint above
+ *      the dark navy without going opaque.
+ *   3. `border: 1px rgba(255,255,255,0.22)` — defines the pill edge.
+ *   4. `inset 0 1px 0 rgba(255,255,255,0.32)` — fake top-light
+ *      highlight (the "lit edge" iOS gives glass surfaces).
+ *   5. `0 4px 10px -4px rgba(0,0,0,0.18)` — outer shadow grounds it
+ *      against the deep-blue header.
+ */
+function FilterPill({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex flex-1 min-w-0 items-center justify-center gap-[4px] rounded-full px-[8px] py-[6px] h-[34px] active:scale-[0.96] transition-transform"
+      className="flex flex-1 min-w-0 items-center justify-center rounded-full h-[46px] px-[16px] active:scale-[0.96] transition-transform"
       style={{
-        backgroundColor: "#ffffff",
-        color: foreground,
+        backgroundColor: "rgba(255, 255, 255, 0.16)",
+        border: "1px solid rgba(255, 255, 255, 0.22)",
+        backdropFilter: "blur(20px) saturate(140%)",
+        WebkitBackdropFilter: "blur(20px) saturate(140%)",
+        boxShadow:
+          "inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 4px 10px -4px rgba(0, 0, 0, 0.18)",
+        color: "#ffffff",
       }}
     >
-      <Icon className="h-[16px] w-auto shrink-0" />
       <span
-        className="text-[13px] leading-none font-extrabold whitespace-nowrap"
-        style={{ letterSpacing: "0" }}
+        className="text-[16px] leading-none font-extrabold whitespace-nowrap"
+        style={{ letterSpacing: "0.01em" }}
       >
         {label}
       </span>
