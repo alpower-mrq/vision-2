@@ -130,16 +130,16 @@ function SwipeCard({
   const opacity = useTransform(x, [-300, -50, 0, 50, 300], [0.5, 1, 1, 1, 0.5]);
 
   // Drag-tied opacity for the swipe affordance icons:
-  //   • Heart (right side, "Like")  → visible as the card moves right
-  //   • Cross (left side,  "Nope")  → visible as the card moves left
+  //   • Play  (right side) → visible as the card moves right  → "play this game"
+  //   • Cross (left side)  → visible as the card moves left   → "skip this game"
   // Same threshold (100px) used for the actual swipe action, so the
   // icon hits full opacity right at the commit point — a clean visual
   // promise of what's about to happen.
-  const likeOpacityFromDrag = useTransform(x, [10, 100], [0, 1]);
+  const playOpacityFromDrag = useTransform(x, [10, 100], [0, 1]);
   const nopeOpacityFromDrag = useTransform(x, [-100, -10], [1, 0]);
   // Slight scale-up as they appear so they feel like they're "rising
   // into view" instead of just fading.
-  const likeScaleFromDrag = useTransform(x, [10, 100], [0.7, 1]);
+  const playScaleFromDrag = useTransform(x, [10, 100], [0.7, 1]);
   const nopeScaleFromDrag = useTransform(x, [-100, -10], [1, 0.7]);
 
   // One-off discoverability pulse — only fires for the very first
@@ -161,8 +161,8 @@ function SwipeCard({
   // Combine drag-based opacity with the hint pulse: take whichever
   // is higher at any given moment. Once the user starts dragging, the
   // drag-based opacity climbs past the hint and naturally takes over.
-  const likeOpacity = useTransform(
-    [likeOpacityFromDrag, hintOpacity],
+  const playOpacity = useTransform(
+    [playOpacityFromDrag, hintOpacity],
     ([drag, hint]) => Math.max(drag as number, hint as number),
   );
   const nopeOpacity = useTransform(
@@ -182,6 +182,12 @@ function SwipeCard({
       onDragEnd={(_, info) => {
         if (Math.abs(info.offset.x) > SWIPE_THRESHOLD) {
           const direction = info.offset.x > 0 ? 1 : -1;
+          // Right swipe is conceptually "play this game" — for now
+          // we just advance the deck so the next card surfaces, but
+          // this is where we'd kick off the game-launch flow
+          // (navigate to /game/<id>, open a play modal, etc.) once
+          // there's a destination wired up.
+          // Left swipe is "skip" and just dismisses the card.
           animate(x, direction * SWIPE_EXIT_DISTANCE, {
             duration: 0.28,
             ease: [0.22, 1, 0.36, 1],
@@ -198,12 +204,26 @@ function SwipeCard({
       {/* Swipe-direction affordances. Rendered OUTSIDE CardSurface so
           their opacity isn't gated by the card image's stacking; they
           float on top of the artwork with their own translucent
-          chip. pointer-events: none so they never steal taps. */}
-      <SwipeAffordance side="left" opacity={nopeOpacity} scale={nopeScaleFromDrag}>
+          chip. pointer-events: none so they never steal taps.
+            LEFT  → red X        → "skip this game"
+            RIGHT → blue play ▶︎ → "play this game" */}
+      <SwipeAffordance
+        side="left"
+        opacity={nopeOpacity}
+        scale={nopeScaleFromDrag}
+        borderColor="rgba(255, 66, 89, 0.85)"
+      >
         <CrossIcon className="size-[28px] text-[#ff4259]" />
       </SwipeAffordance>
-      <SwipeAffordance side="right" opacity={likeOpacity} scale={likeScaleFromDrag}>
-        <HeartIcon className="size-[28px] text-[#ff4f8b]" />
+      <SwipeAffordance
+        side="right"
+        opacity={playOpacity}
+        scale={playScaleFromDrag}
+        borderColor="rgba(10, 46, 203, 0.85)"
+      >
+        {/* Slight nudge right so the optical centre of the play
+            triangle lines up with the chip's geometric centre. */}
+        <PlayIcon className="size-[26px] text-mrq-blue translate-x-[2px]" />
       </SwipeAffordance>
     </motion.div>
   );
@@ -213,11 +233,13 @@ function SwipeAffordance({
   side,
   opacity,
   scale,
+  borderColor,
   children,
 }: {
   side: "left" | "right";
   opacity: import("framer-motion").MotionValue<number>;
   scale: import("framer-motion").MotionValue<number>;
+  borderColor: string;
   children: React.ReactNode;
 }) {
   return (
@@ -227,7 +249,7 @@ function SwipeAffordance({
       style={{
         // Anchor each chip to the corresponding edge of the card,
         // vertically centred. Tilted a few degrees outward so they
-        // feel like Tinder's "LIKE/NOPE" stamps.
+        // feel like Tinder's stamps.
         [side]: "18px",
         translate: "0 -50%",
         rotate: side === "left" ? "-12deg" : "12deg",
@@ -237,10 +259,7 @@ function SwipeAffordance({
         backgroundColor: "rgba(255, 255, 255, 0.92)",
         boxShadow:
           "0 12px 28px -12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
-        border:
-          side === "left"
-            ? "2px solid rgba(255, 66, 89, 0.8)"
-            : "2px solid rgba(255, 79, 139, 0.8)",
+        border: `2px solid ${borderColor}`,
         opacity,
         scale,
       }}
