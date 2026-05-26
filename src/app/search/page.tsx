@@ -29,59 +29,95 @@ import { useRef, useState } from "react";
  * Bottom nav is unchanged per the brief.
  */
 
-const BROWSE: Array<{
+// Each tile's sticker is built up from multiple PNG layers. Each layer
+// gets its own size + offset relative to the sticker's bounding box,
+// matching the Figma composition where these stickers are stacked SVG
+// groups (crown body + highlight + gem + shadow, etc).
+type StickerLayer = {
+  src: string;
+  /** Layer width/height in px (relative to the sticker's bounding box). */
+  w: number;
+  h: number;
+  /** Offset from top-left of the sticker bounding box. */
+  top: number;
+  left: number;
+};
+type TileSpec = {
   label: string;
   href: string;
-  sticker: string;
+  /** Outer sticker bounding box on the tile (right + top offsets relative
+   *  to the tile's right edge). */
   stickerW: number;
   stickerH: number;
   stickerRight: number;
   stickerTop: number;
   stickerRotate: number;
-}> = [
+  /** Layers, painted in order (top of array = bottom of stack). */
+  layers: StickerLayer[];
+};
+
+const BROWSE: TileSpec[] = [
   {
     label: "Casino",
     href: "/casino",
-    // PNG export of the Figma sticker (rendered via `sharp` from the
-    // exported SVG). The SVGs had complex masked compositions that
-    // didn't render correctly standalone, so flat PNGs are simpler
-    // and they look identical to the design.
-    sticker: "/assets/search/sticker-7.png",
     stickerW: 60,
     stickerH: 60,
-    stickerRight: -2,
-    stickerTop: -3,
+    stickerRight: -4,
+    stickerTop: -4,
     stickerRotate: 14,
+    // Single layer — the SVG is the complete 7 sticker (pink fill +
+    // white outline baked in).
+    layers: [
+      { src: "/assets/search/sticker-casino-7.png", w: 60, h: 60, top: 0, left: 0 },
+    ],
   },
   {
     label: "Live Casino",
     href: "/live",
-    sticker: "/assets/search/sticker-crown-a.png",
-    stickerW: 64,
-    stickerH: 52,
-    stickerRight: 0,
+    stickerW: 72,
+    stickerH: 60,
+    stickerRight: -2,
     stickerTop: -4,
     stickerRotate: -9,
+    // Layered: shadow at the base, crown body, crown highlight on top,
+    // dark gem ellipse pinned at the top centre.
+    layers: [
+      { src: "/assets/search/sticker-crown-shadow.png", w: 60, h: 14, top: 38, left: 8 },
+      { src: "/assets/search/sticker-crown-a.png",      w: 72, h: 56, top: 0,  left: 0 },
+      { src: "/assets/search/sticker-crown-b.png",      w: 56, h: 44, top: 4,  left: 8 },
+      { src: "/assets/search/sticker-crown-c.png",      w: 36, h: 7,  top: 4,  left: 18 },
+    ],
   },
   {
     label: "Bingo",
     href: "/bingo",
-    sticker: "/assets/search/sticker-bingo-ball.png",
     stickerW: 56,
     stickerH: 56,
     stickerRight: 4,
-    stickerTop: 4,
+    stickerTop: 2,
     stickerRotate: -17,
+    // Ball + inner ring + curved highlight. "22" is drawn as text over
+    // the top (see render).
+    layers: [
+      { src: "/assets/search/sticker-bingo-ball.png",  w: 56, h: 56, top: 0,  left: 0 },
+      { src: "/assets/search/sticker-bingo-inner.png", w: 32, h: 32, top: 12, left: 12 },
+      { src: "/assets/search/sticker-bingo-hi.png",    w: 20, h: 14, top: 16, left: 18 },
+    ],
   },
   {
     label: "Arena",
     href: "/arena",
-    sticker: "/assets/search/sticker-fist.png",
-    stickerW: 38,
-    stickerH: 60,
-    stickerRight: 8,
-    stickerTop: -2,
+    stickerW: 42,
+    stickerH: 66,
+    stickerRight: 6,
+    stickerTop: -4,
     stickerRotate: 32,
+    // Fist outline on bottom, fist fill on top — the Figma stack uses
+    // two paths layered for the pink+navy outline.
+    layers: [
+      { src: "/assets/search/sticker-fist-2.png", w: 42, h: 66, top: 0, left: 0 },
+      { src: "/assets/search/sticker-fist-1.png", w: 42, h: 66, top: 0, left: 0 },
+    ],
   },
 ];
 
@@ -286,19 +322,21 @@ function StartBrowsing({ items }: { items: typeof BROWSE }) {
   );
 }
 
-function BrowseTile({ item }: { item: (typeof BROWSE)[number] }) {
+function BrowseTile({ item }: { item: TileSpec }) {
   return (
     <Link
       href={item.href}
       className="relative h-[58px] overflow-hidden rounded-[10px] active:scale-[0.98] transition-transform"
       style={{ backgroundColor: "#0322ac" }}
     >
-      <span className="absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] font-extrabold text-white">
+      <span className="absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] font-extrabold text-white z-10">
         {item.label}
       </span>
-      {/* Decorative sticker positioned per-tile so the heads/tips
-          don't crop off; overflow-hidden on the tile clips the bottom
-          edge cleanly to mirror the masked composition in Figma. */}
+      {/* Sticker bounding box. Layers inside are absolutely positioned
+          relative to this box so each tile's per-layer offsets stay
+          consistent regardless of where the sticker sits on the tile.
+          overflow-hidden on the parent tile clips anything overflowing
+          the rounded-rect, mirroring the Figma mask. */}
       <span
         aria-hidden
         className="absolute pointer-events-none"
@@ -310,13 +348,41 @@ function BrowseTile({ item }: { item: (typeof BROWSE)[number] }) {
           transform: `rotate(${item.stickerRotate}deg)`,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.sticker}
-          alt=""
-          draggable={false}
-          className="h-full w-full select-none object-contain"
-        />
+        {item.layers.map((layer, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${layer.src}-${i}`}
+            src={layer.src}
+            alt=""
+            draggable={false}
+            className="absolute select-none object-contain"
+            style={{
+              top: `${layer.top}px`,
+              left: `${layer.left}px`,
+              width: `${layer.w}px`,
+              height: `${layer.h}px`,
+            }}
+          />
+        ))}
+        {/* Bingo ball needs the "22" rendered on top of the ball. The
+            Figma source has it as HTML text overlaid (not part of the
+            ball SVG), so we add it here when the label is Bingo. */}
+        {item.label === "Bingo" && (
+          <span
+            className="absolute font-extrabold leading-none"
+            style={{
+              top: "22px",
+              left: "20px",
+              color: "#0B2595",
+              fontSize: "16px",
+              transform: "rotate(-14deg)",
+              fontFamily: "var(--font-headline)",
+              letterSpacing: "0.5px",
+            }}
+          >
+            22
+          </span>
+        )}
       </span>
     </Link>
   );
