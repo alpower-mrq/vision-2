@@ -4,34 +4,34 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Search page — full route (was previously a modal overlay).
+ * Search page — full route.
  *
- * Layout (Figma node 125:27004):
+ * Has two visual states driven entirely by whether the input is the
+ * active focus / has a value:
  *
- *   ┌─ Brand bar (logo + balance pill, from AppShell) ────────┐
- *   ├─ Search input pill (sticky, on the blue header) ───────┤
- *   │   🔍 Search all games                                  │
- *   ├─ Start Browsing (2×2 dark-blue tiles + sticker art) ───┤
- *   │   [Casino  7]  [Live Casino  👑]                       │
- *   │   [Bingo  22]  [Arena   ✊]                            │
- *   ├─ Recent big wins (horizontal row of artwork + £ pill) ─┤
- *   ├─ Recommended for you (vertical list rows) ─────────────┤
- *   └─────────────────────────────────────────────────────────┘
+ *   Default state (unfocused, empty input)
+ *   ┌─ White search input pill (left-aligned placeholder) ─────┐
+ *   ├─ Start Browsing (4 dark-blue tiles + sticker)            │
+ *   ├─ Recent big wins (horizontal scroll)                     │
+ *   └─ Recommended for you (vertical list)                     │
  *
- * Bottom nav is unchanged (per the brief — keep it the way it is).
+ *   Active state (focused OR has a query)
+ *   ┌─ Search input (with optional clear button) ──────────────┐
+ *   ├─ "Recently searched" header                              │
+ *   └─ List of recent search rows (small thumb + name + ╳ icon)│
  *
- * The search bar lives at the top of the page content rather than in
- * AppShell, because only this route needs it sticking under the
- * BrandBar in the blue area. It uses the same blue (`bg-mrq-blue`) so
- * it visually extends the BrandBar's header into a single blue band.
+ * The state swap is page-takeover-style — the three default sections
+ * disappear and the recent-searches list takes the whole content area.
+ * No actual route change (deep links to /search still land on the
+ * default state with the input auto-focused).
+ *
+ * Bottom nav is unchanged per the brief.
  */
 
 const BROWSE: Array<{
   label: string;
   href: string;
   sticker: string;
-  /** Pixel size + offsets — each sticker has its own composition
-   *  pulled from the Figma so we don't crop heads / tilts off. */
   stickerW: number;
   stickerH: number;
   stickerRight: number;
@@ -41,7 +41,11 @@ const BROWSE: Array<{
   {
     label: "Casino",
     href: "/casino",
-    sticker: "/assets/search/sticker-7.svg",
+    // PNG export of the Figma sticker (rendered via `sharp` from the
+    // exported SVG). The SVGs had complex masked compositions that
+    // didn't render correctly standalone, so flat PNGs are simpler
+    // and they look identical to the design.
+    sticker: "/assets/search/sticker-7.png",
     stickerW: 60,
     stickerH: 60,
     stickerRight: -2,
@@ -51,7 +55,7 @@ const BROWSE: Array<{
   {
     label: "Live Casino",
     href: "/live",
-    sticker: "/assets/search/sticker-crown-a.svg",
+    sticker: "/assets/search/sticker-crown-a.png",
     stickerW: 64,
     stickerH: 52,
     stickerRight: 0,
@@ -61,7 +65,7 @@ const BROWSE: Array<{
   {
     label: "Bingo",
     href: "/bingo",
-    sticker: "/assets/search/sticker-bingo-ball.svg",
+    sticker: "/assets/search/sticker-bingo-ball.png",
     stickerW: 56,
     stickerH: 56,
     stickerRight: 4,
@@ -71,7 +75,7 @@ const BROWSE: Array<{
   {
     label: "Arena",
     href: "/arena",
-    sticker: "/assets/search/sticker-fist.svg",
+    sticker: "/assets/search/sticker-fist.png",
     stickerW: 38,
     stickerH: 60,
     stickerRight: 8,
@@ -97,12 +101,27 @@ const RECOMMENDED: Array<{ src: string; name: string }> = [
   { src: "/assets/games/slot-13.png", name: "Big Bass Real Repeat" },
 ];
 
+// Stub data for the "Recently searched" takeover state — would be
+// driven by real user history once we have one.
+const RECENTLY_SEARCHED: Array<{ src: string; name: string }> = [
+  { src: "/assets/games/slot-01.png", name: "Buffalo Bills" },
+  { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
+  { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
+  { src: "/assets/games/slot-13.png", name: "Big Bass Real Repeat" },
+  { src: "/assets/games/slot-11.png", name: "Maze Escape" },
+  { src: "/assets/games/slot-03.png", name: "Snake Arena" },
+  { src: "/assets/games/slot-05.png", name: "Western Gold" },
+  { src: "/assets/games/slot-07.png", name: "Golden Catch" },
+];
+
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Focus the input on mount so the on-screen keyboard comes up when
-  // the user lands on the page from the bottom-nav Search tab.
+  // Auto-focus on mount so the on-screen keyboard pops the moment a
+  // user arrives. requestAnimationFrame defers past the initial paint
+  // so the focus doesn't race the navigation animation.
   useEffect(() => {
     const id = requestAnimationFrame(() => {
       inputRef.current?.focus({ preventScroll: true });
@@ -110,12 +129,16 @@ export default function SearchPage() {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  // "Active" state — either the user is focused or has typed.
+  // Switching off requires both: focus loss AND empty input. That way
+  // tapping a result row doesn't snap back to the default sections
+  // before the next page loads.
+  const isActive = focused || query.length > 0;
+
   return (
     <>
-      {/* Search input pill — sits on the blue header below the brand
-          bar. Sticky so it stays visible as the user scrolls through
-          the sections below. The blue background extends the brand
-          bar visually, so the two read as one continuous header. */}
+      {/* Search input pill — sticky under the brand bar on the blue
+          band, so the blue header reads as one continuous panel. */}
       <div
         className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-mrq-blue px-[16px] pb-[14px] pt-[2px]"
       >
@@ -132,10 +155,12 @@ export default function SearchPage() {
             placeholder="Search all games"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] font-bold text-[#0322ac] placeholder:text-[#0322ac] outline-none"
-            // Centred placeholder to match the Figma design. Once the
-            // user starts typing, the text aligns left (default).
-            style={{ textAlign: query.length === 0 ? "center" : "left" }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            // Left-aligned (matches normal input behaviour). The
+            // previous centered placeholder felt floaty against a
+            // left-aligned cursor once typing started.
+            className="flex-1 bg-transparent text-[15px] font-bold text-[#0322ac] placeholder:text-[#0322ac] outline-none text-left"
           />
           {query.length > 0 && (
             <button
@@ -153,17 +178,83 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Content sections sit on the #f5f5f5 page canvas. */}
-      <div className="flex flex-col gap-[20px] pt-[14px]">
-        <StartBrowsing items={BROWSE} />
-        <RecentBigWins items={RECENT_BIG_WINS} />
-        <RecommendedForYou items={RECOMMENDED} />
-      </div>
+      {isActive ? (
+        // Page takeover: recently-searched list fills the canvas.
+        <RecentlySearched
+          items={RECENTLY_SEARCHED}
+          onRemove={(name) => {
+            // Stub — in a real build this would drop the item from
+            // user search history. Logged for now so the affordance
+            // is obviously wired up.
+            // eslint-disable-next-line no-console
+            console.log("[Search] remove from history →", name);
+          }}
+        />
+      ) : (
+        <div className="flex flex-col gap-[20px] pt-[14px]">
+          <StartBrowsing items={BROWSE} />
+          <RecentBigWins items={RECENT_BIG_WINS} />
+          <RecommendedForYou items={RECOMMENDED} />
+        </div>
+      )}
     </>
   );
 }
 
-/* ---------------- Sections ---------------- */
+/* ---------------- Active-state takeover ---------------- */
+
+function RecentlySearched({
+  items,
+  onRemove,
+}: {
+  items: typeof RECENTLY_SEARCHED;
+  onRemove: (name: string) => void;
+}) {
+  return (
+    <section className="pt-[16px] pb-[6px]">
+      <h2 className="px-[16px] pb-[12px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
+        Recently searched
+      </h2>
+      <ul className="flex flex-col gap-[10px] px-[16px]">
+        {items.map((rec, i) => (
+          <li key={`${rec.name}-${i}`}>
+            <div
+              className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[45px]"
+            >
+              <button
+                type="button"
+                className="flex flex-1 items-center gap-[14px] text-left active:scale-[0.99] transition-transform min-w-0"
+              >
+                <span className="relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-[4px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={rec.src}
+                    alt=""
+                    draggable={false}
+                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                  />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-[#0e1120]">
+                  {rec.name}
+                </span>
+              </button>
+              <button
+                type="button"
+                aria-label={`Remove ${rec.name} from recent searches`}
+                onClick={() => onRemove(rec.name)}
+                className="grid size-[28px] place-items-center rounded-full text-[var(--mrq-blue)] opacity-50 hover:opacity-100 active:scale-[0.9] transition-all"
+              >
+                <CloseIcon className="size-[12px]" />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/* ---------------- Default-state sections ---------------- */
 
 function StartBrowsing({ items }: { items: typeof BROWSE }) {
   return (
@@ -190,10 +281,9 @@ function BrowseTile({ item }: { item: (typeof BROWSE)[number] }) {
       <span className="absolute left-[14px] top-1/2 -translate-y-1/2 text-[13px] font-extrabold text-white">
         {item.label}
       </span>
-      {/* Decorative sticker, anchored to the right edge of the tile.
-          overflow-hidden on the tile clips any pieces that hang past
-          the rounded-rect, mirroring the masked composition in the
-          Figma design. */}
+      {/* Decorative sticker positioned per-tile so the heads/tips
+          don't crop off; overflow-hidden on the tile clips the bottom
+          edge cleanly to mirror the masked composition in Figma. */}
       <span
         aria-hidden
         className="absolute pointer-events-none"
@@ -210,7 +300,7 @@ function BrowseTile({ item }: { item: (typeof BROWSE)[number] }) {
           src={item.sticker}
           alt=""
           draggable={false}
-          className="h-full w-full select-none"
+          className="h-full w-full select-none object-contain"
         />
       </span>
     </Link>
@@ -223,10 +313,8 @@ function RecentBigWins({ items }: { items: typeof RECENT_BIG_WINS }) {
       <h2 className="px-[16px] pb-[10px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
         Recent big wins
       </h2>
-      {/* Horizontal scroll row. no-scrollbar utility (defined in
-          globals.css) hides the OS scrollbar on iOS / Chrome / FF. */}
       <div
-        className="no-scrollbar flex gap-[12px] overflow-x-auto pl-[16px] pr-[16px] pb-[6px]"
+        className="no-scrollbar flex gap-[12px] overflow-x-auto pl-[16px] pr-[16px] pb-[14px]"
         style={{ scrollbarWidth: "none" }}
       >
         {items.map((win, i) => (
@@ -252,9 +340,6 @@ function WinCard({ win }: { win: (typeof RECENT_BIG_WINS)[number] }) {
           className="h-full w-full object-cover pointer-events-none"
         />
       </button>
-      {/* Prize pill — small white pill straddling the bottom edge of
-          the artwork. centered horizontally; the negative bottom
-          margin makes it pop slightly past the artwork's lower edge. */}
       <div
         className="absolute -bottom-[10px] left-1/2 -translate-x-1/2 rounded-full bg-white px-[10px] py-[3px]"
         style={{ boxShadow: "0 4px 10px -4px rgba(10, 46, 203, 0.18)" }}
