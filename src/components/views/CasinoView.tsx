@@ -96,7 +96,11 @@ export function CasinoView() {
     <>
       <CategoryTabs tabs={CASINO_TABS} defaultTab="Home" />
 
-      <div className="pt-[16px] flex flex-col gap-[18px]">
+      {/* No `gap` here — each child controls its own top/bottom
+          spacing. The previous gap-[18px] was stacking on top of
+          GameRail's internal py-3 (12 + 12), giving 42px of total
+          space between adjacent rails which read as too airy. */}
+      <div className="pt-[16px] flex flex-col">
         {/* Tinder-style swipeable hero. The card handles its own
             horizontal gutter (16px each side) inside SwipeableHero. */}
         <SwipeableHero games={HERO_DECK} />

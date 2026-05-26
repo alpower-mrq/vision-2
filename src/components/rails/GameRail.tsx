@@ -78,7 +78,10 @@ export function GameRail({
   return (
     <motion.section
       aria-label={title}
-      className="py-3"
+      // Compact vertical padding so adjacent rails stack tightly.
+      // Was py-3 (12px each side) which made the page feel airy
+      // when stacked four-deep on Casino + Home.
+      className="pt-[8px] pb-[10px]"
       // Hold the cards in their hidden variant until the loading splash flips
       // `bootDone`. Otherwise the entire deal-in plays out behind the splash
       // and the user never sees a single card actually arrive.
