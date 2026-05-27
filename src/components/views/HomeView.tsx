@@ -5,6 +5,7 @@ import { BigWinsRow } from "@/components/rails/BigWinsRow";
 import { FreeSpinsBanner } from "@/components/rails/FreeSpinsBanner";
 import { SameVibeRail } from "@/components/rails/SameVibeRail";
 import { LatestBigWinsRow } from "@/components/rails/LatestBigWinsRow";
+import { QClubCard } from "@/components/QClubCard";
 
 /**
  * Default lobby view (Home tab).
@@ -14,10 +15,11 @@ import { LatestBigWinsRow } from "@/components/rails/LatestBigWinsRow";
  *   1. HeroCarousel                — landscape promo cards (snap rail)
  *   2. Recently Played Games        — 2×2 grid of recent games
  *   3. Your recent big wins        — horiz scroll w/ £ prize pills
- *   4. Free spins banner           — full-width white CTA card
- *   5. Same vibe as <game>         — horiz scroll large landscape promos
- *   6. Hot right now               — horiz scroll square game tiles
- *   7. Latest big wins             — horiz scroll social-style win cards
+ *   4. The Q Club                  — rewards card (Figma 203:42091)
+ *   5. Free spins banner           — full-width white CTA card
+ *   6. Same vibe as <game>         — horiz scroll large landscape promos
+ *   7. Hot right now               — horiz scroll square game tiles
+ *   8. Latest big wins             — horiz scroll social-style win cards
  *
  * Each section component owns its own padding + title style; this
  * file just sequences them.
@@ -104,6 +106,11 @@ export function HomeView() {
       />
 
       <BigWinsRow title="Your recent big wins" items={RECENT_WINS} />
+
+      {/* The Q Club rewards card — same component the Casino page uses,
+          sits mid-feed as a feature block between the big-wins row and
+          the smaller free-spins banner. */}
+      <QClubCard />
 
       <FreeSpinsBanner label="You've got 100 free spins" />
 
