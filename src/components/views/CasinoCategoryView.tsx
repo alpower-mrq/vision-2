@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { useShell } from "@/lib/filter-context";
+import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
 import {
   CATEGORIES,
@@ -48,7 +47,6 @@ export function CasinoCategoryView({ category }: { category: string }) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   const label = useMemo(() => labelFor(category), [category]);
   const ctaLabel = useMemo(() => ctaLabelForCategory(category), [category]);
@@ -59,26 +57,6 @@ export function CasinoCategoryView({ category }: { category: string }) {
   const handleSelect = (key: string | null) => {
     if (key === null) router.push("/casino");
     else if (key !== category) router.push(`/casino/${key}`);
-  };
-
-  // Per-card deal-in (shared timing with GameRail).
-  const gridVariants: Variants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.04,
-        delayChildren: reduce ? 0 : 0.35,
-      },
-    },
-  };
-  const tileVariants: Variants = {
-    hidden: { opacity: 0, y: 10, scale: 0.96 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-    },
   };
 
   return (
@@ -106,18 +84,20 @@ export function CasinoCategoryView({ category }: { category: string }) {
 
       {/* 3-column tile grid. Tiles match the GameRail dimensions
           (square, ~109px wide on a 375px viewport) for visual
-          continuity with the main feed. */}
+          continuity with the main feed. Single section-level fade-up
+          matches the entrance pattern used by every other rail on the
+          page (per-card stagger was inconsistent — variants didn't
+          always propagate to children). */}
       <motion.div
         className="grid grid-cols-3 gap-[8px] px-[16px] pb-[24px]"
-        initial={reduce ? false : "hidden"}
-        animate={reduce || bootDone ? "visible" : "hidden"}
-        variants={gridVariants}
+        initial={false}
+        animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
         {tiles.map((tile, i) => (
-          <motion.button
+          <button
             key={`${tile.src}-${i}`}
             type="button"
-            variants={tileVariants}
             aria-label={tile.alt}
             className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
             style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
@@ -129,7 +109,7 @@ export function CasinoCategoryView({ category }: { category: string }) {
               draggable={false}
               className="absolute inset-0 h-full w-full object-cover pointer-events-none"
             />
-          </motion.button>
+          </button>
         ))}
       </motion.div>
 

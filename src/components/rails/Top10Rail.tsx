@@ -1,24 +1,29 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * "Top 10 Casino Games" — horizontal rail where each item pairs a big
- * outlined yellow numeral (1..10) with a square game tile to its right.
+ * pale-blue numeral (1..10) with a square game tile to its right.
  *
  *   ┌────────────────────────────────────────────┐
+ *   │  Top 10 Casino games                       │
  *   │ ╔═╗ ▢▢▢   ╔═╗ ▢▢▢   ╔═╗ ▢▢▢   ╔═╗ ▢▢▢ … │
  *   │ ║1║ ▢▢▢   ║2║ ▢▢▢   ║3║ ▢▢▢   ║4║ ▢▢▢   │
  *   │ ╚═╝       ╚═╝       ╚═╝       ╚═╝         │
  *   └────────────────────────────────────────────┘
  *
- * Numerals use Anton (condensed, heavy) with a yellow stroke + the
- * lobby's pale background showing through, mirroring the Netflix-style
- * "top 10" treatment from the Figma reference. Tap target is the
- * paired tile + numeral as a single button so the whole unit feels
- * like one game.
+ * Numerals are solid #CED5F5 Gilroy ExtraBold at huge size — they
+ * read as a pale ranked backdrop rather than an outlined badge. Tap
+ * target is the paired numeral + tile as a single button so the
+ * whole unit feels like one game.
+ *
+ * Entrance is a single section-level fade-up (same pattern as
+ * ThemesGrid + the mega-cards rail) so the whole page animates in
+ * consistently. Earlier versions used Framer's variant-name
+ * propagation for per-card stagger, but variants sometimes failed to
+ * propagate to children and the rail rendered at opacity 0.
  */
 
 export type Top10Tile = { src: string; alt: string };
@@ -32,36 +37,6 @@ export function Top10Rail({
 }) {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
-
-  const titleVariants: Variants = {
-    hidden: { opacity: 0, y: 6 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.18, delay: reduce ? 0 : 0.25 },
-    },
-  };
-
-  const rowVariants: Variants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.05,
-        delayChildren: reduce ? 0 : 0.35,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 8, scale: 0.96 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
 
   // Clamp to ten — extras are dropped so the rail always reads as a
   // proper Top 10 list, not a Top-N.
@@ -71,34 +46,27 @@ export function Top10Rail({
     <motion.section
       aria-label={title}
       className="pt-[8px] pb-[10px]"
-      initial={reduce ? false : "hidden"}
-      animate={reduce || bootDone ? "visible" : "hidden"}
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Left-aligned title, no "See all" — Top 10 reads as a curated
-          showcase rather than a row that drills into a larger list, but
-          the heading still hangs off the 16px gutter so it stacks
-          cleanly with the rails above and below. */}
-      <motion.div
-        className="px-[16px] pb-[10px]"
-        variants={titleVariants}
-      >
+          showcase rather than a row that drills into a larger list. */}
+      <div className="px-[16px] pb-[10px]">
         <h2 className="text-[18px] font-extrabold text-[var(--mrq-blue)]">
           {title}
         </h2>
-      </motion.div>
+      </div>
 
-      <motion.div
+      <div
         ref={railRef}
         className="no-scrollbar flex items-end gap-[4px] overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-2"
         style={{ WebkitOverflowScrolling: "touch" }}
-        variants={rowVariants}
       >
         {top10.map((tile, i) => (
-          <motion.div key={`${tile.src}-${i}`} variants={itemVariants} className="shrink-0">
-            <Top10Item rank={i + 1} tile={tile} />
-          </motion.div>
+          <Top10Item key={`${tile.src}-${i}`} rank={i + 1} tile={tile} />
         ))}
-      </motion.div>
+      </div>
     </motion.section>
   );
 }
@@ -142,18 +110,13 @@ function Top10Item({ rank, tile }: { rank: number; tile: Top10Tile }) {
  */
 function RankNumeral({ rank }: { rank: number }) {
   const isTen = rank === 10;
-  // Width swap accommodates the wider "10" glyph without distorting
-  // the single-digit numerals.
   const width = isTen ? 86 : 60;
 
   return (
     <span
       aria-hidden
       className="shrink-0 grid place-items-center"
-      style={{
-        width: `${width}px`,
-        height: "100px",
-      }}
+      style={{ width: `${width}px`, height: "100px" }}
     >
       <svg
         viewBox={`0 0 ${width} 100`}
@@ -165,9 +128,6 @@ function RankNumeral({ rank }: { rank: number }) {
           x={width / 2}
           y="86"
           textAnchor="middle"
-          // Gilroy ExtraBold (the Manrope variable) instead of Anton —
-          // matches the Figma which uses the brand body font at huge
-          // size, not the condensed promo font.
           fontFamily="var(--font-manrope), Manrope, Gilroy, sans-serif"
           fontSize="108"
           fontWeight={800}

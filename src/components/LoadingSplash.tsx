@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFilter } from "@/lib/filter-context";
 
@@ -113,7 +113,12 @@ export function LoadingSplash() {
       clearTimeout(exitTimer);
       clearTimeout(unmountTimer);
     };
-  }, [markBootDone]);
+    // markBootDone is intentionally NOT in the deps array — it's a
+    // stable useCallback identity, and listing it caused HMR + React
+    // 19 strict-mode renders to tear down the timers and restart the
+    // splash from scratch, occasionally leaving bootDone stuck false.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Spring tunings tuned for "bounces down" feel.
   const panelDrop = {
@@ -136,9 +141,16 @@ export function LoadingSplash() {
     ease: [0.55, 0, 0.45, 1] as [number, number, number, number],
   };
 
+  // Plain conditional render — no AnimatePresence. The fade-to-zero
+  // happens via the `exiting` state controlling opacity while we're
+  // still mounted, then `mounted=false` snaps the element out of the
+  // DOM. AnimatePresence's `exit` prop + zero-duration transition was
+  // unreliable in some HMR / strict-mode scenarios, leaving the white
+  // wrapper visible on top of the lobby long after the splash should
+  // have dissolved.
+  if (!mounted) return null;
+
   return (
-    <AnimatePresence>
-      {mounted && (
         <motion.div
           key="splash"
           // Fixed so the height is always exactly one viewport (avoids
@@ -248,7 +260,5 @@ export function LoadingSplash() {
             }
           />
         </motion.div>
-      )}
-    </AnimatePresence>
   );
 }

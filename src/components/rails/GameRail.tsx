@@ -1,22 +1,19 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useFilter } from "@/lib/filter-context";
 
 /**
  * Generic horizontal-scroll game tile rail — matches the structure of every
- * non-hero row on vision-01.vercel.app (Picked For You, By Q / Recently
- * played / Fresh from Q / Explore gameplays).
+ * non-hero row on the home + casino feeds.
  *
- * Casino "deal-in" entrance:
- *   - The section title fades in first (~150ms)
- *   - Cards then animate one-by-one left-to-right with a 60ms stagger,
- *     coming in from x:-16, y:10, scale:0.95, with a small ±4° rotation
- *     baked in per-card so they feel like cards being dealt at a table
- *   - Each card takes ~280ms to settle
- *   - Respects prefers-reduced-motion (animations skipped entirely)
+ * Entrance: simple fade-up on mount. Earlier versions gated on
+ * `bootDone` from the shell context so the deal-in waited for the
+ * splash to dissolve, but a dev-mode HMR quirk meant the context value
+ * sometimes split between two module instances — the provider's
+ * bootDone would flip true but the consumer's stayed false, leaving
+ * the rail parked at opacity 0. The splash is opaque while it's up,
+ * so animating on mount is visually equivalent and far more robust.
  */
 export function GameRail({
   title,
@@ -38,66 +35,18 @@ export function GameRail({
 }) {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
-  const { bootDone } = useFilter();
-
-  // Stable per-card rotations between -4° and +4°. DETERMINISTIC — derived
-  // from a hash of the tile src + index — so server-rendered and
-  // client-rendered output match (Math.random() here was causing React
-  // hydration mismatch warnings). Each card still gets a different lean,
-  // but the same lean every render and across SSR/CSR.
-  const rotations = useMemo(
-    () =>
-      tiles.map((tile, i) => {
-        const key = `${tile.src}-${i}`;
-        let h = 0;
-        for (let c = 0; c < key.length; c++) {
-          h = ((h << 5) - h + key.charCodeAt(c)) | 0;
-        }
-        // Map to a stable -4..+4 range.
-        return ((Math.abs(h) % 800) / 100) - 4;
-      }),
-    [tiles],
-  );
-
-  // Entrance timing is offset from `bootDone` so the splash wrapper has
-  // 250ms to fade away before any cards start moving. Without these
-  // delays the tiles deal in behind an opaque-then-fading splash and the
-  // user only sees the tail end as the splash unmounts.
-  const titleVariants: Variants = {
-    hidden: { opacity: 0, y: 6 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.18, delay: reduce ? 0 : 0.25 } },
-  };
-
-  const dealRowVariants: Variants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.06,
-        // Wait for the splash wrapper to clear (~250ms) + a beat for the
-        // title to fade in (~100ms) before the first card starts.
-        delayChildren: reduce ? 0 : 0.35,
-      },
-    },
-  };
 
   return (
     <motion.section
       aria-label={title}
       // Compact vertical padding so adjacent rails stack tightly.
-      // Was py-3 (12px each side) which made the page feel airy
-      // when stacked four-deep on Casino + Home.
       className="pt-[8px] pb-[10px]"
-      // Hold the cards in their hidden variant until the loading splash flips
-      // `bootDone`. Otherwise the entire deal-in plays out behind the splash
-      // and the user never sees a single card actually arrive.
-      initial={reduce ? false : "hidden"}
-      animate={reduce || bootDone ? "visible" : "hidden"}
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Header row */}
-      <motion.div
-        className="flex items-center justify-between px-[16px] pb-[10px]"
-        variants={titleVariants}
-      >
+      <div className="flex items-center justify-between px-[16px] pb-[10px]">
         <h2 className="text-[18px] font-extrabold text-[var(--mrq-blue)]">{title}</h2>
         {showSeeAll && (
           <button
@@ -108,49 +57,25 @@ export function GameRail({
             See all
           </button>
         )}
-      </motion.div>
+      </div>
 
-      {/* Tile rail — staggered children */}
-      <motion.div
+      {/* Tile rail */}
+      <div
         ref={railRef}
         className="no-scrollbar flex gap-[8px] overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-2"
         style={{ WebkitOverflowScrolling: "touch" }}
-        variants={dealRowVariants}
       >
         {tiles.map((tile, i) => (
-          <DealCard key={`${tile.src}-${i}`} rotation={rotations[i] ?? 0}>
-            <GameTile src={tile.src} alt={tile.alt} width={tileWidth} height={tileHeight} />
-          </DealCard>
+          <GameTile
+            key={`${tile.src}-${i}`}
+            src={tile.src}
+            alt={tile.alt}
+            width={tileWidth}
+            height={tileHeight}
+          />
         ))}
-      </motion.div>
+      </div>
     </motion.section>
-  );
-}
-
-/** Wrapper that gives a single tile its "dealt-in" entrance variant. */
-function DealCard({ rotation, children }: { rotation: number; children: React.ReactNode }) {
-  const variants: Variants = {
-    hidden: {
-      opacity: 0,
-      x: -16,
-      y: 10,
-      scale: 0.95,
-      rotate: rotation,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      y: 0,
-      scale: 1,
-      rotate: 0,
-      transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
-
-  return (
-    <motion.div variants={variants} className="shrink-0">
-      {children}
-    </motion.div>
   );
 }
 

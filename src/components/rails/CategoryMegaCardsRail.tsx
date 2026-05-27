@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * Category mega-cards — a horizontal snap rail of large white cards
@@ -41,16 +40,13 @@ export function CategoryMegaCardsRail({
 }) {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   return (
     <motion.section
       aria-label="Browse by category"
       className="pt-2 pb-3"
-      initial={reduce ? false : { opacity: 0, y: 6 }}
-      animate={
-        reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }
-      }
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <div

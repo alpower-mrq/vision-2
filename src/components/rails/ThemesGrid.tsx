@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * 2-column grid of dark-blue navigation cards, each with a label on
@@ -53,16 +52,13 @@ export function ThemesGrid({
   items: Theme[];
 }) {
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   return (
     <motion.section
       aria-label={title}
       className="px-[16px] pt-3 pb-[14px]"
-      initial={reduce ? false : { opacity: 0, y: 6 }}
-      animate={
-        reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }
-      }
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="pb-[12px] text-[18px] font-extrabold text-[var(--mrq-blue)]">

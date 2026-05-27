@@ -1,10 +1,9 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * Persistent bottom navigation — Lobby / Search / Discover / Rewards.
@@ -65,34 +64,12 @@ function activeTabFor(pathname: string): string | null {
 export function BottomNav() {
   const pathname = usePathname();
   const active = activeTabFor(pathname);
-  const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
-  // One-shot entrance on first paint after the splash dissolves.
-  // The CSS transition was previously kept "live" indefinitely, so
-  // any later layout shift (iOS Safari URL-bar reappearing on
-  // navigation, env(safe-area-inset-bottom) ticking, etc) would
-  // re-fire the 0.9s-delayed slide-up animation — the user
-  // reported "the bar zooms from the bottom" when scrolling then
-  // tapping a tab.
-  //
-  // Fix: after the entrance completes (~1.3s from when bootDone
-  // flips), set the transition to 'none' so no further property
-  // changes on the nav animate. Tab interactions inside use their
-  // own per-tab transitions; this only governs the bar shell.
-  const shown = reduce || bootDone;
-  const [entranceDone, setEntranceDone] = useState(reduce);
-  useEffect(() => {
-    if (entranceDone || !shown) return;
-    const t = setTimeout(() => setEntranceDone(true), 1300);
-    return () => clearTimeout(t);
-  }, [shown, entranceDone]);
-
-  const entranceCss = reduce
-    ? "none"
-    : entranceDone
-      ? "none"
-      : "opacity 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1)";
+  // The bar is always visible. Earlier versions hid it until the splash
+  // dissolved via a context flag, but in dev the shell context value
+  // sometimes split across HMR module instances and the bar stayed
+  // invisible. The splash is opaque and z-60 — it covers the bar
+  // visually while it's up, so there's nothing to hide behind.
 
   return (
     // Full-width flat tab bar anchored to the bottom of the
@@ -120,9 +97,6 @@ export function BottomNav() {
         // Soft glow above the bar to lift it off the lobby content
         // without going as heavy as a drop shadow.
         boxShadow: "0 -8px 24px -12px rgba(10, 46, 203, 0.18)",
-        opacity: shown ? 1 : 0,
-        transform: shown ? "translateY(0)" : "translateY(100%)",
-        transition: entranceCss,
       }}
     >
       {/* Inner row — tighter top padding now that the icons are

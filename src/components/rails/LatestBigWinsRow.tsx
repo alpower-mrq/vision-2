@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * "Latest big wins" — horizontal scroll of social-style win cards.
@@ -36,16 +35,13 @@ export function LatestBigWinsRow({
 }) {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   return (
     <motion.section
       aria-label={title}
       className="pt-3 pb-[14px]"
-      initial={reduce ? false : { opacity: 0, y: 6 }}
-      animate={
-        reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }
-      }
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="px-[16px] pb-[10px] text-[18px] font-extrabold text-[var(--mrq-blue)]">

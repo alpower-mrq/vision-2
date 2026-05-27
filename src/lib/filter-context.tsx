@@ -2,7 +2,9 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -42,18 +44,33 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [bootDone, setBootDone] = useState(false);
 
+  // Stable identities for the action callbacks. Previously these were
+  // inline arrow functions inside the provider value, which meant a new
+  // function reference was created on every render — and any consumer
+  // that listed e.g. `markBootDone` in a useEffect dependency array
+  // would see its effect tear down and re-run on every re-render. The
+  // LoadingSplash kept restarting its 2.5s exit timers and the splash
+  // never dissolved, leaving `bootDone` stuck false and every page's
+  // entrance animation parked at opacity:0.
+  const openSideNav = useCallback(() => setSideNavOpen(true), []);
+  const closeSideNav = useCallback(() => setSideNavOpen(false), []);
+  const markBootDone = useCallback(() => setBootDone(true), []);
+
+  // Memoise the value object too, so the context-consumer subscription
+  // only fires when something it cares about actually changed.
+  const value = useMemo<ShellContextValue>(
+    () => ({
+      sideNavOpen,
+      openSideNav,
+      closeSideNav,
+      bootDone,
+      markBootDone,
+    }),
+    [sideNavOpen, openSideNav, closeSideNav, bootDone, markBootDone],
+  );
+
   return (
-    <ShellContext.Provider
-      value={{
-        sideNavOpen,
-        openSideNav: () => setSideNavOpen(true),
-        closeSideNav: () => setSideNavOpen(false),
-        bootDone,
-        markBootDone: () => setBootDone(true),
-      }}
-    >
-      {children}
-    </ShellContext.Provider>
+    <ShellContext.Provider value={value}>{children}</ShellContext.Provider>
   );
 }
 

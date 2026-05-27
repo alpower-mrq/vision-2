@@ -3,7 +3,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * Hero promo carousel — landscape PNG cards just below the filter band.
@@ -66,7 +65,6 @@ export function HeroCarousel() {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   // Active-card detection — find whichever card is closest to the
   // rail's centre line on every horizontal scroll. The active card
@@ -102,17 +100,13 @@ export function HeroCarousel() {
     };
   }, [railRef]);
 
-  const dealIn = reduce || bootDone;
-
   return (
     <motion.section
       aria-label="Featured promotions"
       className="relative"
-      initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
+      initial={false}
       animate={
-        dealIn
-          ? { opacity: 1, y: 0, scale: 1 }
-          : { opacity: 0, y: 24, scale: 0.96 }
+        reduce ? undefined : { opacity: [0, 1], y: [24, 0], scale: [0.96, 1] }
       }
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
     >

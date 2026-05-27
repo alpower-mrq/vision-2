@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * "You've got X free spins" inline banner.
@@ -16,16 +15,13 @@ export function FreeSpinsBanner({
   label?: string;
 }) {
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   return (
     <motion.section
       aria-label={label}
       className="px-[16px] pt-2 pb-3"
-      initial={reduce ? false : { opacity: 0, y: 6 }}
-      animate={
-        reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }
-      }
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <button

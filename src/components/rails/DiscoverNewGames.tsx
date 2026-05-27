@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * "Discover new games" — horizontal scrolling row of circular game
@@ -29,16 +28,13 @@ export type DiscoverTile = { src: string; alt: string };
 export function DiscoverNewGames({ tiles }: { tiles: DiscoverTile[] }) {
   const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
-  const { bootDone } = useShell();
 
   return (
     <motion.section
       aria-label="Discover new games"
       className="pt-[8px] pb-[12px]"
-      initial={reduce ? false : { opacity: 0, y: 6 }}
-      animate={
-        reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }
-      }
+      initial={false}
+      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="pb-[10px] px-[16px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
