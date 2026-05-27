@@ -237,61 +237,47 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
 
 // Browse all categories — 2-col grid of navigation cards.
 //
-// Two visually-distinct groups live in the same grid:
+// Grid order (top → bottom):
 //
-//   1. Other verticals (Bingo, Live Casino, Arena) — top of the list.
-//      Each gets a distinct brand colour so they stand out from the
-//      block of Casino cards below, and a single-line label (no
-//      sub-line) reinforcing "this is a top-level vertical". Pages
-//      for these verticals are currently removed, so the cards are
-//      inert (no `href`) — matches the Start Browsing tiles' state.
-//
-//   2. Casino sub-categories (New, Jackpot, Megaways, Slingo, Tables,
+//   1. Casino sub-categories (New, Jackpot, Megaways, Slingo, Tables,
 //      Live) — brand-blue background, "Casino" sub-line, each links
 //      to /casino/[key].
 //
-// Thumb cluster per card is the same fanned trio in both groups, so
-// the layout reads as one coherent grid even with the colour split.
+//   2. Live Casino sub-categories (Blackjack, Roulette, Baccarat,
+//      Game Shows, Poker, Mega Wheel) — lighter brand blue so the
+//      Live Casino group reads as a distinct second cluster while
+//      still sitting in the blue family. "Live Casino" sub-line.
+//      Inert for now (the dedicated /live page is gone).
+//
+//   3. Other verticals (Bingo, Arena) — closing the grid with two
+//      distinctly-coloured single-line cards.
+//
+// Thumb cluster per card is a fanned trio of three game tile arts.
 const CATEGORY_THUMBS: Record<string, [string, string, string]> = {
-  bingo:    ["/assets/games/slot-08.png", "/assets/games/slot-04.png", "/assets/games/slot-11.png"],
-  live:     ["/assets/games/slot-05.png", "/assets/games/slot-10.png", "/assets/games/slot-07.png"],
-  arena:    ["/assets/games/slot-13.png", "/assets/games/slot-11.png", "/assets/games/slot-03.png"],
+  // Casino sub-cats
   new:      ["/assets/games/slot-13.png", "/assets/games/slot-12.png", "/assets/games/slot-11.png"],
   jackpot:  ["/assets/games/slot-01.png", "/assets/games/slot-03.png", "/assets/games/slot-05.png"],
   megaways: ["/assets/games/slot-02.png", "/assets/games/slot-04.png", "/assets/games/slot-06.png"],
   slingo:   ["/assets/games/slot-03.png", "/assets/games/slot-06.png", "/assets/games/slot-09.png"],
   tables:   ["/assets/games/slot-04.png", "/assets/games/slot-08.png", "/assets/games/slot-12.png"],
   "casino-live": ["/assets/games/slot-05.png", "/assets/games/slot-10.png", "/assets/games/slot-07.png"],
+  // Live Casino sub-cats
+  blackjack:  ["/assets/games/slot-08.png", "/assets/games/slot-04.png", "/assets/games/slot-01.png"],
+  roulette:   ["/assets/games/slot-11.png", "/assets/games/slot-13.png", "/assets/games/slot-07.png"],
+  baccarat:   ["/assets/games/slot-05.png", "/assets/games/slot-08.png", "/assets/games/slot-10.png"],
+  gameshows:  ["/assets/games/slot-12.png", "/assets/games/slot-03.png", "/assets/games/slot-06.png"],
+  poker:      ["/assets/games/slot-09.png", "/assets/games/slot-02.png", "/assets/games/slot-04.png"],
+  "mega-wheel": ["/assets/games/slot-13.png", "/assets/games/slot-11.png", "/assets/games/slot-08.png"],
+  // Verticals
+  bingo:      ["/assets/games/slot-08.png", "/assets/games/slot-04.png", "/assets/games/slot-11.png"],
+  arena:      ["/assets/games/slot-13.png", "/assets/games/slot-11.png", "/assets/games/slot-03.png"],
 };
 
-const VERTICAL_CARDS: Theme[] = [
-  // Hot pink — Bingo's traditional brand colour family.
-  {
-    key: "bingo",
-    label: "Bingo",
-    color: "#DB2777",
-    thumbs: CATEGORY_THUMBS.bingo,
-  },
-  // Deep violet — premium / "after-hours" feel for Live Casino.
-  {
-    key: "live",
-    label: "Live Casino",
-    color: "#7C3AED",
-    thumbs: CATEGORY_THUMBS.live,
-  },
-  // Warm red — competitive, energetic for Arena.
-  {
-    key: "arena",
-    label: "Arena",
-    color: "#DC2626",
-    thumbs: CATEGORY_THUMBS.arena,
-  },
-];
-
+// Group 1 — Casino sub-categories (brand blue, links to /casino/[key]).
 const CASINO_CARDS: Theme[] = CASINO_SUBCATEGORIES.map((cat) => ({
-  // Casino's own "Live" sub-category shares its key with the top-level
-  // Live vertical above — namespace the sub-cat to keep React keys
-  // unique inside this list.
+  // Casino's own "Live" sub-category shares its key with what used to
+  // be a top-level Live vertical — namespace it to keep React keys
+  // unique inside the broader list.
   key: cat.key === "live" ? "casino-live" : cat.key,
   label: cat.label,
   subtitle: "Casino",
@@ -304,7 +290,32 @@ const CASINO_CARDS: Theme[] = CASINO_SUBCATEGORIES.map((cat) => ({
     ],
 }));
 
-const BROWSE_CATEGORIES: Theme[] = [...VERTICAL_CARDS, ...CASINO_CARDS];
+// Group 2 — Live Casino sub-categories. Mid-tone brand blue
+// (#3D5BE0) so the row is visually a step lighter than the regular
+// Casino group above. No href — the dedicated Live Casino routes
+// haven't been built yet.
+const LIVE_CASINO_BLUE = "#3D5BE0";
+const LIVE_CASINO_CARDS: Theme[] = [
+  { key: "blackjack",  label: "Blackjack",   subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS.blackjack },
+  { key: "roulette",   label: "Roulette",    subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS.roulette },
+  { key: "baccarat",   label: "Baccarat",    subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS.baccarat },
+  { key: "gameshows",  label: "Game Shows",  subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS.gameshows },
+  { key: "poker",      label: "Poker",       subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS.poker },
+  { key: "mega-wheel", label: "Mega Wheel",  subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS["mega-wheel"] },
+];
+
+// Group 3 — closing verticals. Bingo (pink) + Arena (red) — both
+// inert until those pages return.
+const VERTICAL_CARDS: Theme[] = [
+  { key: "bingo", label: "Bingo", color: "#DB2777", thumbs: CATEGORY_THUMBS.bingo },
+  { key: "arena", label: "Arena", color: "#DC2626", thumbs: CATEGORY_THUMBS.arena },
+];
+
+const BROWSE_CATEGORIES: Theme[] = [
+  ...CASINO_CARDS,
+  ...LIVE_CASINO_CARDS,
+  ...VERTICAL_CARDS,
+];
 
 // Stub data for the "Recently searched" takeover state — would be
 // driven by real user history once we have one.
