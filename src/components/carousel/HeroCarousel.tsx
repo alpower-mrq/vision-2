@@ -127,6 +127,16 @@ export function HeroCarousel() {
         style={{
           WebkitOverflowScrolling: "touch",
           scrollSnapStop: "always",
+          // CRUCIAL for left-edge consistency on snap rails: by
+          // default the snap port = padding-box of the scroll
+          // container, so subsequent cards snap their left to
+          // padding-box-left = 0px from the container's edge —
+          // 16px LEFT of where card 1 naturally sits with the
+          // px-[16px] padding. scrollPaddingLeft insets the snap
+          // port by 16px so every snapped card's left lands
+          // pixel-perfect on the same 16px gutter as the rest of
+          // the page.
+          scrollPaddingLeft: "16px",
         }}
       >
         {CARDS.map((card, i) => {

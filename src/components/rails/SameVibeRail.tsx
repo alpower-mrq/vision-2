@@ -48,7 +48,16 @@ export function SameVibeRail({
       <div
         ref={railRef}
         className="no-scrollbar flex gap-[12px] overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-[2px] snap-x snap-mandatory"
-        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+        style={{
+          scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
+          // Inset the snap port by 16px so subsequent cards snap
+          // their left edge to the same 16px gutter as the first
+          // card (which sits at its natural padding-left position).
+          // Without this, snap aligns to padding-box-left (0px) and
+          // the cards drift left of the page gutter after a swipe.
+          scrollPaddingLeft: "16px",
+        }}
       >
         {items.map((card, i) => (
           <div
