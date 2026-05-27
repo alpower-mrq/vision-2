@@ -7,7 +7,6 @@ import {
   CategoryMegaCardsRail,
   type MegaCardCategory,
 } from "@/components/rails/CategoryMegaCardsRail";
-import { DiscoverNewGames, type DiscoverTile } from "@/components/rails/DiscoverNewGames";
 import { ThemesGrid, type Theme } from "@/components/rails/ThemesGrid";
 import { CATEGORIES as CASINO_SUBCATEGORIES } from "@/lib/casino-categories";
 
@@ -182,20 +181,6 @@ const TILES_ARENA = [
   G(4, "Jewel Stepper"),
   G(8, "Tiki Tumble"),
   G(7, "Mummy Mania"),
-];
-
-// Circular thumbnails for the "Discover new games" row at the top of
-// the page. Standalone list (not tied to the mega cards) — these are
-// the curated "try something fresh" picks.
-const TILES_DISCOVER: DiscoverTile[] = [
-  G(13, "Snake Arena"),
-  G(11, "Maze Escape"),
-  G(8, "Tiki Tumble"),
-  G(1, "Buffalo Bills"),
-  G(4, "Jewel Stepper"),
-  G(7, "Mummy Mania"),
-  G(3, "Big Bass"),
-  G(5, "Western Gold"),
 ];
 
 // Category mega-cards (Casino, Live Casino, Bingo, Arena) — each is
@@ -421,7 +406,6 @@ export default function SearchPage() {
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col pt-[14px]"
           >
-            <DiscoverNewGames tiles={TILES_DISCOVER} />
             <StartBrowsing items={BROWSE} />
             <CategoryMegaCardsRail categories={MEGA_CATEGORIES} />
             <ThemesGrid title="Browse all categories" items={BROWSE_CATEGORIES} />
@@ -489,7 +473,11 @@ function RecentlySearched({
 
 function StartBrowsing({ items }: { items: typeof BROWSE }) {
   return (
-    <section className="px-[16px]">
+    // pb-[24px] separates the Start Browsing block from the
+    // category mega-cards rail that follows — previously the
+    // 4 dark-blue tiles were sitting right on top of the wide
+    // Casino mega card.
+    <section className="px-[16px] pb-[24px]">
       <h2 className="pb-[10px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
         Start Browsing
       </h2>
