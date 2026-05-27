@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SwipeableHero, type HeroGame } from "../SwipeableHero";
 import { GameRail } from "@/components/rails/GameRail";
@@ -9,12 +9,11 @@ import { CategoriesSheet } from "../CategoriesSheet";
 import {
   CATEGORIES,
   CATEGORY_RAIL_TILES,
-  ctaLabelFor,
   tileSet,
 } from "@/lib/casino-categories";
 
 /**
- * Casino category page.
+ * Casino homepage — the curated landing page for the Casino vertical.
  *
  *   ┌──────────────────────────────────────┐
  *   │  ←                          £113.59 ▢│  ← BrandBar (back arrow only)
@@ -25,25 +24,24 @@ import {
  *   │  │  [hero artwork]                │  │  ← Swipeable hero
  *   │  └────────────────────────────────┘  │
  *   ├──────────────────────────────────────┤
- *   │  Top 10 Casino Games      See all    │
+ *   │  Top 10 Casino Games                 │
  *   │  ⓵▢ ⓶▢ ⓷▢ ⓸▢ ⓹▢ …                  │  ← Top 10 rail
  *   │  New                      See all    │
- *   │  ▢▢▢▢▢▢…                            │  ← Sub-category rails
+ *   │  ▢▢▢▢▢▢…                            │  ← Per-category rails
  *   │  Jackpot                  See all    │
  *   │  ▢▢▢▢▢▢…                            │
- *   │  Megaways                 See all    │
- *   │  ▢▢▢▢▢▢…                            │
- *   │  Slingo                   See all    │
- *   │  ▢▢▢▢▢▢…                            │
+ *   │  …                                   │
  *   └──────────────────────────────────────┘
  *
- * The "Categories+" pill opens the CategoriesSheet bottom sheet, which
- * filters the rails to the chosen sub-category (e.g. "Jackpots+") while
- * keeping the user on `/casino`. Each rail's "See all" link still takes
- * the user to the dedicated /casino/[category] page.
+ * "Categories+" opens the CategoriesSheet — every row inside is a real
+ * navigation:
+ *   • Sub-category key → /casino/[key]
+ *   • "All games"      → /casino/games
  *
- * Selecting "All games" from the sheet clears the filter, returning to
- * the full multi-rail feed.
+ * Because the casino homepage isn't itself "All games" or any single
+ * sub-category, the sheet opens with NO row highlighted when launched
+ * from here. Each rail's "See all" also drops the user on the
+ * dedicated category page.
  */
 
 const HERO_DECK: HeroGame[] = [
@@ -75,27 +73,24 @@ const HERO_DECK: HeroGame[] = [
   },
 ];
 
-// Top 10 is a cross-category curated feed, independent of the filter.
+// Top 10 — cross-category curated feed.
 const TOP_10 = tileSet([1, 4, 7, 2, 9, 11, 13, 5, 8, 3], "Top 10");
 
 export function CasinoView() {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
 
-  const ctaLabel = useMemo(() => ctaLabelFor(selected), [selected]);
-
-  // When a sub-category is active, show only that rail. Otherwise show
-  // all of them in CATEGORIES order. Top 10 is shown either way.
-  const visibleCategories = selected
-    ? CATEGORIES.filter((c) => c.key === selected)
-    : CATEGORIES;
+  // Sheet selection — both branches navigate, no local filter state.
+  const handleSelect = (key: string | null) => {
+    setSheetOpen(false);
+    router.push(key === null ? "/casino/games" : `/casino/${key}`);
+  };
 
   return (
     <>
       {/* In-page header: title on the left, Categories CTA on the right.
-          Lives in the white content area (not the blue brand bar) so it
-          reads as a section heading on the page itself. */}
+          The casino homepage isn't itself a category, so the pill
+          stays as plain "Categories+" — no pluralised state. */}
       <div className="flex items-center justify-between px-[16px] pt-[16px] pb-[18px]">
         <h1 className="text-[28px] font-extrabold leading-none text-[var(--mrq-blue-dark)]">
           Casino
@@ -110,25 +105,22 @@ export function CasinoView() {
           className="h-[30px] px-[14px] rounded-[4px] text-[16px] font-extrabold text-white active:scale-[0.97] transition-transform"
           style={{ backgroundColor: "#9DABEA" }}
         >
-          {ctaLabel}
+          Categories+
         </button>
       </div>
 
       <div className="flex flex-col">
-        {/* Tinder-style swipeable hero (always on, regardless of filter).
-            pb-[24px] gives the hero breathing room above the next
-            section title; previously it was crashing into "Top 10". */}
+        {/* Tinder-style swipeable hero. */}
         <div className="pb-[24px]">
           <SwipeableHero games={HERO_DECK} />
         </div>
 
-        {/* Top 10 — present whether or not a category is filtered. */}
+        {/* Top 10 — cross-category curated. */}
         <Top10Rail tiles={TOP_10} />
 
-        {/* Per-category rails. When a sub-category is selected the rest
-            collapse away; when none is selected all six show. Each row
-            navigates to /casino/[key] via the See all link. */}
-        {visibleCategories.map((cat) => (
+        {/* Every sub-category rail is always shown; "See all" drops
+            the user on /casino/[key]. */}
+        {CATEGORIES.map((cat) => (
           <GameRail
             key={cat.key}
             title={cat.label}
@@ -142,20 +134,11 @@ export function CasinoView() {
 
       <CategoriesSheet
         open={sheetOpen}
-        selected={selected}
+        // No row active when opening from the casino homepage — the
+        // homepage isn't itself "All games" or any single sub-cat.
+        selected={undefined}
         categories={CATEGORIES}
-        onSelect={(key) => {
-          // "All games" — hop to the dedicated /casino/games page.
-          // The casino homepage itself is a curated experience (hero,
-          // Top 10, category rails) and is NOT the "all games" view.
-          if (key === null) {
-            router.push("/casino/games");
-            return;
-          }
-          // Sub-category selected — filter the local rails (homepage
-          // behaviour, keeping the curated chrome intact).
-          setSelected(key);
-        }}
+        onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
         title="Casino categories"
       />

@@ -35,8 +35,15 @@ export function CategoriesSheet({
   title = "Casino categories",
 }: {
   open: boolean;
-  /** Currently selected category key, or null for "All". */
-  selected: string | null;
+  /**
+   * Currently selected row to highlight:
+   *   - a category key (e.g. "jackpot") → that row is active
+   *   - `null` → the "All games" row is active (used on /casino/games)
+   *   - `undefined` → NO row is active (used on /casino, the curated
+   *     homepage, where neither a sub-category nor the all-games
+   *     browse is currently in view)
+   */
+  selected: string | null | undefined;
   categories: Category[];
   onSelect: (key: string | null) => void;
   onClose: () => void;

@@ -334,9 +334,16 @@ export default function SearchPage() {
   return (
     <>
       {/* Search input pill — sticky under the brand bar on the blue
-          band, so the blue header reads as one continuous panel. */}
+          band, so the blue header reads as one continuous panel.
+          Rounded bottom corners (20px) so the bottom of the combined
+          blue panel matches the BrandBar's rounded-panel treatment
+          on every other route. */}
       <div
         className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-mrq-blue px-[16px] pb-[14px] pt-[2px]"
+        style={{
+          borderBottomLeftRadius: "20px",
+          borderBottomRightRadius: "20px",
+        }}
       >
         <div
           className="flex items-center gap-[10px] rounded-full bg-white h-[43px] px-[18px]"

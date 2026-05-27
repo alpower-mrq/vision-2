@@ -77,15 +77,18 @@ export function ScrollAwareFilters() {
 
   return (
     <motion.div
-      className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-mrq-blue"
+      // No `bg-mrq-blue` — the band now sits on the page's white
+      // canvas, with the pills picking up the brand-blue colour
+      // themselves (Figma 131:36171).
+      className="sticky top-[calc(env(safe-area-inset-top)+68px)] z-20 bg-[#f5f5f5]"
       initial={false}
       animate={{ y: visible ? 0 : -BAND_HEIGHT }}
       transition={transition}
       aria-hidden={!visible}
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
-      <div className="px-[16px] pb-[12px]">
-        <nav className="flex items-center gap-[6px]" aria-label="Categories">
+      <div className="px-[16px] pt-[12px] pb-[12px]">
+        <nav className="flex items-center gap-[8px]" aria-label="Categories">
           <FilterPill href="/casino" label="Casino" />
           {/* Inert until the corresponding routes return. */}
           <FilterPill label="Bingo" />
@@ -98,38 +101,19 @@ export function ScrollAwareFilters() {
 }
 
 /**
- * Liquid-glass filter pill — translucent fill that picks up the
- * brand-blue header behind it, with a subtle top highlight and outer
- * shadow giving it depth. White extrabold label, no icon (matches the
- * Figma direction).
- *
- * Effect layers (top → bottom):
- *   1. `backdrop-filter: blur(20px)` — softens the colour behind
- *      so the pill reads as glass, not a flat overlay.
- *   2. `background: rgba(255,255,255,0.16)` — lifts the tint above
- *      the dark navy without going opaque.
- *   3. `border: 1px rgba(255,255,255,0.22)` — defines the pill edge.
- *   4. `inset 0 1px 0 rgba(255,255,255,0.32)` — fake top-light
- *      highlight (the "lit edge" iOS gives glass surfaces).
- *   5. `0 4px 10px -4px rgba(0,0,0,0.18)` — outer shadow grounds it
- *      against the deep-blue header.
+ * Lobby filter pill — sits on the white page canvas now (Figma
+ * 131:36171). Pale brand-blue fill (#CED5F5) with dark navy bold
+ * text — same family as the Categories+ pill on the Casino page so
+ * the two UI elements read as one cohesive set of chips.
  */
 function FilterPill({ href, label }: { href?: string; label: string }) {
   // Pill chrome is identical whether the pill is a real link or an
-  // inert placeholder — only the wrapping element differs. Pulling the
-  // shared className/style out keeps the two branches in lockstep so a
-  // later tweak (e.g. press-state animation) doesn't drift between
-  // them.
+  // inert placeholder — only the wrapping element differs.
   const className =
     "flex flex-1 min-w-0 items-center justify-center rounded-full h-[36px] px-[14px] active:scale-[0.96] transition-transform";
   const style = {
-    backgroundColor: "rgba(255, 255, 255, 0.14)",
-    border: "1px solid rgba(255, 255, 255, 0.18)",
-    backdropFilter: "blur(20px) saturate(140%)",
-    WebkitBackdropFilter: "blur(20px) saturate(140%)",
-    boxShadow:
-      "inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 2px 6px -2px rgba(0, 0, 0, 0.14)",
-    color: "#ffffff",
+    backgroundColor: "#CED5F5",
+    color: "var(--mrq-blue-dark)",
   } as const;
   const labelEl = (
     <span

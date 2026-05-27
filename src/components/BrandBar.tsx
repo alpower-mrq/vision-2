@@ -52,10 +52,24 @@ export function BrandBar() {
   const backLabel =
     backHref === "/casino" ? "Back to Casino" : "Back to lobby";
 
+  // On /search the brand bar sits directly on top of the page's own
+  // sticky search-input band (which is also blue). To let the two
+  // surfaces merge cleanly, the BrandBar drops its rounded bottom on
+  // /search and the search band picks up the 20px radius at the
+  // bottom of the combined blue panel instead.
+  const roundedBottom = pathname !== "/search";
+
   return (
     <header
-      className="sticky top-0 z-30 bg-mrq-blue pb-[10px]"
-      style={{ paddingTop: "calc(env(safe-area-inset-top) + 10px)" }}
+      className="sticky top-0 z-30 bg-mrq-blue pb-[14px]"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top) + 10px)",
+        // Soft rounded bottom corners so the blue header reads as a
+        // floating panel against the #f5f5f5 page canvas instead of a
+        // flat band running edge-to-edge.
+        borderBottomLeftRadius: roundedBottom ? "20px" : 0,
+        borderBottomRightRadius: roundedBottom ? "20px" : 0,
+      }}
     >
       <div className="relative h-[48px] px-[16px] flex items-center justify-between">
         {/* Left side: logo OR back-arrow, depending on route. Title is
@@ -101,13 +115,19 @@ export function BrandBar() {
           type="button"
           onClick={openSideNav}
           aria-label="Open account menu"
-          className="flex items-center gap-[10px] h-[46px] pl-[18px] pr-[5px] rounded-full active:scale-[0.97] transition-transform"
+          // Lifted from h-[46px] pl-[18px] gap-[10px] to h-[48px] pl-[22px]
+          // gap-[12px] so the balance + avatar pill has more breathing
+          // room around the number. Background is the pale brand-blue
+          // (#9DABEA) shifted to ~32% opacity — reads as a lighter
+          // translucent surface against the brand-blue header instead
+          // of the darker navy fill it had before.
+          className="flex items-center gap-[12px] h-[48px] pl-[22px] pr-[5px] rounded-full active:scale-[0.97] transition-transform"
           style={{
-            backgroundColor: "rgba(8, 24, 100, 0.65)",
+            backgroundColor: "rgba(157, 171, 234, 0.32)",
             backdropFilter: "blur(20px) saturate(140%)",
             WebkitBackdropFilter: "blur(20px) saturate(140%)",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.14)",
+            border: "1px solid rgba(255, 255, 255, 0.18)",
+            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.22)",
           }}
         >
           <span className="text-white text-[16px] leading-none font-extrabold pt-[1px]">
