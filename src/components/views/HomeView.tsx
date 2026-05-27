@@ -12,7 +12,7 @@ import { LatestBigWinsRow } from "@/components/rails/LatestBigWinsRow";
  * Order matches Figma node 165:28726:
  *
  *   1. HeroCarousel                — landscape promo cards (snap rail)
- *   2. Pick up where you left off  — 2×2 grid of recent games
+ *   2. Recently Played Games        — 2×2 grid of recent games
  *   3. Your recent big wins        — horiz scroll w/ £ prize pills
  *   4. Free spins banner           — full-width white CTA card
  *   5. Same vibe as <game>         — horiz scroll large landscape promos
@@ -98,7 +98,7 @@ export function HomeView() {
       <HeroCarousel />
 
       <RecentlyPlayedGrid
-        title="Pick up where you left off"
+        title="Recently Played Games"
         seeAllLabel="Show all"
         items={PICK_UP_GRID}
       />
