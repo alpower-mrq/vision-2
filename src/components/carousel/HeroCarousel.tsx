@@ -52,9 +52,14 @@ const CARD_ASPECT = 303 / 162;
 
 // Active-card scale. Inactive cards stay at 1.0; whichever card is
 // closest to the centre of the rail scales up subtly so it reads as
-// the "focused" card (matches the Figma's active card being slightly
-// larger than the inactive ones).
-const ACTIVE_SCALE = 1.06;
+// the "focused" card.
+//
+// `transform-origin: 0% 50%` (left-centre) means the scale grows
+// the card rightward + slightly up/down — the LEFT edge stays put.
+// That keeps the active card's left aligned with the 16px page
+// gutter (matching GameRail, ScrollAwareFilters, RecentlyPlayedGrid)
+// rather than bleeding past it on a centre-origin scale.
+const ACTIVE_SCALE = 1.04;
 
 // Hysteresis for the scroll-off behaviour. Hide once we're a few
 // pixels in, reveal only when fully back at the top.
@@ -147,12 +152,12 @@ export function HeroCarousel() {
     >
       <div
         ref={railRef}
-        // Padding matches the rest of the page rhythm: px-[16px] for
-        // horizontal (same as GameRail, ScrollAwareFilters,
-        // RecentlyPlayedGrid). Vertical pt/pb is bumped a few px so
-        // the active card's scale-up has room to breathe without
-        // getting clipped against the band above or below.
-        className="no-scrollbar flex gap-[10px] overflow-x-auto overflow-y-visible px-[16px] pt-[14px] pb-[12px] snap-x snap-mandatory"
+        // px-[16px] matches the page gutter used everywhere else.
+        // Wide gap (gap-[20px]) so the active card's rightward
+        // scale-up has clear separation from the next card — the
+        // previous 10px gap left them touching once the active
+        // scaled.
+        className="no-scrollbar flex gap-[20px] overflow-x-auto overflow-y-visible px-[16px] pt-[14px] pb-[12px] snap-x snap-mandatory"
         style={{
           WebkitOverflowScrolling: "touch",
           scrollSnapStop: "always",
@@ -168,17 +173,18 @@ export function HeroCarousel() {
               }}
               className="shrink-0 snap-start"
               style={{
-                // 86% of available width so a sliver of the next
-                // card peeks at the right edge. Slightly tighter
-                // than before so the active scale-up doesn't push
-                // it off-screen.
-                width: "min(86%, calc(var(--mobile-width) - 40px))",
+                // 82% of viewport so the active card's rightward
+                // scale-up + the 20px inter-card gap still leave
+                // a clean peek of the next card on the right
+                // (~14% of viewport visible).
+                width: "min(82%, calc(var(--mobile-width) - 60px))",
                 aspectRatio: `${CARD_ASPECT}`,
-                // Scale the active card up; others stay at 1.0.
-                // transform-origin keeps the growth symmetric so the
-                // card doesn't drift off its snap anchor.
                 transform: `scale(${isActive ? ACTIVE_SCALE : 1})`,
-                transformOrigin: "center",
+                // Anchor the scale to the card's LEFT edge so the
+                // active card's left stays exactly at the 16px page
+                // gutter (matches the rest of the app). Growth pushes
+                // rightward + up/down only.
+                transformOrigin: "0% 50%",
                 transition: reduce
                   ? "none"
                   : "transform 240ms cubic-bezier(0.22, 1, 0.36, 1)",
