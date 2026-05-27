@@ -176,37 +176,38 @@ const TILES_LIVE = [
 ];
 
 // Category mega-cards (Casino, Live Casino, Bingo, Arena) — each is
-// a wide card with a category sticker + a small embedded grid of 6
-// games. Stickers reuse the single-layer PNGs already exported from
-// Figma; multi-layer compositing (gem/shadow/highlight) is reserved
-// for the Start Browsing tiles where the sticker is the focal point.
+// a wide card with a category icon + a small embedded grid of 6
+// games. Icons are the new flat MrQ-blue line/fill icons (Figma
+// node 173:30744) — not the colourful "burst" illustration
+// stickers used on the Start Browsing tiles. They're cleaner on a
+// busy white card.
 const MEGA_CATEGORIES: MegaCardCategory[] = [
   {
     key: "casino",
     title: "Casino",
     subtitle: "Hot right now",
-    sticker: "/assets/search/sticker-casino.png",
+    sticker: "/assets/mega/casino.svg",
     tiles: TILES_HOT.slice(0, 6),
   },
   {
     key: "live",
     title: "Live Casino",
     subtitle: "Hot right now",
-    sticker: "/assets/search/crown-body.png",
+    sticker: "/assets/mega/live.svg",
     tiles: TILES_LIVE.slice(0, 6),
   },
   {
     key: "bingo",
     title: "Bingo",
     subtitle: "Hot right now",
-    sticker: "/assets/search/bingo-ball.png",
+    sticker: "/assets/mega/bingo.svg",
     tiles: TILES_SLOTS.slice(0, 6),
   },
   {
     key: "arena",
     title: "Arena",
     subtitle: "Hot right now",
-    sticker: "/assets/search/fist-body.png",
+    sticker: "/assets/mega/arena.svg",
     tiles: TILES_QUICK.slice(0, 6),
   },
 ];
