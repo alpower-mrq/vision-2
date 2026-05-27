@@ -69,13 +69,30 @@ export function BottomNav() {
   const { bootDone } = useShell();
 
   // One-shot entrance on first paint after the splash dissolves.
-  // Controlled via CSS transition (not Framer's animate prop) so the
-  // entrance fires exactly once and never re-triggers on context
-  // re-renders. Bar slides up from below the bottom edge.
+  // The CSS transition was previously kept "live" indefinitely, so
+  // any later layout shift (iOS Safari URL-bar reappearing on
+  // navigation, env(safe-area-inset-bottom) ticking, etc) would
+  // re-fire the 0.9s-delayed slide-up animation — the user
+  // reported "the bar zooms from the bottom" when scrolling then
+  // tapping a tab.
+  //
+  // Fix: after the entrance completes (~1.3s from when bootDone
+  // flips), set the transition to 'none' so no further property
+  // changes on the nav animate. Tab interactions inside use their
+  // own per-tab transitions; this only governs the bar shell.
   const shown = reduce || bootDone;
+  const [entranceDone, setEntranceDone] = useState(reduce);
+  useEffect(() => {
+    if (entranceDone || !shown) return;
+    const t = setTimeout(() => setEntranceDone(true), 1300);
+    return () => clearTimeout(t);
+  }, [shown, entranceDone]);
+
   const entranceCss = reduce
     ? "none"
-    : "opacity 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1)";
+    : entranceDone
+      ? "none"
+      : "opacity 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s 0.9s cubic-bezier(0.22, 1, 0.36, 1)";
 
   return (
     // Full-width flat tab bar anchored to the bottom of the
