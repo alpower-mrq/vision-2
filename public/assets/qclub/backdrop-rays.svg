@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 357 269" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mask group">
+<mask id="mask0_203_46385" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="357" height="269">
+<rect id="Rectangle 34624324" width="357" height="269" rx="12" fill="var(--fill-0, #0B2FCB)"/>
+</mask>
+<g mask="url(#mask0_203_46385)">
+<path id="Vector" fill-rule="evenodd" clip-rule="evenodd" d="M271.557 181.032L187.473 -93L103.443 181.032L0 -93L0 477H375L375 -93L271.557 181.032Z" fill="url(#paint0_linear_203_46385)"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_203_46385" x1="187.5" y1="-93" x2="187.5" y2="477" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0B2598"/>
+<stop offset="1" stop-color="#040C32" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
