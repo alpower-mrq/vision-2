@@ -34,12 +34,12 @@ type Tab = {
 
 // Tab keys still mirror the route segments (lobby = /, search-page
 // = /search, discover-page = /discover) for active-state matching;
-// only the visible labels + icons have moved. If we later want
-// `/search` → `/games` and `/discover` → `/for-you` as real URLs,
-// those are file-rename moves under src/app/.
+// only the visible labels + icons change. If we later want `/search`
+// → `/explore` and `/discover` → `/for-you` as real URLs, those are
+// file-rename moves under src/app/.
 const TABS: Tab[] = [
   { key: "lobby", href: "/", label: "Home", Icon: HomeIcon },
-  { key: "search", href: "/search", label: "Games", Icon: GamesIcon },
+  { key: "search", href: "/search", label: "Explore", Icon: ExploreIcon },
   { key: "discover", href: "/discover", label: "For You", Icon: ForYouIcon },
   { key: "rewards", href: "/rewards", label: "Rewards", Icon: GiftIcon },
 ];
@@ -180,41 +180,46 @@ function HomeIcon({ className }: { className?: string }) {
   );
 }
 
-function GamesIcon({ className }: { className?: string }) {
-  // 2×2 grid of rounded tiles — reads as "games catalogue" rather
-  // than the old magnifying glass (which made sense for Search but
-  // not for the relabelled Games tab).
+function ExploreIcon({ className }: { className?: string }) {
+  // Chunky magnifying glass — matches the Figma reference for the
+  // relabelled "Explore" tab (was "Games"). Heavier stroke + larger
+  // lens than a typical search icon so it reads at bottom-nav scale.
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       aria-hidden
       focusable={false}
     >
-      <rect x="3" y="3" width="8" height="8" rx="2" />
-      <rect x="13" y="3" width="8" height="8" rx="2" />
-      <rect x="3" y="13" width="8" height="8" rx="2" />
-      <rect x="13" y="13" width="8" height="8" rx="2" />
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4.2-4.2" />
     </svg>
   );
 }
 
 function ForYouIcon({ className }: { className?: string }) {
-  // Sparkle — iOS / Apple Music convention for personalised "For
-  // You" sections. Big star + one small accent star for the
-  // "twinkle" hint, the same idiom Apple uses on the For You
-  // tab in Music + the lightning-style favourites in Photos.
+  // Play triangle inside a rounded-square frame — matches the Figma
+  // reference for "For You" (reads as "video feed" / Reels-style
+  // content). Outlined rounded rect + filled triangle inside.
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       aria-hidden
       focusable={false}
     >
-      <path d="M11 2.5l1.9 5.1L18 9.5l-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9L11 2.5Z" />
-      <path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4Z" />
+      <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="4" />
+      <path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" />
     </svg>
   );
 }
