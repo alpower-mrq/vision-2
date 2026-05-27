@@ -64,6 +64,14 @@ export const CATEGORY_GRID_TILES: Record<
   live: tileSet([5, 10, 2, 7, 12, 4, 9, 1, 6, 11, 3, 8], "Live"),
 };
 
+/** "All games" grid — every slot-NN art deduped, used by the
+ *  dedicated /casino/games page. Order picked so similar-looking
+ *  tiles aren't stacked next to each other. */
+export const ALL_GAMES_TILES: { src: string; alt: string }[] = tileSet(
+  [1, 7, 4, 11, 8, 13, 3, 9, 5, 12, 2, 6, 10],
+  "Game",
+);
+
 /** Build a "Jackpots+" / "Megaways+" pluralised CTA label from a key. */
 export function ctaLabelFor(selected: string | null): string {
   if (!selected) return "Categories+";

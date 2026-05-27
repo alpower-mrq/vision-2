@@ -1,69 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
-import {
-  CATEGORIES,
-  CATEGORY_GRID_TILES,
-} from "@/lib/casino-categories";
+import { ALL_GAMES_TILES, CATEGORIES } from "@/lib/casino-categories";
 
 /**
- * Per-category Casino page, e.g. `/casino/jackpot` or `/casino/new`.
+ * Dedicated "All games" page — lives at /casino/games.
  *
  *   ┌──────────────────────────────────────┐
- *   │  ←                          £113.59 ▢│  ← BrandBar (back arrow only)
+ *   │  ←                          £113.59 ▢│  ← BrandBar (back → /casino)
  *   ├──────────────────────────────────────┤
- *   │  Casino                 Jackpots+    │  ← In-page header
- *   │  Browse all Jackpot games            │  ← Sub-line names category
+ *   │  Casino                  All games+  │  ← Header
+ *   │  Browse all Casino games             │
  *   ├──────────────────────────────────────┤
- *   │  ▢▢▢ ▢▢▢ ▢▢▢                        │  ← 3-col tile grid
+ *   │  ▢▢▢ ▢▢▢ ▢▢▢                        │  ← 3-col grid of every game
  *   │  ▢▢▢ ▢▢▢ ▢▢▢                        │
  *   │  ▢▢▢ ▢▢▢ ▢▢▢                        │
  *   └──────────────────────────────────────┘
  *
- * Title stays "Casino" so the user always knows which vertical they're
- * inside; the active sub-category is communicated by (a) the pluralised
- * CTA pill on the right ("Jackpots+", "Tables+"), and (b) the
- * "Browse all X games" sub-line below the title.
- *
- * Tapping the pill opens the same CategoriesSheet as /casino, letting
- * the user hop between sub-categories without going back to the main
- * page. Selecting "All games" returns to the /casino feed.
+ * Renders a flat 3-col grid of every game across all sub-categories.
+ * The Categories+ pill opens the same bottom-sheet picker used on the
+ * other Casino routes; selecting a sub-category hops to that
+ * sub-category's page, and "All games" stays here.
  */
-
-function labelFor(key: string): string {
-  return CATEGORIES.find((c) => c.key === key)?.label ?? key;
-}
-
-function ctaLabelForCategory(key: string): string {
-  const label = labelFor(key);
-  const plural = label.endsWith("s") ? label : `${label}s`;
-  return `${plural}+`;
-}
-
-export function CasinoCategoryView({ category }: { category: string }) {
+export function CasinoAllGamesView() {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
 
-  const label = useMemo(() => labelFor(category), [category]);
-  const ctaLabel = useMemo(() => ctaLabelForCategory(category), [category]);
-  const tiles = CATEGORY_GRID_TILES[category] ?? [];
-
-  // Hop to another sub-category page from the sheet. "All games"
-  // (key === null) goes to the dedicated /casino/games browse view —
-  // NOT the /casino homepage, which is a curated experience and
-  // distinct from the all-games browse.
   const handleSelect = (key: string | null) => {
-    if (key === null) router.push("/casino/games");
-    else if (key !== category) router.push(`/casino/${key}`);
+    if (key === null) {
+      // Already here — just dismiss the sheet (handled by onClose).
+      return;
+    }
+    router.push(`/casino/${key}`);
   };
 
   return (
     <>
-      {/* In-page header. Title + CTA pill, same pattern as /casino. */}
+      {/* In-page header. */}
       <div className="flex items-center justify-between px-[16px] pt-[16px] pb-[6px]">
         <h1 className="text-[28px] font-extrabold leading-none text-[var(--mrq-blue-dark)]">
           Casino
@@ -73,30 +50,26 @@ export function CasinoCategoryView({ category }: { category: string }) {
           onClick={() => setSheetOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={sheetOpen}
-          // Matches Figma 177:35024: pale blue/200 4px-rounded rect.
           className="h-[30px] px-[14px] rounded-[4px] text-[16px] font-extrabold text-white active:scale-[0.97] transition-transform"
           style={{ backgroundColor: "#9DABEA" }}
         >
-          {ctaLabel}
+          All games+
         </button>
       </div>
       <p className="px-[16px] pb-[12px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
-        Browse all {label} games
+        Browse all Casino games
       </p>
 
-      {/* 3-column tile grid. Tiles match the GameRail dimensions
-          (square, ~109px wide on a 375px viewport) for visual
-          continuity with the main feed. Single section-level fade-up
-          matches the entrance pattern used by every other rail on the
-          page (per-card stagger was inconsistent — variants didn't
-          always propagate to children). */}
+      {/* 3-col tile grid — same dimensions as the per-category page so
+          the All games view feels like a longer scroll of the same
+          family of tiles. */}
       <motion.div
         className="grid grid-cols-3 gap-[8px] px-[16px] pb-[24px]"
         initial={false}
         animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
-        {tiles.map((tile, i) => (
+        {ALL_GAMES_TILES.map((tile, i) => (
           <button
             key={`${tile.src}-${i}`}
             type="button"
@@ -117,7 +90,9 @@ export function CasinoCategoryView({ category }: { category: string }) {
 
       <CategoriesSheet
         open={sheetOpen}
-        selected={category}
+        // Pass null so "All games" reads as the active row in the
+        // sheet — we're already on the all-games page.
+        selected={null}
         categories={CATEGORIES}
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}

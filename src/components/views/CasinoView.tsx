@@ -144,7 +144,18 @@ export function CasinoView() {
         open={sheetOpen}
         selected={selected}
         categories={CATEGORIES}
-        onSelect={setSelected}
+        onSelect={(key) => {
+          // "All games" — hop to the dedicated /casino/games page.
+          // The casino homepage itself is a curated experience (hero,
+          // Top 10, category rails) and is NOT the "all games" view.
+          if (key === null) {
+            router.push("/casino/games");
+            return;
+          }
+          // Sub-category selected — filter the local rails (homepage
+          // behaviour, keeping the curated chrome intact).
+          setSelected(key);
+        }}
         onClose={() => setSheetOpen(false)}
         title="Casino categories"
       />

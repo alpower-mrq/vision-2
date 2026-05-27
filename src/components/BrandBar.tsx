@@ -36,10 +36,21 @@ function showsBackArrow(pathname: string): boolean {
   return pathname === "/casino" || pathname.startsWith("/casino/");
 }
 
+/** Where the back arrow leads. Sub-routes under /casino (per-category
+ *  pages, the all-games browse) drop one level back to /casino — the
+ *  casino homepage. Anything else goes to the lobby. */
+function backHrefFor(pathname: string): string {
+  if (pathname.startsWith("/casino/")) return "/casino";
+  return "/";
+}
+
 export function BrandBar() {
   const { openSideNav } = useShell();
   const pathname = usePathname();
   const backArrow = showsBackArrow(pathname);
+  const backHref = backHrefFor(pathname);
+  const backLabel =
+    backHref === "/casino" ? "Back to Casino" : "Back to lobby";
 
   return (
     <header
@@ -56,8 +67,8 @@ export function BrandBar() {
           // the back arrow sits inside the same glass chrome instead of
           // floating as a bare chevron.
           <Link
-            href="/"
-            aria-label="Back to lobby"
+            href={backHref}
+            aria-label={backLabel}
             className="grid size-[40px] place-items-center rounded-full active:scale-[0.96] transition-transform"
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.18)",
