@@ -6,131 +6,165 @@ import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { useFilter } from "@/lib/filter-context";
 
 /**
- * Hero carousel — Figma node 48:1732.
+ * Hero promo carousel — landscape strip just below the filter band.
  *
- * Horizontal scroll-snap rail of promo cards. Whichever card is closest to the
- * centre of the rail is the "active" card and scales up slightly, matching
- * the Figma design where the focused card is visibly larger than the others.
+ * Replaced the previous portrait carousel (190 × 280 cards). The hero
+ * was too tall and ate too much vertical real estate above the rails.
+ * Cards are now landscape 3:2 (one full card + a peek of the next at
+ * ~88% viewport width) so the hero clocks in at ~190px tall, roughly
+ * a third shorter than before.
  *
- * Cards are simple PNGs (pulled from the live Vercel build at
- * vision-01.vercel.app) — no in-code recreation of headlines/stickers. This
- * means perfect fidelity to the source art, and adding/removing cards is a
- * one-line change to the CARDS array below.
+ * Behaviour:
+ *   • Horizontal scroll-snap-mandatory so each card snaps into the
+ *     same anchor position on release — no more drift between drags.
+ *   • snap-stop: always so a fast flick doesn't blow past multiple
+ *     cards in one go (still feels natural; just lands at the next
+ *     card instead of two cards down).
+ *   • Mouse drag uses `useDraggableScroll` for desktop. Native touch
+ *     scroll handles the rest on mobile.
  *
- * Behavioural notes:
- *   - Free-scrolling rail (no snap) for a smooth, mobile-app drag feel.
- *     Mouse drag uses `useDraggableScroll` which adds inertia/momentum on
- *     release; native touch already has its own momentum.
- *   - We pick the active card via centre-distance check on every scroll
- *     event (cheap, no extra observers needed).
- *   - The active card gets `scale(1.07)` — the exact 203/190 ratio between
- *     Figma's "active" and "inactive" card frames.
+ * Scroll-off interaction (new):
+ *   The strip is NOT part of the sticky filter band — the filters use
+ *   show-on-scroll-up direction logic. The hero is simpler: visible
+ *   ONLY when the page is at the very top. The moment the user starts
+ *   scrolling down, the hero slides up off-screen. It reappears only
+ *   when scrollY returns to ~0.
+ *
+ *   We use a small hysteresis (HIDE_AT > REVEAL_AT) so a 1-2px scroll
+ *   wobble at the top doesn't flicker. translateY drives the actual
+ *   hide so it doesn't take up layout space when hidden — the rails
+ *   below shift up cleanly.
  */
-// Four real promo cards pulled from the live MrQ build (vision-01.vercel.app).
-// To swap order / duplicate / replace, edit this array — nothing else to change.
 const CARDS = [
-  { key: "get-spicy", src: "/assets/carousel/card-get-spicy.png", alt: "Play Now — Get Spicy with Spicy Meatballs Megaways" },
-  { key: "limits-in-check", src: "/assets/carousel/card-limits-in-check.png", alt: "Keep your limits in check" },
-  { key: "ready-to-play", src: "/assets/carousel/card-ready-to-play.png", alt: "Ready to play together? Join the Arena with 200K+ players" },
+  {
+    key: "get-spicy",
+    src: "/assets/carousel/card-get-spicy.png",
+    alt: "Play Now — Get Spicy with Spicy Meatballs Megaways",
+    // Where to anchor object-fit when we crop the portrait source
+    // into a landscape frame. The original art has the headline at
+    // the top, so anchor `top` to keep "PLAY NOW / GET SPICY"
+    // visible after the crop.
+    objectPosition: "center top",
+  },
+  {
+    key: "limits-in-check",
+    src: "/assets/carousel/card-limits-in-check.png",
+    alt: "Keep your limits in check",
+    objectPosition: "center 35%",
+  },
+  {
+    key: "ready-to-play",
+    src: "/assets/carousel/card-ready-to-play.png",
+    alt: "Ready to play together? Join the Arena with 200K+ players",
+    objectPosition: "center 30%",
+  },
 ];
 
-// Base size from Figma Card 2 (inactive): 190 × 280
-// Active card scales up to match Card 1's 203 × 300 footprint
-const BASE_W = 190;
-const BASE_H = 280;
-const ACTIVE_SCALE = 203 / BASE_W; // ≈ 1.068
+// Card dimensions. 3:2 landscape — the Figma promo cards are ~303×162
+// (1.87:1) but 3:2 keeps the existing portrait artwork readable when
+// cropped via object-cover.
+const CARD_ASPECT = 3 / 2;
+
+// Hysteresis for the scroll-off behaviour. Hide once we're a few
+// pixels in (so a touch-jiggle at the very top doesn't kick the hero
+// out), reveal only when fully back at the top.
+const HIDE_AT = 8;
+const REVEAL_AT = 2;
 
 export function HeroCarousel() {
   // useDraggableScroll wires up click-and-drag-to-scroll on desktop
   // (native touch scrolling still works on real devices via overflow-x: auto).
   const railRef = useDraggableScroll<HTMLDivElement>();
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [activeIndex, setActiveIndex] = useState(0);
   const reduce = useReducedMotion();
   const { bootDone } = useFilter();
 
+  // Page-level scroll listener for the hide-on-scroll behaviour.
+  const [visible, setVisible] = useState(true);
   useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-
-    const updateActive = () => {
-      const railRect = rail.getBoundingClientRect();
-      const railCentre = railRect.left + railRect.width / 2;
-      let best = 0;
-      let bestDist = Infinity;
-      cardRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const dist = Math.abs(r.left + r.width / 2 - railCentre);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = i;
-        }
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const y = window.scrollY;
+        setVisible((curr) => {
+          if (curr && y > HIDE_AT) return false;
+          if (!curr && y <= REVEAL_AT) return true;
+          return curr;
+        });
       });
-      setActiveIndex((curr) => (curr === best ? curr : best));
     };
-
-    updateActive();
-    rail.addEventListener("scroll", updateActive, { passive: true });
-    window.addEventListener("resize", updateActive);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => {
-      rail.removeEventListener("scroll", updateActive);
-      window.removeEventListener("resize", updateActive);
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
+
+  // Entrance + scroll-off animations are layered. The deal-in (used on
+  // initial paint after the splash) animates from y:24 to y:0 with a
+  // small scale settle. After that, the scroll-off animation moves
+  // between y:0 (visible) and y:-100% (hidden above viewport).
+  // Framer's `animate` re-evaluates as deps change; when bootDone +
+  // visible flip, it transitions to the new target.
+  const dealIn = reduce || bootDone;
+  const hiddenTransform = reduce
+    ? { opacity: 0, y: 0 }
+    : { opacity: 0, y: -32 };
 
   return (
     <motion.section
       aria-label="Featured promotions"
-      className="relative"
+      className="relative overflow-hidden"
       data-node-id="48:1732"
-      // Casino "deal-in" entrance: subtle slide-up + scale-in. Holds in the
-      // hidden state until the loading splash flips `bootDone` (fires the
-      // moment the splash begins dissolving). A 200ms transition delay
-      // then waits for the splash wrapper to clear, so the hero visibly
-      // animates IN over the revealed lobby rather than finishing behind
-      // a still-fading veil. Respects prefers-reduced-motion.
+      // The hero now ALSO handles its own height collapse on scroll
+      // so the rails below pull up cleanly. animate.height plays
+      // with the y translate to give a smooth slide-off-and-up feel.
       initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
       animate={
-        reduce || bootDone
-          ? { opacity: 1, y: 0, scale: 1 }
-          : { opacity: 0, y: 24, scale: 0.96 }
+        !dealIn
+          ? { opacity: 0, y: 24, scale: 0.96 }
+          : visible
+            ? { opacity: 1, y: 0, scale: 1, height: "auto" }
+            : { ...hiddenTransform, height: 0, scale: 1 }
       }
-      transition={{ duration: 0.3, delay: reduce ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: 0.3,
+        delay: !dealIn ? 0 : 0,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      style={{ pointerEvents: visible ? "auto" : "none" }}
     >
       <div
         ref={railRef}
-        // Free-scrolling rail — no snap. 28px top padding lifts the active
-        // (scaled-up) card off the pills band above so it doesn't feel
-        // squashed against the top. Mouse drag inertia comes from the
-        // useDraggableScroll hook; the active card detection (centre-distance
-        // check on every scroll event) handles the scale-up regardless of
-        // where the user releases the drag.
-        className="no-scrollbar flex gap-[12px] overflow-x-auto overflow-y-hidden px-[16px] pt-[28px] pb-[14px]"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        // Scroll-snap mandatory keeps cards locked to anchor points.
+        // `snap-always` makes the snap re-trigger after any scroll
+        // gesture (so flicking past a card always lands on a card).
+        className="no-scrollbar flex gap-[10px] overflow-x-auto overflow-y-hidden px-[16px] pt-[12px] pb-[14px] snap-x snap-mandatory"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollSnapStop: "always",
+        }}
       >
-        {CARDS.map((card, i) => {
-          const isActive = i === activeIndex;
-          return (
-            <div
-              key={card.key}
-              ref={(el) => {
-                cardRefs.current[i] = el;
-              }}
-              className="shrink-0"
-              style={{
-                width: `${BASE_W}px`,
-                height: `${BASE_H}px`,
-                transform: `scale(${isActive ? ACTIVE_SCALE : 1})`,
-                transformOrigin: "center",
-                transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
-                zIndex: isActive ? 2 : 1,
-              }}
-            >
-              <PromoCard src={card.src} alt={card.alt} priority={i < 2} />
-            </div>
-          );
-        })}
+        {CARDS.map((card) => (
+          <div
+            key={card.key}
+            className="shrink-0 snap-start"
+            style={{
+              // 88% of the viewport so a sliver of the next card peeks
+              // — the affordance that "there's more to swipe".
+              width: "min(88%, calc(var(--mobile-width) - 32px))",
+              aspectRatio: `${CARD_ASPECT}`,
+            }}
+          >
+            <PromoCard
+              src={card.src}
+              alt={card.alt}
+              objectPosition={card.objectPosition}
+            />
+          </div>
+        ))}
       </div>
     </motion.section>
   );
@@ -139,25 +173,28 @@ export function HeroCarousel() {
 function PromoCard({
   src,
   alt,
+  objectPosition,
 }: {
   src: string;
   alt: string;
-  priority?: boolean;
+  objectPosition: string;
 }) {
-  // Plain <img> instead of next/image — the PNGs are already 25–335KB at
-  // their source size and next/image's optimization pipeline was hanging on
-  // the non-priority cards (requesting w=3840 unnecessarily).
   return (
     <button
       type="button"
-      className="relative block h-full w-full overflow-hidden rounded-[16px] active:scale-[0.995] transition-transform"
-      style={{ boxShadow: "0 8px 24px -8px rgba(10, 46, 203, 0.35)" }}
+      className="relative block h-full w-full overflow-hidden rounded-[16px] active:scale-[0.985] transition-transform"
+      style={{ boxShadow: "0 8px 24px -10px rgba(10, 46, 203, 0.35)" }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt={alt}
         className="absolute inset-0 h-full w-full object-cover"
+        // object-position lets us crop the portrait source into a
+        // landscape frame while keeping the headline visible. Set
+        // per-card so each one anchors to the most important region
+        // of its artwork.
+        style={{ objectPosition }}
         draggable={false}
       />
     </button>
