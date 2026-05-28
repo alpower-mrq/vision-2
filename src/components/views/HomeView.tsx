@@ -43,10 +43,15 @@ const PICK_UP_GRID = [
 
 const RECENT_WINS = [
   { src: "/assets/games/slot-04.png", alt: "Western Gold", prize: "£32.34" },
-  // Buffalo Bills surfaces as the second-biggest recent win (£28.55) —
-  // replaces the previous Golden Catch placeholder so the carousel
-  // pairs with the new game page wired through the lobby.
-  { src: "/assets/games/slot-01.png", alt: "Buffalo Bills", prize: "£28.55" },
+  // Buffalo Bills surfaces as the second-biggest recent win (£28.55).
+  // Has an href so tapping the tile drops the user into the game
+  // page — same wiring as the Recently Played Games tile.
+  {
+    src: "/assets/games/slot-01.png",
+    alt: "Buffalo Bills",
+    prize: "£28.55",
+    href: "/play/buffalo-bills",
+  },
   { src: "/assets/games/slot-13.png", alt: "Snake Arena", prize: "£31.19" },
   { src: "/assets/games/slot-11.png", alt: "Maze Escape", prize: "£24.80" },
   { src: "/assets/games/slot-07.png", alt: "Mummy Mania", prize: "£18.50" },
