@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
+import { ChevronDownIcon } from "../CategoryChevron";
 import {
   CATEGORIES,
   CATEGORY_GRID_TILES,
@@ -38,9 +39,12 @@ function labelFor(key: string): string {
 }
 
 function ctaLabelForCategory(key: string): string {
+  // Pluralised so the pill reads as a "more like this" affordance,
+  // e.g. on /casino/jackpot the pill says "Jackpots" (chevron renders
+  // separately). Previously this appended a literal "+" — the icon
+  // now lives in JSX so we only return the plain word here.
   const label = labelFor(key);
-  const plural = label.endsWith("s") ? label : `${label}s`;
-  return `${plural}+`;
+  return label.endsWith("s") ? label : `${label}s`;
 }
 
 export function CasinoCategoryView({ category }: { category: string }) {
@@ -73,11 +77,17 @@ export function CasinoCategoryView({ category }: { category: string }) {
           onClick={() => setSheetOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={sheetOpen}
-          // Matches Figma 177:35024: pale blue/200 4px-rounded rect.
-          className="h-[30px] px-[14px] rounded-[4px] text-[16px] font-extrabold text-white active:scale-[0.97] transition-transform"
-          style={{ backgroundColor: "#9DABEA" }}
+          // Shared chevron-down pill style — pale lavender bg, navy
+          // label, chevron-down on the right. Matches the /casino
+          // homepage's Categories pill and Arena's Dashboard pill.
+          className="inline-flex items-center gap-[6px] h-[30px] pl-[14px] pr-[12px] rounded-full text-[16px] font-extrabold active:scale-[0.97] transition-transform"
+          style={{
+            backgroundColor: "#dee3f7",
+            color: "var(--mrq-blue-dark)",
+          }}
         >
-          {ctaLabel}
+          <span>{ctaLabel}</span>
+          <ChevronDownIcon size={14} />
         </button>
       </div>
       <p className="px-[16px] pb-[12px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">

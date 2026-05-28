@@ -48,9 +48,12 @@ function showsBackArrow(pathname: string): boolean {
 
 /** Where the back arrow leads. Sub-routes under /casino (per-category
  *  pages, the all-games browse) drop one level back to /casino — the
- *  casino homepage. Anything else goes to the lobby. */
+ *  casino homepage. /arena lands the user on /search (the Explore
+ *  page) since Arena is opened from the Explore mega-card carousel,
+ *  not directly from the lobby. Anything else goes to the lobby. */
 function backHrefFor(pathname: string): string {
   if (pathname.startsWith("/casino/")) return "/casino";
+  if (pathname.startsWith("/arena")) return "/search";
   return "/";
 }
 
@@ -60,7 +63,11 @@ export function BrandBar() {
   const backArrow = showsBackArrow(pathname);
   const backHref = backHrefFor(pathname);
   const backLabel =
-    backHref === "/casino" ? "Back to Casino" : "Back to lobby";
+    backHref === "/casino"
+      ? "Back to Casino"
+      : backHref === "/search"
+        ? "Back to Explore"
+        : "Back to lobby";
 
   // On /search the brand bar sits directly on top of the page's own
   // sticky search-input band (which is also blue). To let the two

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
+import { ChevronDownIcon } from "../CategoryChevron";
 import { ALL_GAMES_TILES, CATEGORIES } from "@/lib/casino-categories";
 
 /**
@@ -50,10 +51,17 @@ export function CasinoAllGamesView() {
           onClick={() => setSheetOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={sheetOpen}
-          className="h-[30px] px-[14px] rounded-[4px] text-[16px] font-extrabold text-white active:scale-[0.97] transition-transform"
-          style={{ backgroundColor: "#9DABEA" }}
+          // Shared chevron-down pill — pale lavender bg, navy label,
+          // chevron-down on the right. Matches /casino, /casino/[cat],
+          // and Arena's Dashboard pill.
+          className="inline-flex items-center gap-[6px] h-[30px] pl-[14px] pr-[12px] rounded-full text-[16px] font-extrabold active:scale-[0.97] transition-transform"
+          style={{
+            backgroundColor: "#dee3f7",
+            color: "var(--mrq-blue-dark)",
+          }}
         >
-          All games+
+          <span>All games</span>
+          <ChevronDownIcon size={14} />
         </button>
       </div>
       <p className="px-[16px] pb-[12px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">

@@ -133,31 +133,46 @@ const TILES_HOT = [
 // page were removed (per the Explore redesign — Figma 133:39525) in
 // favour of the Discover new games circular row up top + the Browse
 // all categories grid at the bottom.
+//
+// Live Casino uses real dealer-table art from /public/assets/live/
+// (a mix of "popular" titles and table-game thumbnails) so the
+// preview is honest — the user sees the kind of content that
+// actually lives behind the slide, not generic slot reels.
 const TILES_LIVE_CASINO = [
-  G(8, "Tiki Tumble"),
-  G(11, "Maze Escape"),
-  G(1, "Buffalo Bills"),
-  G(13, "Snake Arena"),
-  G(7, "Mummy Mania"),
-  G(4, "Jewel Stepper"),
+  { src: "/assets/live/popular-01.png", alt: "Popular live game 1" },
+  { src: "/assets/live/table-01.png", alt: "Live table 1" },
+  { src: "/assets/live/popular-02.png", alt: "Popular live game 2" },
+  { src: "/assets/live/table-02.png", alt: "Live table 2" },
+  { src: "/assets/live/popular-03.png", alt: "Popular live game 3" },
+  { src: "/assets/live/table-03.png", alt: "Live table 3" },
 ];
 
+// Bingo uses the real MrQ bingo lobby room art (five 1:1 room
+// thumbnails). Only five unique rooms exist, so the sixth slot
+// repeats "Tropic Like Its Hot" in the bottom-right corner —
+// arranged so no column or horizontal pair stacks the same room:
+//   row 1: tropic        | cheap-as-chips | dab-and-disco
+//   row 2: on-the-house  | pinch-a-penny  | tropic
 const TILES_BINGO = [
-  G(4, "Jewel Stepper"),
-  G(8, "Tiki Tumble"),
-  G(13, "Snake Arena"),
-  G(11, "Maze Escape"),
-  G(1, "Buffalo Bills"),
-  G(7, "Mummy Mania"),
+  { src: "/assets/bingo/lobby-tropic-like-its-hot.png", alt: "Tropic Like Its Hot" },
+  { src: "/assets/bingo/lobby-cheap-as-chips.png", alt: "Cheap As Chips" },
+  { src: "/assets/bingo/lobby-dab-and-disco.png", alt: "Dab And Disco" },
+  { src: "/assets/bingo/lobby-on-the-house.png", alt: "On The House" },
+  { src: "/assets/bingo/lobby-pinch-a-penny.png", alt: "Pinch A Penny" },
+  { src: "/assets/bingo/lobby-tropic-like-its-hot.png", alt: "Tropic Like Its Hot" },
 ];
 
+// Real arena artwork — the same set of "eligible games" used on
+// /arena's leaderboard rails. Keeps the mega-card preview honest:
+// what the user sees here is exactly what they'll see in the Arena
+// experience itself, not generic slot art.
 const TILES_ARENA = [
-  G(13, "Snake Arena"),
-  G(11, "Maze Escape"),
-  G(1, "Buffalo Bills"),
-  G(4, "Jewel Stepper"),
-  G(8, "Tiki Tumble"),
-  G(7, "Mummy Mania"),
+  { src: "/assets/arena/eligible-1.png", alt: "Arena eligible 1" },
+  { src: "/assets/arena/eligible-2.png", alt: "Arena eligible 2" },
+  { src: "/assets/arena/eligible-3.png", alt: "Arena eligible 3" },
+  { src: "/assets/arena/eligible-4.png", alt: "Arena eligible 4" },
+  { src: "/assets/arena/eligible-5.png", alt: "Arena eligible 5" },
+  { src: "/assets/arena/eligible-6.png", alt: "Arena eligible 6" },
 ];
 
 // Three side-scrolling rails that sit between the Casino mega-card
@@ -206,6 +221,9 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/casino.svg",
     tiles: TILES_HOT.slice(0, 6),
+    // "See all" lands on the curated casino homepage (the same
+    // destination the Start Browsing Casino sticker uses).
+    seeAllHref: "/casino",
   },
   {
     key: "live",
@@ -213,6 +231,8 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/live.svg",
     tiles: TILES_LIVE_CASINO.slice(0, 6),
+    // No dedicated /live page yet — the See all button renders as
+    // inert (handled in CategoryMegaCardsRail).
   },
   {
     key: "bingo",
@@ -220,6 +240,7 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/bingo.svg",
     tiles: TILES_BINGO.slice(0, 6),
+    // No dedicated /bingo page yet.
   },
   {
     key: "arena",
@@ -227,6 +248,8 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/arena.svg",
     tiles: TILES_ARENA.slice(0, 6),
+    // Arena has a real dashboard at /arena, so wire See all to it.
+    seeAllHref: "/arena",
   },
 ];
 

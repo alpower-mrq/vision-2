@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 
@@ -101,12 +102,28 @@ function MegaCard({ category }: { category: MegaCardCategory }) {
             {category.subtitle}
           </p>
         </div>
-        <button
-          type="button"
-          className="text-[13px] font-extrabold text-[var(--mrq-blue)] shrink-0"
-        >
-          See all
-        </button>
+        {/* "See all" is a Link when the category provides a
+            destination (Casino → /casino, Arena → /arena, etc.).
+            Slides without a routed destination (Live Casino, Bingo —
+            no top-level pages built yet) render an inert button at
+            the same visual weight so the card layout stays
+            consistent across the rail. */}
+        {category.seeAllHref ? (
+          <Link
+            href={category.seeAllHref}
+            className="text-[13px] font-extrabold text-[var(--mrq-blue)] shrink-0 active:opacity-70 transition-opacity"
+          >
+            See all
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="text-[13px] font-extrabold text-[var(--mrq-blue)] shrink-0"
+            aria-disabled
+          >
+            See all
+          </button>
+        )}
       </div>
 
       {/* 2 × 3 game tile grid */}

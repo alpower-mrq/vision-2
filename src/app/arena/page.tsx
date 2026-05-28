@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronDownIcon } from "@/components/CategoryChevron";
 
 /**
  * Arena — Figma 230:57295 ("Dashboard - 9PM price drop live").
@@ -146,25 +147,32 @@ function ArenaTitleRow() {
       >
         Arena
       </h1>
+      {/* CTA pill — pale lavender bg + navy label + chevron-down,
+          matching the new shared style used by Casino's Categories
+          pill. Width is no longer fixed: it grows with the label so
+          we don't have to retune the box every time we add/remove
+          a character (e.g. "+", chevron). */}
       <div
-        className="inline-flex items-center justify-center rounded-[4px]"
+        className="inline-flex items-center justify-center gap-[6px] rounded-full"
         style={{
-          width: 118,
           height: 30,
-          backgroundColor: "#ffffff",
+          paddingLeft: 14,
+          paddingRight: 12,
+          backgroundColor: "#dee3f7",
+          color: BRAND_DARK,
         }}
       >
         <span
-          className="font-bold"
+          className="font-extrabold"
           style={{
-            color: BRAND_DARK,
             fontSize: 16,
             lineHeight: 1.6,
             letterSpacing: 0.1,
           }}
         >
-          Dashboard+
+          Dashboard
         </span>
+        <ChevronDownIcon size={14} />
       </div>
     </div>
   );
@@ -209,8 +217,12 @@ function TodaysResult() {
             You finished #14
           </p>
         </div>
-        <button
-          type="button"
+        {/* Routes to /arena/prize — a full-frame reveal flow with a
+            tap-to-open gift box and a confetti-burst prize screen.
+            Stays a Link (not a button) so the standard tap feedback +
+            prefetching kick in for free. */}
+        <Link
+          href="/arena/prize"
           className="w-full flex items-center justify-center rounded-[12px] active:scale-[0.98] transition-transform"
           style={{ height: 56, backgroundColor: BRAND_TOP }}
         >
@@ -224,7 +236,7 @@ function TodaysResult() {
           >
             Open today&apos;s prize
           </span>
-        </button>
+        </Link>
       </div>
     </section>
   );

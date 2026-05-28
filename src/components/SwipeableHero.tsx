@@ -2,6 +2,7 @@
 
 import {
   animate,
+  AnimatePresence,
   motion,
   type MotionValue,
   useMotionValue,
@@ -17,32 +18,36 @@ import { useEffect, useState } from "react";
  *
  *   • Full-bleed game artwork (object-cover)
  *   • Yellow "exclusive" sticker top-left (optional)
- *   • Decorative Info / Heart / Play action icons stacked on the right
- *     — pointer-events:none so they DON'T interfere with the drag;
- *     they're visual affordances, not buttons
- *   • Title + RTP block at the bottom-left
+ *   • Two stacked action buttons on the right edge:
+ *       — Info  (toggles the expanded details overlay)
+ *       — Play  (launches the game — stub)
+ *   • Title + RTP block at the bottom-left (or the full details list
+ *     while the info overlay is open)
  *
- * The LIKE / NOPE stamps that used to overlay the card during drag were
- * removed (per design feedback that the page felt cluttered) — users
- * are expected to discover the swipe gesture themselves. The drag
- * physics still distinguish past-threshold vs. snap-back; only the
- * visual stamps are gone.
+ * Info overlay:
+ *   Tapping the "i" button blurs the artwork, swaps the title-only
+ *   text block for the full game-details list (RTP, Volatility, Max
+ *   win, Min/max bet, Game type, Provider) and replaces the info
+ *   icon with an "X" close icon. Drag is disabled while the overlay
+ *   is open so reading details doesn't accidentally fire a swipe.
  *
- * Interactions:
+ * Swipe hint:
+ *   The very first card to mount runs a subtle wobble (~30px right
+ *   → ~20px left → settle) after a short delay, so the user can
+ *   see the deck is interactive. Honours prefers-reduced-motion via
+ *   the SHIP_HINT_ENABLED flag below — only the very first mount
+ *   does it (subsequent swipes don't repeat the hint).
+ *
+ * Drag physics:
  *   • Tap (no drag)        → open game (stub: console.log)
  *   • Drag past +100px     → "play" (advance deck for now)
  *   • Drag past -100px     → "skip" (advance deck)
+ *   • Action buttons use onPointerDownCapture + stopPropagation so
+ *     they don't kick off a drag-or-tap on the parent motion.div.
  *
- * Implementation notes:
- *   • The drag MotionValue lives at the SwipeableHero level so the
- *     parent can read it for any future drag-tied effects without
- *     prop-drilling through CardSurface.
- *   • CardSurface internals are `pointer-events: none` everywhere
- *     except the motion.div itself, so the drag captures every touch
- *     on the card. The Info/Heart/Play icons are visual only.
- *   • Snap-back spring on cancel is softer (stiffness 300, damping 38)
- *     so the card settles gracefully when the user releases under the
- *     threshold.
+ * Snap-back spring on cancel is softer (stiffness 300, damping 38)
+ * so the card settles gracefully when the user releases under the
+ * threshold.
  */
 
 export type HeroGame = {
@@ -52,6 +57,13 @@ export type HeroGame = {
   rtp: string;
   /** Yellow "Exclusive" sticker top-left of the artwork. */
   exclusive?: boolean;
+  /** Optional metadata surfaced by the info overlay. Falls back to
+   *  sensible defaults when omitted so old data still renders. */
+  volatility?: string;
+  maxWin?: string;
+  betRange?: string;
+  gameType?: string;
+  provider?: string;
 };
 
 const SWIPE_THRESHOLD = 100;
@@ -87,11 +99,13 @@ export function SwipeableHero({ games }: { games: HeroGame[] }) {
       <NextCardPreview key={`peek-${index}`} game={next} />
 
       {/* Front: active draggable card. Remounted on every swipe so its
-          drag transform starts cleanly at the centre. */}
+          drag transform starts cleanly at the centre. The very first
+          card (index 0) gets a one-shot swipe-hint wobble. */}
       <SwipeCard
         key={`top-${index}`}
         x={x}
         game={current}
+        isFirst={index === 0}
         onSwiped={() => setIndex((i) => i + 1)}
         onTap={() => {
           if (typeof window !== "undefined") {
@@ -118,7 +132,9 @@ function NextCardPreview({ game }: { game: HeroGame }) {
       transition={{ type: "spring", stiffness: 280, damping: 32, mass: 0.9 }}
       aria-hidden
     >
-      <CardSurface game={game} />
+      {/* Peek card never shows the expanded info overlay — it's
+          decorative, so we pass infoOpen=false unconditionally. */}
+      <CardSurface game={game} infoOpen={false} />
       <div
         className="absolute inset-0 rounded-[18px] pointer-events-none"
         style={{ backgroundColor: "rgba(245, 245, 245, 0.5)" }}
@@ -130,14 +146,17 @@ function NextCardPreview({ game }: { game: HeroGame }) {
 function SwipeCard({
   game,
   x,
+  isFirst,
   onSwiped,
   onTap,
 }: {
   game: HeroGame;
   x: MotionValue<number>;
+  isFirst: boolean;
   onSwiped: () => void;
   onTap: () => void;
 }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   const rotate = useTransform(x, [-300, 0, 300], [-12, 0, 12]);
   const opacity = useTransform(x, [-300, -50, 0, 50, 300], [0.5, 1, 1, 1, 0.5]);
 
@@ -147,11 +166,39 @@ function SwipeCard({
     x.set(0);
   }, [x]);
 
+  // First-mount swipe hint — a one-shot wobble (~600ms after mount) so
+  // the user knows the card is draggable. Only fires on the very first
+  // card; subsequent swipes don't repeat the hint since the user has
+  // already engaged with the gesture.
+  useEffect(() => {
+    if (!isFirst) return;
+    // Respect prefers-reduced-motion — skip the hint entirely.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    const t = window.setTimeout(() => {
+      // Sequence: right 30px → left 20px → centre. Soft ease so it
+      // reads as a hint rather than an animation.
+      animate(x, [0, 30, -20, 0], {
+        duration: 1.4,
+        ease: [0.22, 1, 0.36, 1],
+        times: [0, 0.35, 0.7, 1],
+      });
+    }, 650);
+    return () => window.clearTimeout(t);
+  }, [isFirst, x]);
+
   return (
     <motion.div
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
       style={{ x, rotate, opacity }}
-      drag="x"
+      // Drag is locked while the info overlay is open — reading
+      // details shouldn't trigger an accidental swipe. Closing the
+      // overlay re-enables drag instantly.
+      drag={infoOpen ? false : "x"}
       dragElastic={0.7}
       dragMomentum={false}
       initial={{ scale: 0.95, opacity: 0 }}
@@ -179,12 +226,46 @@ function SwipeCard({
         }
       }}
     >
-      <CardSurface game={game} />
+      <CardSurface
+        game={game}
+        infoOpen={infoOpen}
+        onToggleInfo={() => setInfoOpen((open) => !open)}
+        onPlay={() => {
+          if (typeof window !== "undefined") {
+            // eslint-disable-next-line no-console
+            console.log("[SwipeableHero] play →", game.title);
+          }
+        }}
+      />
     </motion.div>
   );
 }
 
-function CardSurface({ game }: { game: HeroGame }) {
+function CardSurface({
+  game,
+  infoOpen,
+  onToggleInfo,
+  onPlay,
+}: {
+  game: HeroGame;
+  infoOpen: boolean;
+  onToggleInfo?: () => void;
+  onPlay?: () => void;
+}) {
+  const interactive = !!onToggleInfo;
+
+  // Detail rows displayed inside the info overlay. The labels are
+  // fixed; values come from the HeroGame or sensible defaults so
+  // older data without these fields still renders.
+  const detailRows: Array<[string, string]> = [
+    ["RTP", game.rtp],
+    ["Volatility", game.volatility ?? "Medium"],
+    ["Max win", game.maxWin ?? "5,000x"],
+    ["Min/max bet", game.betRange ?? "£0.10–£100"],
+    ["Game type", game.gameType ?? "Slot"],
+    ["Provider", game.provider ?? "Example Studios"],
+  ];
+
   return (
     <div
       className="relative h-full w-full overflow-hidden rounded-[18px]"
@@ -193,18 +274,25 @@ function CardSurface({ game }: { game: HeroGame }) {
           "0 14px 32px -16px rgba(10, 46, 203, 0.4), 0 2px 6px -2px rgba(10, 46, 203, 0.18)",
       }}
     >
-      {/* Artwork. pointer-events:none so the parent motion.div gets
-          every touch/click for dragging + tapping. */}
+      {/* Artwork. Blurred + dimmed when the info overlay is open so
+          the long-form text reads clearly against it. The transition
+          on filter+brightness gives a buttery "frosted glass" feel. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={game.src}
         alt={game.alt}
         draggable={false}
         className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none"
+        style={{
+          filter: infoOpen ? "blur(10px) brightness(0.6)" : "none",
+          transform: infoOpen ? "scale(1.06)" : "scale(1)", // hide blur edges
+          transition: "filter 220ms ease, transform 220ms ease",
+        }}
       />
 
-      {/* Yellow "exclusive" burst sticker top-left. */}
-      {game.exclusive && (
+      {/* Yellow "exclusive" burst sticker top-left. Hidden while the
+          info overlay is open so it doesn't conflict with the text. */}
+      {game.exclusive && !infoOpen && (
         <div
           className="absolute left-[14px] top-[14px] grid place-items-center text-mrq-blue-dark pointer-events-none"
           style={{
@@ -226,70 +314,168 @@ function CardSurface({ game }: { game: HeroGame }) {
         </div>
       )}
 
-      {/* Decorative action icon stack on the right edge. pointer-events:
-          none on the wrapper AND each child so the drag layer above
-          captures every touch. They're affordances, not buttons — the
-          actual actions are tap (= open), swipe-right (= play),
-          swipe-left (= skip). */}
+      {/* Action button stack on the right edge.
+          When `interactive` is false (peek card) the stack is decorative
+          (pointer-events: none) — taps fall through to the parent.
+          When `interactive` is true (front card) each button captures
+          its own pointer events so the toggle / play actions fire
+          without triggering a drag or a card-level tap. */}
       <div
-        className="absolute bottom-[16px] right-[14px] flex flex-col items-center gap-[10px] pointer-events-none"
+        className="absolute bottom-[16px] right-[14px] flex flex-col items-center gap-[10px]"
+        style={{ pointerEvents: interactive ? "auto" : "none" }}
       >
-        <DecorChip>
-          <InfoIcon className="size-[18px] text-white" />
-        </DecorChip>
-        <DecorChip>
-          <HeartIcon className="size-[18px] text-white" />
-        </DecorChip>
-        <DecorPlayChip>
-          <PlayIcon className="size-[18px] text-white translate-x-[1px]" />
-        </DecorPlayChip>
+        <ActionButton
+          aria-label={infoOpen ? "Close game info" : "Open game info"}
+          variant="info"
+          interactive={interactive}
+          onClick={onToggleInfo}
+        >
+          {infoOpen ? (
+            <CloseIcon className="size-[16px] text-white" />
+          ) : (
+            <InfoIcon className="size-[18px] text-white" />
+          )}
+        </ActionButton>
+        <ActionButton
+          aria-label={`Play ${game.title}`}
+          variant="play"
+          interactive={interactive}
+          onClick={onPlay}
+        >
+          <PlayIcon className="size-[20px] text-white translate-x-[1px]" />
+        </ActionButton>
       </div>
 
-      {/* Title + RTP at the bottom. Reserves room on the right for the
-          action icon stack so the title doesn't crash into it. */}
+      {/* Bottom-left text block — title only when collapsed, full
+          details list when the info overlay is open. AnimatePresence
+          gives both states a smooth opacity/translate crossfade. */}
       <div
-        className="absolute bottom-[16px] left-[16px] right-[80px] flex flex-col gap-[2px] text-white pointer-events-none"
-        style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.55)" }}
+        className="absolute bottom-[16px] left-[16px] text-white pointer-events-none"
+        style={{
+          right: 80, // keep clear of the action stack
+          textShadow: infoOpen
+            ? "0 1px 4px rgba(0, 0, 0, 0.45)"
+            : "0 2px 8px rgba(0, 0, 0, 0.55)",
+        }}
       >
-        <h3 className="text-[20px] font-extrabold leading-tight">
-          {game.title}
-        </h3>
-        <p className="text-[13px] font-extrabold opacity-95">
-          RTP: {game.rtp}
-        </p>
+        <AnimatePresence mode="wait" initial={false}>
+          {infoOpen ? (
+            <motion.div
+              key="details"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h3
+                className="text-[20px] font-extrabold leading-tight"
+                style={{ marginBottom: 8 }}
+              >
+                {game.title}
+              </h3>
+              <ul
+                className="flex flex-col"
+                style={{ gap: 4 }}
+              >
+                {detailRows.map(([label, value]) => (
+                  <li
+                    key={label}
+                    className="text-[15px] font-bold leading-snug"
+                  >
+                    {label}: {value}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="title-only"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col gap-[2px]"
+            >
+              <h3 className="text-[20px] font-extrabold leading-tight">
+                {game.title}
+              </h3>
+              <p className="text-[13px] font-extrabold opacity-95">
+                RTP: {game.rtp}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-function DecorChip({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="grid size-[40px] place-items-center rounded-full pointer-events-none"
-      style={{
-        backgroundColor: "rgba(255, 255, 255, 0.22)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        border: "1px solid rgba(255, 255, 255, 0.22)",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
+/* ============================================================
+   Action button — single component for both Info and Play.
+   Renders a real <button> when interactive (front card) or a
+   non-interactive <span> when decorative (peek card).
+   ============================================================ */
+function ActionButton({
+  variant,
+  interactive,
+  children,
+  onClick,
+  ...rest
+}: {
+  variant: "info" | "play";
+  interactive: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+} & React.HTMLAttributes<HTMLElement>) {
+  // Sizing + colour by variant.
+  const size = variant === "play" ? 48 : 40;
+  const style: React.CSSProperties =
+    variant === "play"
+      ? {
+          width: size,
+          height: size,
+          backgroundColor: "var(--mrq-blue)",
+          boxShadow:
+            "0 8px 18px -6px rgba(10, 46, 203, 0.55), 0 2px 6px -2px rgba(10, 46, 203, 0.22)",
+        }
+      : {
+          width: size,
+          height: size,
+          backgroundColor: "rgba(0, 0, 0, 0.45)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.22)",
+        };
 
-function DecorPlayChip({ children }: { children: React.ReactNode }) {
+  if (!interactive) {
+    return (
+      <span
+        {...(rest as React.HTMLAttributes<HTMLSpanElement>)}
+        className="grid place-items-center rounded-full pointer-events-none"
+        style={style}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  // Real button on the front card. We stop pointer events from
+  // bubbling up to the parent motion.div so the swipe drag and
+  // onTap handlers don't fire when the user taps a button.
   return (
-    <span
-      className="grid size-[48px] place-items-center rounded-full pointer-events-none"
-      style={{
-        backgroundColor: "var(--mrq-blue)",
-        boxShadow:
-          "0 8px 18px -6px rgba(10, 46, 203, 0.55), 0 2px 6px -2px rgba(10, 46, 203, 0.22)",
+    <button
+      type="button"
+      {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+      onPointerDownCapture={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
       }}
+      className="grid place-items-center rounded-full active:scale-[0.94] transition-transform"
+      style={style}
     >
       {children}
-    </span>
+    </button>
   );
 }
 
@@ -342,10 +528,10 @@ function InfoIcon({ className }: { className?: string }) {
   );
 }
 
-function HeartIcon({ className }: { className?: string }) {
+function CloseIcon({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
       strokeWidth="2.4"
@@ -355,7 +541,7 @@ function HeartIcon({ className }: { className?: string }) {
       aria-hidden
       focusable={false}
     >
-      <path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 6.5-7 11-7 11Z" />
+      <path d="M3 3l10 10M13 3L3 13" />
     </svg>
   );
 }

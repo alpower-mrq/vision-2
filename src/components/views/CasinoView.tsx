@@ -6,6 +6,7 @@ import { SwipeableHero, type HeroGame } from "../SwipeableHero";
 import { GameRail } from "@/components/rails/GameRail";
 import { Top10Rail } from "@/components/rails/Top10Rail";
 import { CategoriesSheet } from "../CategoriesSheet";
+import { ChevronDownIcon } from "../CategoryChevron";
 import {
   CATEGORIES,
   CATEGORY_RAIL_TILES,
@@ -51,12 +52,22 @@ const HERO_DECK: HeroGame[] = [
     title: "Birds on a Wire",
     rtp: "96.91%",
     exclusive: true,
+    volatility: "High",
+    maxWin: "10,000x",
+    betRange: "£0.10–£100",
+    gameType: "Slot",
+    provider: "Thunderkick",
   },
   {
     src: "/assets/games/south-park.png",
     alt: "South Park",
     title: "South Park",
     rtp: "96.55%",
+    volatility: "Medium",
+    maxWin: "2,500x",
+    betRange: "£0.20–£250",
+    gameType: "Slot",
+    provider: "NetEnt",
   },
   {
     src: "/assets/games/fruit-warp.png",
@@ -64,12 +75,22 @@ const HERO_DECK: HeroGame[] = [
     title: "Fruit Warp",
     rtp: "97%",
     exclusive: true,
+    volatility: "Medium",
+    maxWin: "6,000x",
+    betRange: "£0.10–£100",
+    gameType: "Slot",
+    provider: "Thunderkick",
   },
   {
     src: "/assets/games/wild-swarm.png",
     alt: "Wild Swarm",
     title: "Wild Swarm",
     rtp: "96.32%",
+    volatility: "High",
+    maxWin: "8,000x",
+    betRange: "£0.10–£100",
+    gameType: "Slot",
+    provider: "Push Gaming",
   },
 ];
 
@@ -100,12 +121,19 @@ export function CasinoView() {
           onClick={() => setSheetOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={sheetOpen}
-          // Matches Figma 177:35024: 30px tall, 4px rounded rect (NOT
-          // a pill), pale blue/200 fill, white extrabold label.
-          className="h-[30px] px-[14px] rounded-[4px] text-[16px] font-extrabold text-white active:scale-[0.97] transition-transform"
-          style={{ backgroundColor: "#9DABEA" }}
+          // Was a flat blue rect with white text + "+". New shared
+          // style: pale-lavender pill + navy label + chevron-down
+          // icon, signalling "tap to expand" rather than "add". The
+          // chevron also unifies the look with the Arena Dashboard
+          // pill and the Casino category pages.
+          className="inline-flex items-center gap-[6px] h-[30px] pl-[14px] pr-[12px] rounded-full text-[16px] font-extrabold active:scale-[0.97] transition-transform"
+          style={{
+            backgroundColor: "#dee3f7",
+            color: "var(--mrq-blue-dark)",
+          }}
         >
-          Categories+
+          <span>Categories</span>
+          <ChevronDownIcon size={14} />
         </button>
       </div>
 
