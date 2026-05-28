@@ -158,20 +158,6 @@ export function CategoriesSheet({
                   "calc(env(safe-area-inset-bottom) + 24px)",
               }}
             >
-              {/* "Back to Casino Home" — only rendered when onHome
-                  is provided (sub-routes only). Uses a back-arrow
-                  glyph in place of the chevron so it reads as a
-                  navigation step backward rather than another
-                  forward category choice. */}
-              {onHome && (
-                <HomeRow
-                  onClick={() => {
-                    onHome();
-                    onClose();
-                  }}
-                />
-              )}
-
               <CategoryRow
                 label="All games"
                 active={selected === null}
@@ -191,6 +177,29 @@ export function CategoriesSheet({
                   }}
                 />
               ))}
+
+              {/* "Back to Casino Home" — only rendered when onHome
+                  is provided (sub-routes only). Sits at the BOTTOM
+                  of the list, after the category rows, separated
+                  by a hairline divider so it reads as a distinct
+                  navigation step rather than another category
+                  choice. Uses a back-arrow glyph instead of the
+                  forward chevron. */}
+              {onHome && (
+                <>
+                  <li
+                    aria-hidden
+                    className="my-[6px] mx-[12px] h-px"
+                    style={{ backgroundColor: "rgba(10, 46, 203, 0.10)" }}
+                  />
+                  <HomeRow
+                    onClick={() => {
+                      onHome();
+                      onClose();
+                    }}
+                  />
+                </>
+              )}
             </ul>
           </motion.div>
         </>
