@@ -7,6 +7,7 @@ import {
   CategoryMegaCardsRail,
   type MegaCardCategory,
 } from "@/components/rails/CategoryMegaCardsRail";
+import { GameRail } from "@/components/rails/GameRail";
 import { ThemesGrid, type Theme } from "@/components/rails/ThemesGrid";
 import { CATEGORIES as CASINO_SUBCATEGORIES } from "@/lib/casino-categories";
 
@@ -156,6 +157,39 @@ const TILES_ARENA = [
   G(4, "Jewel Stepper"),
   G(8, "Tiki Tumble"),
   G(7, "Mummy Mania"),
+];
+
+// Three side-scrolling rails that sit between the Casino mega-card
+// and Browse all categories. Same slot-NN art pool, just sequenced
+// differently so each rail feels distinct.
+const TILES_EXCLUSIVE = [
+  G(7, "Mummy Mania"),
+  G(11, "Maze Escape"),
+  G(1, "Buffalo Bills"),
+  G(13, "Snake Arena"),
+  G(4, "Jewel Stepper"),
+  G(8, "Tiki Tumble"),
+  G(3, "Big Bass Splash"),
+];
+
+const TILES_TOP_PICKS = [
+  G(13, "Snake Arena"),
+  G(1, "Buffalo Bills"),
+  G(8, "Tiki Tumble"),
+  G(11, "Maze Escape"),
+  G(7, "Mummy Mania"),
+  G(4, "Jewel Stepper"),
+  G(12, "Western Gold"),
+];
+
+const TILES_PICKED_BY_Q = [
+  G(4, "Jewel Stepper"),
+  G(8, "Tiki Tumble"),
+  G(11, "Maze Escape"),
+  G(13, "Snake Arena"),
+  G(1, "Buffalo Bills"),
+  G(7, "Mummy Mania"),
+  G(5, "Golden Catch"),
 ];
 
 // Category mega-cards (Casino, Live Casino, Bingo, Arena) — each is
@@ -379,6 +413,30 @@ export default function SearchPage() {
       <div className="flex flex-col pt-[14px]">
         <StartBrowsing items={BROWSE} />
         <CategoryMegaCardsRail categories={MEGA_CATEGORIES} />
+
+        {/* Three editorial rails — promotional rows that sit between
+            the category mega-card and the full Browse-all-categories
+            grid. Reuses GameRail (same component the lobby + Casino
+            page use), 109×109 square tiles. */}
+        <GameRail
+          title="Exclusive to Mr Q"
+          tiles={TILES_EXCLUSIVE}
+          tileWidth={109}
+          tileHeight={109}
+        />
+        <GameRail
+          title="Top Picks"
+          tiles={TILES_TOP_PICKS}
+          tileWidth={109}
+          tileHeight={109}
+        />
+        <GameRail
+          title="Picked For You, By Q"
+          tiles={TILES_PICKED_BY_Q}
+          tileWidth={109}
+          tileHeight={109}
+        />
+
         <ThemesGrid title="Browse all categories" items={BROWSE_CATEGORIES} />
       </div>
 
