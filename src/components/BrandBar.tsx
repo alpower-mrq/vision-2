@@ -64,13 +64,11 @@ export function BrandBar() {
   // /search and the search band picks up the 20px radius at the
   // bottom of the combined blue panel instead.
   //
-  // Same treatment on /rewards — the Rewards page sits on a
-  // brand-blue gradient so the BrandBar should merge cleanly into
-  // it. With rounded bottom corners the mobile-frame's #f5f5f5
-  // canvas would peek through the curve area as two small white
-  // crescents at the BrandBar's bottom-left/right.
-  const roundedBottom =
-    pathname !== "/search" && !pathname.startsWith("/rewards");
+  // On /rewards the rounded bottom is kept — but AppShell paints
+  // the mobile-frame surface brand-blue on that route, so the
+  // small wedge of "behind the BrandBar" that the curve exposes
+  // shows blue (matching the BrandBar) instead of #f5f5f5.
+  const roundedBottom = pathname !== "/search";
 
   return (
     <header

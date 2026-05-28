@@ -41,7 +41,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className="mobile-frame">
+      <div
+        className="mobile-frame"
+        // /rewards uses a brand-blue surface end-to-end so the
+        // BrandBar's 20px rounded bottom corners don't reveal
+        // the default #f5f5f5 canvas through the curve wedge.
+        // Inline style overrides the .mobile-frame stylesheet's
+        // background: #f5f5f5.
+        style={
+          isRewards ? { background: "var(--mrq-blue)" } : undefined
+        }
+      >
         <BrandBar />
 
         <main className={isRewards ? "bg-[var(--mrq-blue)]" : "bg-[#f5f5f5]"}>
