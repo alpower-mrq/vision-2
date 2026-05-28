@@ -16,8 +16,11 @@ import { QClubCard } from "@/components/QClubCard";
  *   3. Your recent big wins        — horiz scroll w/ £ prize pills
  *   4. Same vibe as <game>         — horiz scroll large landscape promos
  *   5. Hot right now               — horiz scroll square game tiles
- *   6. The Q Club                  — rewards card (Figma 203:42091)
- *   7. Latest big wins             — horiz scroll social-style win cards
+ *   6. Latest big wins             — horiz scroll social-style win cards
+ *   7. The Q Club                  — rewards card that morphs from
+ *                                    a mobile-frame card into a
+ *                                    full-width section as it
+ *                                    scrolls into view (Figma 203:42091)
  *
  * Each section component owns its own padding + title style; this
  * file just sequences them.
@@ -121,12 +124,15 @@ export function HomeView() {
         tileHeight={109}
       />
 
-      {/* The Q Club rewards card — sits below the Hot right now rail
-          as a mid-to-lower-feed feature block, leading into the
-          Latest big wins social row at the very bottom. */}
-      <QClubCard />
-
       <LatestBigWinsRow title="Latest big wins" items={LATEST_WINS} />
+
+      {/* The Q Club rewards card — the final block on the home feed.
+          `expandOnScroll` lets it morph from a normal mobile-frame
+          card into a full-width section as the user scrolls toward
+          it (gutter padding + corner radius + shadow all fade to
+          zero), so it reads as a "finishing flourish" at the bottom
+          of the page. */}
+      <QClubCard expandOnScroll />
     </>
   );
 }

@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 
 /**
  * "The Q Club" promo card — Figma node 203:42091.
@@ -22,8 +28,14 @@ import { motion, useReducedMotion } from "framer-motion";
  *
  * Brand-blue (#0B2FCB) card with a subtle dark-gradient W backdrop,
  * the SVG title (with crown ornament) anchored at the top, and two
- * reward thumbnails. Pure presentational — content is hard-coded for
- * the prototype since the rewards block isn't backed by real data yet.
+ * reward thumbnails.
+ *
+ * `expandOnScroll` mode (used at the bottom of the home feed): as
+ * the card enters the viewport from below, its gutter padding, corner
+ * radius, and lift-shadow all animate down to zero — so by the time
+ * the user has scrolled it into view, the "card" has unfolded into
+ * a full-width section that sits flush with the page edges. Acts as
+ * a finishing flourish at the bottom of the lobby.
  */
 
 const REWARDS: Array<{
@@ -43,38 +55,84 @@ const REWARDS: Array<{
   },
 ];
 
-export function QClubCard() {
+export function QClubCard({
+  expandOnScroll = false,
+}: {
+  /** When true, the card morphs from a normal mobile-frame card into
+   *  a full-width section as the user scrolls it into view. Driven
+   *  by `useScroll` tracking the section's progress through the
+   *  viewport — see the inline `offset` for the exact range. */
+  expandOnScroll?: boolean;
+}) {
   const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  // Scroll progress for the section. `target: sectionRef` + the
+  // `offset` below give us a `scrollYProgress` of 0 when the section
+  // is BELOW the viewport (about to enter), reaches 1 when its TOP
+  // edge has reached the viewport center. That's the window where
+  // the card should be unfolding into a full-width section.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "start center"],
+  });
+
+  // Snap to the start/end state when reduced-motion is on (no
+  // intermediate scroll-driven animation).
+  const px = useTransform(
+    scrollYProgress,
+    [0, 1],
+    expandOnScroll ? [16, 0] : [16, 16],
+  );
+  const radius = useTransform(
+    scrollYProgress,
+    [0, 1],
+    expandOnScroll ? [12, 0] : [12, 12],
+  );
+  const shadowAlpha = useTransform(
+    scrollYProgress,
+    [0, 1],
+    expandOnScroll ? [0.45, 0] : [0.45, 0.45],
+  );
+  const boxShadow = useTransform(
+    shadowAlpha,
+    (a) => `0 12px 28px -16px rgba(10, 46, 203, ${a})`,
+  );
 
   return (
     <motion.section
+      ref={sectionRef}
       aria-label="The Q Club"
-      // Mobile-frame gutter — same 16px the rails use, plus a bit of
-      // vertical breathing room above and below so it sits as a
-      // distinct block between the Top 10 rail and the per-category
-      // rails.
-      className="px-[16px] pt-[14px] pb-[16px]"
+      className="pt-[14px] pb-[16px]"
+      // The section's horizontal padding is the "card gutter" — when
+      // expandOnScroll fires it tweens 16 → 0, dropping the card flush
+      // to the page edges. Cast through `any` because Framer types the
+      // style prop conservatively for motion values.
+      style={
+        reduce
+          ? { paddingLeft: 16, paddingRight: 16 }
+          : { paddingLeft: px, paddingRight: px }
+      }
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div
-        className="relative w-full overflow-hidden rounded-[12px]"
+      <motion.div
+        className="relative w-full overflow-hidden"
         style={{
           backgroundColor: "#0B2FCB",
-          // Soft brand glow under the card so it lifts slightly off
-          // the page canvas without competing with the rails' own
-          // tile shadows.
-          boxShadow: "0 12px 28px -16px rgba(10, 46, 203, 0.45)",
-          // Was 357/269 — pushed taller so the See all Rewards button
-          // gets clear breathing room above it (Figma version had the
-          // CTA crashing into the reward-tile sub-line).
+          // Tween radius + shadow alongside the gutter so the card
+          // "unfolds" as a single coordinated motion: corners square
+          // off, lift shadow fades, gutter padding collapses.
+          borderRadius: reduce ? 12 : radius,
+          boxShadow: reduce
+            ? "0 12px 28px -16px rgba(10, 46, 203, 0.45)"
+            : boxShadow,
           aspectRatio: "357 / 290",
         }}
       >
         {/* Backdrop W-gradient — the dark "diamond" shape baked into
-            the original Figma frame. Sits underneath everything else,
-            pointer-events:none so the buttons inside catch input. */}
+            the original Figma frame. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/qclub/backdrop-rays.svg"
@@ -127,7 +185,7 @@ export function QClubCard() {
         >
           See all Rewards
         </Link>
-      </div>
+      </motion.div>
     </motion.section>
   );
 }
