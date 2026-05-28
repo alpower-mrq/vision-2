@@ -6,6 +6,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
 import { ChevronDownIcon } from "../CategoryChevron";
 import { GameTileInfo } from "../GameTileInfo";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 import {
   CATEGORIES,
   CATEGORY_GRID_TILES,
@@ -53,6 +55,7 @@ export function CasinoCategoryView({ category }: { category: string }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
 
+  const { openGameDetails } = useShell();
   const label = useMemo(() => labelFor(category), [category]);
   const ctaLabel = useMemo(() => ctaLabelForCategory(category), [category]);
   const tiles = CATEGORY_GRID_TILES[category] ?? [];
@@ -112,6 +115,7 @@ export function CasinoCategoryView({ category }: { category: string }) {
             key={`${tile.src}-${i}`}
             type="button"
             aria-label={tile.alt}
+            onClick={() => openGameDetails(getGameDetails(tile.alt, tile.src))}
             className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
             style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
           >

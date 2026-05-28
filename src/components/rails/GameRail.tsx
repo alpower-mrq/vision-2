@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { GameTileInfo } from "@/components/GameTileInfo";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * Generic horizontal-scroll game tile rail — matches the structure of every
@@ -91,9 +93,13 @@ function GameTile({
   width: number;
   height: number;
 }) {
+  const { openGameDetails } = useShell();
+
   return (
     <button
       type="button"
+      aria-label={alt}
+      onClick={() => openGameDetails(getGameDetails(alt, src))}
       className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.99] transition-transform"
       style={{
         width: `${width}px`,
@@ -104,7 +110,7 @@ function GameTile({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
-        alt={alt}
+        alt=""
         className="absolute inset-0 h-full w-full object-cover pointer-events-none"
         draggable={false}
       />

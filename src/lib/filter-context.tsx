@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { GameDetails } from "@/lib/games-catalogue";
 
 /**
  * App-level shell state that's NOT route-driven.
@@ -40,6 +41,16 @@ type ShellContextValue = {
   openDeposit: () => void;
   closeDeposit: () => void;
 
+  /**
+   * Active game details for the bottom sheet. `null` when the sheet
+   * is closed. Tile components call `openGameDetails(details)` to
+   * surface a game's quick-look info; the sheet (rendered in
+   * AppShell) reads this value and slides up while it's non-null.
+   */
+  gameDetails: GameDetails | null;
+  openGameDetails: (details: GameDetails) => void;
+  closeGameDetails: () => void;
+
   bootDone: boolean;
   markBootDone: () => void;
 };
@@ -49,6 +60,7 @@ const ShellContext = createContext<ShellContextValue | null>(null);
 export function ShellProvider({ children }: { children: ReactNode }) {
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
+  const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
   const [bootDone, setBootDone] = useState(false);
 
   // Stable identities for the action callbacks. Previously these were
@@ -60,6 +72,11 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const closeSideNav = useCallback(() => setSideNavOpen(false), []);
   const openDeposit = useCallback(() => setDepositOpen(true), []);
   const closeDeposit = useCallback(() => setDepositOpen(false), []);
+  const openGameDetails = useCallback(
+    (details: GameDetails) => setGameDetails(details),
+    [],
+  );
+  const closeGameDetails = useCallback(() => setGameDetails(null), []);
   const markBootDone = useCallback(() => setBootDone(true), []);
 
   const value = useMemo<ShellContextValue>(
@@ -70,6 +87,9 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       depositOpen,
       openDeposit,
       closeDeposit,
+      gameDetails,
+      openGameDetails,
+      closeGameDetails,
       bootDone,
       markBootDone,
     }),
@@ -80,6 +100,9 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       depositOpen,
       openDeposit,
       closeDeposit,
+      gameDetails,
+      openGameDetails,
+      closeGameDetails,
       bootDone,
       markBootDone,
     ],

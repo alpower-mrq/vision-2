@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { useShell } from "@/lib/filter-context";
 import { GameTileInfo } from "@/components/GameTileInfo";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * Buffalo Bills game page — Figma 1485:95206.
@@ -382,29 +383,40 @@ function GameInfoCard() {
             }}
           >
             {SIMILAR_GAMES.map((tile, i) => (
-              <div
-                key={i}
-                className="relative shrink-0 overflow-hidden rounded-[12px]"
-                style={{
-                  width: 109,
-                  height: 109,
-                  scrollSnapAlign: "start",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tile.src}
-                  alt={tile.alt}
-                  className="absolute inset-0 size-full object-cover"
-                  draggable={false}
-                />
-                <GameTileInfo />
-              </div>
+              <SimilarGameTile key={i} src={tile.src} alt={tile.alt} />
             ))}
           </div>
         </div>
       </section>
     </section>
+  );
+}
+
+/* Similar games tile — opens the game-details sheet when tapped,
+   same affordance the home + casino tiles use everywhere else. */
+function SimilarGameTile({ src, alt }: { src: string; alt: string }) {
+  const { openGameDetails } = useShell();
+  return (
+    <button
+      type="button"
+      aria-label={alt}
+      onClick={() => openGameDetails(getGameDetails(alt, src))}
+      className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
+      style={{
+        width: 109,
+        height: 109,
+        scrollSnapAlign: "start",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        className="absolute inset-0 size-full object-cover"
+        draggable={false}
+      />
+      <GameTileInfo />
+    </button>
   );
 }
 

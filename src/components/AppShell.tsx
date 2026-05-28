@@ -6,6 +6,7 @@ import { BrandBar } from "./BrandBar";
 import { BottomNav } from "./BottomNav";
 import { SideNav } from "./SideNav";
 import { DepositSheet } from "./DepositSheet";
+import { GameDetailsSheet } from "./GameDetailsSheet";
 import { LoadingSplash } from "./LoadingSplash";
 import { ResumePlayingBar } from "./ResumePlayingBar";
 
@@ -120,6 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {!isGameSurface && <ResumePlayingBar />}
         <SideNav />
         <DepositSheet />
+        <GameDetailsSheet />
       </div>
 
       {/* Splash uses position:fixed + the --frame-right-offset CSS var

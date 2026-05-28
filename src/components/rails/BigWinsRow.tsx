@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * "Your recent big wins" — horizontal scroll of game tiles with a
@@ -21,10 +22,9 @@ export type Win = {
   src: string;
   alt: string;
   prize: string;
-  /** Optional destination — tiles with an href render as a Link
-   *  and route to the game page when tapped. Tiles without one
-   *  stay as inert buttons for the games that haven't been built
-   *  out yet. */
+  /** Optional destination wired into the game-details sheet's Play
+   *  CTA. (Tile taps no longer route directly; they always open
+   *  the details sheet first.) */
   href?: string;
 };
 
@@ -61,35 +61,33 @@ export function BigWinsRow({
 }
 
 function WinTile({ win }: { win: Win }) {
-  const tileClasses =
-    "block size-[109px] overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform";
-  const inner = (
-    /* eslint-disable-next-line @next/next/no-img-element */
-    <img
-      src={win.src}
-      alt={win.alt}
-      draggable={false}
-      className="h-full w-full object-cover pointer-events-none"
-    />
-  );
+  const { openGameDetails } = useShell();
 
   return (
     <div className="relative shrink-0 pb-[12px]">
-      {win.href ? (
-        <Link
-          href={win.href}
-          aria-label={`Play ${win.alt}`}
-          className={tileClasses}
-        >
-          {inner}
-        </Link>
-      ) : (
-        <button type="button" aria-label={win.alt} className={tileClasses}>
-          {inner}
-        </button>
-      )}
+      <button
+        type="button"
+        aria-label={win.alt}
+        onClick={() =>
+          openGameDetails({
+            ...getGameDetails(win.alt, win.src),
+            // Win tiles can override the catalogue href for this game.
+            href: win.href ?? getGameDetails(win.alt, win.src).href,
+          })
+        }
+        className="block size-[109px] overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={win.src}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-cover pointer-events-none"
+        />
+      </button>
       {/* Prize pill — straddles the bottom edge so it pops off the
-          game artwork into the page canvas below. */}
+          game artwork into the page canvas below. Pointer-events
+          off so taps fall through to the button underneath. */}
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-white px-[10px] py-[3px] whitespace-nowrap pointer-events-none"
         style={{ boxShadow: "0 4px 10px -4px rgba(10, 46, 203, 0.18)" }}

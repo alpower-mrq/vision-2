@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * "Recently played" 2-column grid — a different layout to the
@@ -27,9 +28,8 @@ import { motion, useReducedMotion } from "framer-motion";
 export type RecentlyPlayedGame = {
   src: string;
   name: string;
-  /** Optional destination for the tile. When set the card renders as
-   *  a Link instead of a button. Used to drop the user into a game
-   *  page (e.g. Buffalo Bills → /play/buffalo-bills). */
+  /** Optional destination wired into the game-details sheet's Play
+   *  CTA. (Tile taps now always open the details sheet first.) */
   href?: string;
 };
 
@@ -82,16 +82,26 @@ export function RecentlyPlayedGrid({
 }
 
 function RecentlyPlayedCard({ game }: { game: RecentlyPlayedGame }) {
-  // Subtle elevation so each tile reads as a distinct surface above
-  // the page canvas, matching the small card shadow the existing
-  // rails use under their tiles.
-  const cardClasses =
-    "flex items-center gap-[10px] rounded-[14px] bg-white pl-[6px] pr-[12px] py-[6px] text-left active:scale-[0.985] transition-transform";
-  const cardStyle = {
-    boxShadow: "0 2px 8px -4px rgba(10, 46, 203, 0.16)",
-  } as const;
-  const inner = (
-    <>
+  const { openGameDetails } = useShell();
+
+  return (
+    <button
+      type="button"
+      aria-label={game.name}
+      onClick={() =>
+        openGameDetails({
+          ...getGameDetails(game.name, game.src),
+          href: game.href ?? getGameDetails(game.name, game.src).href,
+        })
+      }
+      className="flex items-center gap-[10px] rounded-[14px] bg-white pl-[6px] pr-[12px] py-[6px] text-left active:scale-[0.985] transition-transform"
+      style={{
+        // Subtle elevation so each tile reads as a distinct surface
+        // above the page canvas, matching the small card shadow
+        // the existing rails use under their tiles.
+        boxShadow: "0 2px 8px -4px rgba(10, 46, 203, 0.16)",
+      }}
+    >
       <span
         className="relative size-[52px] shrink-0 overflow-hidden rounded-[10px]"
         style={{
@@ -109,33 +119,6 @@ function RecentlyPlayedCard({ game }: { game: RecentlyPlayedGame }) {
       <span className="min-w-0 flex-1 truncate text-[15px] font-extrabold leading-tight text-[var(--mrq-blue-dark)]">
         {game.name}
       </span>
-    </>
-  );
-
-  // Tiles with an href become real navigation Links so the prototype
-  // can drop into game pages. Tiles without one stay inert buttons
-  // for the games that haven't been built out yet.
-  if (game.href) {
-    return (
-      <Link
-        href={game.href}
-        aria-label={`Play ${game.name}`}
-        className={cardClasses}
-        style={cardStyle}
-      >
-        {inner}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      aria-label={`Play ${game.name}`}
-      className={cardClasses}
-      style={cardStyle}
-    >
-      {inner}
     </button>
   );
 }

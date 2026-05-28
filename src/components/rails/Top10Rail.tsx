@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { GameTileInfo } from "@/components/GameTileInfo";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * "Top 10 Casino Games" — horizontal rail where each item pairs a big
@@ -73,10 +75,13 @@ export function Top10Rail({
 }
 
 function Top10Item({ rank, tile }: { rank: number; tile: Top10Tile }) {
+  const { openGameDetails } = useShell();
+
   return (
     <button
       type="button"
       aria-label={`#${rank} ${tile.alt}`}
+      onClick={() => openGameDetails(getGameDetails(tile.alt, tile.src))}
       className="flex items-end shrink-0 active:scale-[0.99] transition-transform"
     >
       <RankNumeral rank={rank} />
