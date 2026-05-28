@@ -131,6 +131,9 @@ export function CasinoCategoryView({ category }: { category: string }) {
         categories={CATEGORIES}
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
+        // Sub-route → offer a quick hop back to the curated /casino
+        // homepage. Sheet handles closing itself after the tap.
+        onHome={() => router.push("/casino")}
         title="Casino Categories"
       />
     </>
