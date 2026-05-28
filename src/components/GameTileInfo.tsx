@@ -30,14 +30,22 @@
 export function GameTileInfo({
   size = 36,
   chipSize = 20,
+  onClick,
 }: {
   /** Width/height of the frosted corner backdrop (px). */
   size?: number;
   /** Diameter of the blue info chip (px). */
   chipSize?: number;
+  /** Tap handler for the chip. When provided, the chip becomes an
+   *  interactive tap target (with stop-propagation so the parent
+   *  tile's onClick doesn't also fire). The frosted backdrop stays
+   *  non-interactive — only the chip is. */
+  onClick?: () => void;
 }) {
   return (
     <span
+      // Backdrop stays non-interactive — taps fall through to the
+      // tile underneath unless they land on the chip itself.
       aria-hidden
       className="absolute bottom-0 right-0 pointer-events-none"
       style={{
@@ -51,12 +59,34 @@ export function GameTileInfo({
         WebkitBackdropFilter: "blur(10px) saturate(140%)",
       }}
     >
-      {/* Chip is absolute-positioned in the bottom-right of the
-          backdrop so it tucks into the very corner of the tile —
-          not centred in the cutout. 4px inset from each edge.
-          Brand-blue at 50% opacity with no drop shadow — sits as
-          a soft translucent dot, not a stamped chrome chip. */}
+      {/* Chip — tucked into the very bottom-right corner. Translucent
+          brand-blue dot. When onClick is provided, the chip captures
+          its own tap (with pointer-events:auto + stopPropagation) so
+          the parent tile's tap action doesn't also fire. */}
       <span
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={onClick ? "Game info" : undefined}
+        onClick={
+          onClick
+            ? (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onClick();
+              }
+            : undefined
+        }
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
         className="absolute grid place-items-center rounded-full"
         style={{
           width: chipSize,
@@ -64,6 +94,8 @@ export function GameTileInfo({
           right: 4,
           bottom: 4,
           backgroundColor: "rgba(10, 46, 203, 0.5)",
+          pointerEvents: onClick ? "auto" : "none",
+          cursor: onClick ? "pointer" : undefined,
         }}
       >
         <InfoGlyph size={Math.round(chipSize * 0.5)} />

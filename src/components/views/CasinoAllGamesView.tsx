@@ -7,7 +7,7 @@ import { CategoriesSheet } from "../CategoriesSheet";
 import { ChevronDownIcon } from "../CategoryChevron";
 import { GameTileInfo } from "../GameTileInfo";
 import { useShell } from "@/lib/filter-context";
-import { getGameDetails } from "@/lib/games-catalogue";
+import { getGameDetails, type GameDetails } from "@/lib/games-catalogue";
 import { ALL_GAMES_TILES, CATEGORIES } from "@/lib/casino-categories";
 
 /**
@@ -31,7 +31,6 @@ import { ALL_GAMES_TILES, CATEGORIES } from "@/lib/casino-categories";
  */
 export function CasinoAllGamesView() {
   const router = useRouter();
-  const { openGameDetails } = useShell();
   const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
 
@@ -82,23 +81,7 @@ export function CasinoAllGamesView() {
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
         {ALL_GAMES_TILES.map((tile, i) => (
-          <button
-            key={`${tile.src}-${i}`}
-            type="button"
-            aria-label={tile.alt}
-            onClick={() => openGameDetails(getGameDetails(tile.alt, tile.src))}
-            className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
-            style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={tile.src}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-            />
-            <GameTileInfo />
-          </button>
+          <AllGamesTile key={`${tile.src}-${i}`} tile={tile} />
         ))}
       </motion.div>
 
@@ -116,5 +99,45 @@ export function CasinoAllGamesView() {
         title="Casino Categories"
       />
     </>
+  );
+}
+
+/* All-games grid tile — tap launches the game (when known) or
+   stubs; the i chip opens the quick-look sheet. */
+function AllGamesTile({
+  tile,
+}: {
+  tile: { src: string; alt: string };
+}) {
+  const router = useRouter();
+  const { openGameDetails } = useShell();
+  const details: GameDetails = getGameDetails(tile.alt, tile.src);
+
+  return (
+    <button
+      type="button"
+      aria-label={tile.alt}
+      onClick={() => {
+        if (details.href) {
+          router.push(details.href);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[CasinoAllGames] open game →", tile.alt);
+        }
+      }}
+      className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
+      style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={tile.src}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+      />
+      <GameTileInfo onClick={() => openGameDetails(details)} />
+    </button>
   );
 }

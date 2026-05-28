@@ -1,7 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { useShell } from "@/lib/filter-context";
 import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
@@ -82,18 +82,25 @@ export function RecentlyPlayedGrid({
 }
 
 function RecentlyPlayedCard({ game }: { game: RecentlyPlayedGame }) {
-  const { openGameDetails } = useShell();
+  const router = useRouter();
+  // Catalogue lookup so RecentlyPlayed tiles route to known game
+  // pages even when the caller didn't pass an explicit href.
+  const href = game.href ?? getGameDetails(game.name, game.src).href;
 
   return (
     <button
       type="button"
       aria-label={game.name}
-      onClick={() =>
-        openGameDetails({
-          ...getGameDetails(game.name, game.src),
-          href: game.href ?? getGameDetails(game.name, game.src).href,
-        })
-      }
+      onClick={() => {
+        if (href) {
+          router.push(href);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[RecentlyPlayed] open game →", game.name);
+        }
+      }}
       className="flex items-center gap-[10px] rounded-[14px] bg-white pl-[6px] pr-[12px] py-[6px] text-left active:scale-[0.985] transition-transform"
       style={{
         // Subtle elevation so each tile reads as a distinct surface

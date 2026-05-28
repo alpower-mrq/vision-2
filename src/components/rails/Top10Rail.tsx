@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { GameTileInfo } from "@/components/GameTileInfo";
@@ -75,13 +76,24 @@ export function Top10Rail({
 }
 
 function Top10Item({ rank, tile }: { rank: number; tile: Top10Tile }) {
+  const router = useRouter();
   const { openGameDetails } = useShell();
+  const details = getGameDetails(tile.alt, tile.src);
 
   return (
     <button
       type="button"
       aria-label={`#${rank} ${tile.alt}`}
-      onClick={() => openGameDetails(getGameDetails(tile.alt, tile.src))}
+      onClick={() => {
+        if (details.href) {
+          router.push(details.href);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[Top10] open game →", tile.alt);
+        }
+      }}
       className="flex items-end shrink-0 active:scale-[0.99] transition-transform"
     >
       <RankNumeral rank={rank} />

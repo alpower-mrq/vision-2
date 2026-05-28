@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { GameTileInfo } from "@/components/GameTileInfo";
@@ -93,13 +94,27 @@ function GameTile({
   width: number;
   height: number;
 }) {
+  const router = useRouter();
   const { openGameDetails } = useShell();
+  const details = getGameDetails(alt, src);
 
   return (
     <button
       type="button"
       aria-label={alt}
-      onClick={() => openGameDetails(getGameDetails(alt, src))}
+      onClick={() => {
+        // Tap the tile → launch the game (when we know how) or
+        // log a stub for games that aren't wired up yet. The "i"
+        // chip below opens the quick-look sheet separately.
+        if (details.href) {
+          router.push(details.href);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[GameRail] open game →", alt);
+        }
+      }}
       className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.99] transition-transform"
       style={{
         width: `${width}px`,
@@ -114,7 +129,7 @@ function GameTile({
         className="absolute inset-0 h-full w-full object-cover pointer-events-none"
         draggable={false}
       />
-      <GameTileInfo />
+      <GameTileInfo onClick={() => openGameDetails(details)} />
     </button>
   );
 }

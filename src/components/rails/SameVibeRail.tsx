@@ -1,8 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { GameTileInfo } from "@/components/GameTileInfo";
+import { useShell } from "@/lib/filter-context";
+import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
  * "Same vibe as <game>" — horizontal scroll of large landscape
@@ -20,6 +23,57 @@ import { GameTileInfo } from "@/components/GameTileInfo";
  */
 
 export type SameVibeCard = { src: string; alt: string };
+
+/* Landscape recommendation card — tap launches the game (when
+   known) or stubs; the i chip opens the quick-look sheet. */
+function SameVibeCardTile({ card }: { card: SameVibeCard }) {
+  const router = useRouter();
+  const { openGameDetails } = useShell();
+  const details = getGameDetails(card.alt, card.src);
+
+  return (
+    <div
+      className="relative shrink-0 snap-start overflow-hidden rounded-[14px]"
+      style={{
+        width: "min(82%, calc(var(--mobile-width) - 60px))",
+        aspectRatio: "16 / 11",
+        boxShadow: "0 8px 24px -10px rgba(10, 46, 203, 0.32)",
+      }}
+    >
+      <button
+        type="button"
+        aria-label={card.alt}
+        onClick={() => {
+          if (details.href) {
+            router.push(details.href);
+            return;
+          }
+          if (typeof window !== "undefined") {
+            // eslint-disable-next-line no-console
+            console.log("[SameVibe] open game →", card.alt);
+          }
+        }}
+        className="block h-full w-full active:scale-[0.99] transition-transform"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={card.src}
+          alt=""
+          className="h-full w-full object-cover pointer-events-none"
+          draggable={false}
+        />
+      </button>
+      {/* Landscape cards are taller — scale the badge up a
+          touch so it doesn't get lost against the larger
+          surface, but keep it well in the corner. */}
+      <GameTileInfo
+        size={44}
+        chipSize={24}
+        onClick={() => openGameDetails(details)}
+      />
+    </div>
+  );
+}
 
 export function SameVibeRail({
   title,
@@ -57,33 +111,7 @@ export function SameVibeRail({
         }}
       >
         {items.map((card, i) => (
-          <div
-            key={`${card.alt}-${i}`}
-            className="relative shrink-0 snap-start overflow-hidden rounded-[14px]"
-            style={{
-              width: "min(82%, calc(var(--mobile-width) - 60px))",
-              aspectRatio: "16 / 11",
-              boxShadow: "0 8px 24px -10px rgba(10, 46, 203, 0.32)",
-            }}
-          >
-            <button
-              type="button"
-              aria-label={card.alt}
-              className="block h-full w-full active:scale-[0.99] transition-transform"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={card.src}
-                alt=""
-                className="h-full w-full object-cover pointer-events-none"
-                draggable={false}
-              />
-            </button>
-            {/* Landscape cards are taller — scale the badge up a
-                touch so it doesn't get lost against the larger
-                surface, but keep it well in the corner. */}
-            <GameTileInfo size={44} chipSize={24} />
-          </div>
+          <SameVibeCardTile key={`${card.alt}-${i}`} card={card} />
         ))}
       </div>
     </motion.section>

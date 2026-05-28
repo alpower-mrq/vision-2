@@ -392,15 +392,29 @@ function GameInfoCard() {
   );
 }
 
-/* Similar games tile — opens the game-details sheet when tapped,
-   same affordance the home + casino tiles use everywhere else. */
+/* Similar games tile — tap launches the game (when known) or
+   stubs; the i chip opens the quick-look sheet. */
 function SimilarGameTile({ src, alt }: { src: string; alt: string }) {
   const { openGameDetails } = useShell();
+  const details = getGameDetails(alt, src);
   return (
     <button
       type="button"
       aria-label={alt}
-      onClick={() => openGameDetails(getGameDetails(alt, src))}
+      onClick={() => {
+        if (details.href) {
+          // Already inside a /play/ page; tapping a similar game
+          // hops to its game page when wired, otherwise stubs.
+          if (typeof window !== "undefined") {
+            window.location.assign(details.href);
+          }
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[Similar] open game →", alt);
+        }
+      }}
       className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
       style={{
         width: 109,
@@ -415,7 +429,7 @@ function SimilarGameTile({ src, alt }: { src: string; alt: string }) {
         className="absolute inset-0 size-full object-cover"
         draggable={false}
       />
-      <GameTileInfo />
+      <GameTileInfo onClick={() => openGameDetails(details)} />
     </button>
   );
 }

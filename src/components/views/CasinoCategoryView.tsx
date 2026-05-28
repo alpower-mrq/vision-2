@@ -41,6 +41,46 @@ function labelFor(key: string): string {
   return CATEGORIES.find((c) => c.key === key)?.label ?? key;
 }
 
+/* Per-category grid tile — tap launches the game (when known) or
+   stubs; the i chip opens the quick-look sheet. */
+function CategoryTile({
+  tile,
+}: {
+  tile: { src: string; alt: string };
+}) {
+  const router = useRouter();
+  const { openGameDetails } = useShell();
+  const details = getGameDetails(tile.alt, tile.src);
+
+  return (
+    <button
+      type="button"
+      aria-label={tile.alt}
+      onClick={() => {
+        if (details.href) {
+          router.push(details.href);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.log("[CasinoCategory] open game →", tile.alt);
+        }
+      }}
+      className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
+      style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={tile.src}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+      />
+      <GameTileInfo onClick={() => openGameDetails(details)} />
+    </button>
+  );
+}
+
 function ctaLabelForCategory(key: string): string {
   // Pluralised so the pill reads as a "more like this" affordance,
   // e.g. on /casino/jackpot the pill says "Jackpots" (chevron renders
@@ -55,7 +95,6 @@ export function CasinoCategoryView({ category }: { category: string }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
 
-  const { openGameDetails } = useShell();
   const label = useMemo(() => labelFor(category), [category]);
   const ctaLabel = useMemo(() => ctaLabelForCategory(category), [category]);
   const tiles = CATEGORY_GRID_TILES[category] ?? [];
@@ -111,23 +150,7 @@ export function CasinoCategoryView({ category }: { category: string }) {
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
         {tiles.map((tile, i) => (
-          <button
-            key={`${tile.src}-${i}`}
-            type="button"
-            aria-label={tile.alt}
-            onClick={() => openGameDetails(getGameDetails(tile.alt, tile.src))}
-            className="relative aspect-square overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
-            style={{ boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.2)" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={tile.src}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-            />
-            <GameTileInfo />
-          </button>
+          <CategoryTile key={`${tile.src}-${i}`} tile={tile} />
         ))}
       </motion.div>
 
