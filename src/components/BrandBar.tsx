@@ -42,18 +42,21 @@ function showsBackArrow(pathname: string): boolean {
   return (
     pathname === "/casino" ||
     pathname.startsWith("/casino/") ||
-    pathname.startsWith("/arena")
+    pathname.startsWith("/arena") ||
+    pathname.startsWith("/bingo")
   );
 }
 
 /** Where the back arrow leads. Sub-routes under /casino (per-category
  *  pages, the all-games browse) drop one level back to /casino — the
- *  casino homepage. /arena lands the user on /search (the Explore
- *  page) since Arena is opened from the Explore mega-card carousel,
- *  not directly from the lobby. Anything else goes to the lobby. */
+ *  casino homepage. /arena and /bingo land the user on /search (the
+ *  Explore page) since both verticals are opened from the Explore
+ *  mega-card carousel, not directly from the lobby. Anything else
+ *  goes to the lobby. */
 function backHrefFor(pathname: string): string {
   if (pathname.startsWith("/casino/")) return "/casino";
   if (pathname.startsWith("/arena")) return "/search";
+  if (pathname.startsWith("/bingo")) return "/search";
   return "/";
 }
 

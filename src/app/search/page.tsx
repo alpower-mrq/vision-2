@@ -10,6 +10,7 @@ import {
 import { GameRail } from "@/components/rails/GameRail";
 import { ThemesGrid, type Theme } from "@/components/rails/ThemesGrid";
 import { CATEGORIES as CASINO_SUBCATEGORIES } from "@/lib/casino-categories";
+import { BINGO_TILES } from "@/lib/bingo-rooms";
 
 /**
  * Search page — full route.
@@ -92,6 +93,7 @@ const BROWSE: TileSpec[] = [
   },
   {
     label: "Bingo",
+    href: "/bingo",
     icon: "/assets/search/bingo.svg",
     iconW: ICON_W,
     iconH: ICON_H,
@@ -148,18 +150,15 @@ const TILES_LIVE_CASINO = [
 ];
 
 // Bingo uses the real MrQ bingo lobby room art (five 1:1 room
-// thumbnails). Only five unique rooms exist, so the sixth slot
-// repeats "Tropic Like Its Hot" in the bottom-right corner —
-// arranged so no column or horizontal pair stacks the same room:
+// thumbnails) — same catalogue the /bingo page renders from. Only
+// five unique rooms exist, so the sixth slot repeats Tropic Like
+// It's Hot in the bottom-right corner, arranged so no column or
+// horizontal pair stacks the same room:
 //   row 1: tropic        | cheap-as-chips | dab-and-disco
 //   row 2: on-the-house  | pinch-a-penny  | tropic
 const TILES_BINGO = [
-  { src: "/assets/bingo/lobby-tropic-like-its-hot.png", alt: "Tropic Like Its Hot" },
-  { src: "/assets/bingo/lobby-cheap-as-chips.png", alt: "Cheap As Chips" },
-  { src: "/assets/bingo/lobby-dab-and-disco.png", alt: "Dab And Disco" },
-  { src: "/assets/bingo/lobby-on-the-house.png", alt: "On The House" },
-  { src: "/assets/bingo/lobby-pinch-a-penny.png", alt: "Pinch A Penny" },
-  { src: "/assets/bingo/lobby-tropic-like-its-hot.png", alt: "Tropic Like Its Hot" },
+  ...BINGO_TILES,
+  BINGO_TILES[0], // repeat the flagship in slot 6
 ];
 
 // Real arena artwork — the same set of "eligible games" used on
@@ -240,7 +239,8 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/bingo.svg",
     tiles: TILES_BINGO.slice(0, 6),
-    // No dedicated /bingo page yet.
+    // /bingo is a real lobby page now.
+    seeAllHref: "/bingo",
   },
   {
     key: "arena",
@@ -323,10 +323,9 @@ const LIVE_CASINO_CARDS: Theme[] = [
 ];
 
 // Group 3 — closing verticals. Bingo (pink) + Arena (red).
-// Arena now links to the dedicated /arena page (built per
-// Figma 230:57295); Bingo stays inert until its page is built.
+// Both Bingo and Arena now link to their dedicated lobby pages.
 const VERTICAL_CARDS: Theme[] = [
-  { key: "bingo", label: "Bingo", color: "#DB2777", thumbs: CATEGORY_THUMBS.bingo },
+  { key: "bingo", label: "Bingo", color: "#DB2777", href: "/bingo", thumbs: CATEGORY_THUMBS.bingo },
   { key: "arena", label: "Arena", color: "#DC2626", href: "/arena", thumbs: CATEGORY_THUMBS.arena },
 ];
 
