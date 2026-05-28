@@ -100,13 +100,16 @@ export default function ArenaPage() {
   return (
     <div
       className="relative min-h-[100dvh] pb-[32px]"
-      style={{ background: BRAND_TOP, isolation: "isolate" }}
+      style={{
+        // Smooth vertical gradient from brand-blue at the top
+        // to brand-dark at the bottom of the page. Replaces the
+        // earlier two-tone treatment (a hard step at y=620 via
+        // <ArenaBackdrop />), which the user asked to drop in
+        // favour of a continuous fade.
+        background: `linear-gradient(180deg, ${BRAND_TOP} 0%, ${BRAND_DARK} 100%)`,
+        isolation: "isolate",
+      }}
     >
-      {/* Brand-dark backdrop covering the bottom half of the
-          page from y=620 down — gives the "Play to climb"
-          section and below the darker surface. */}
-      <ArenaBackdrop />
-
       <ArenaTitleRow />
       <TodaysResult />
       <TodaysLeaderboard />
@@ -114,23 +117,6 @@ export default function ArenaPage() {
       <YesterdayResults />
       <AllEligibleGames />
     </div>
-  );
-}
-
-/* ============================================================
-   BACKDROP — dark layer for the lower half of the page
-   ============================================================ */
-function ArenaBackdrop() {
-  return (
-    <div
-      aria-hidden
-      className="absolute left-0 right-0 bottom-0 pointer-events-none"
-      style={{
-        top: 620,
-        background: BRAND_DARK,
-        zIndex: -1,
-      }}
-    />
   );
 }
 
