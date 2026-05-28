@@ -64,8 +64,13 @@ const PILL_TOP = 4;
 const PILL_PINNED_INSET = 4; // outer pills pinned this far from bar's outer edge
 const ICON_SIZE = 24;
 const ICON_LABEL_GAP = 2; // Figma gap-2 between icon and label
-const LABEL_FONT_SIZE = 10;
-const LABEL_LINE_H = 16; // Figma leading-1.6 × 10
+// Bumped from 10 → 11 to align with iOS HIG tab bar conventions
+// (Apple's reference is 10pt, but 11px reads more confidently on
+// modern screen densities and still fits inside the 84px inner
+// pill for "Top Picks" — the longest label). Line-height stays
+// at 16px so the icon + label vertical rhythm doesn't shift.
+const LABEL_FONT_SIZE = 11;
+const LABEL_LINE_H = 16;
 
 type TabKey = "lobby" | "discover" | "search" | "rewards";
 
