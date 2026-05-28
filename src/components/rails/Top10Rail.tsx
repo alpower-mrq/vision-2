@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
+import { GameTileInfo } from "@/components/GameTileInfo";
 
 /**
  * "Top 10 Casino Games" — horizontal rail where each item pairs a big
@@ -94,6 +95,7 @@ function Top10Item({ rank, tile }: { rank: number; tile: Top10Tile }) {
           className="absolute inset-0 h-full w-full object-cover pointer-events-none"
           draggable={false}
         />
+        <GameTileInfo />
       </span>
     </button>
   );

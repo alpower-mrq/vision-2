@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
 import { ChevronDownIcon } from "../CategoryChevron";
+import { GameTileInfo } from "../GameTileInfo";
 import { ALL_GAMES_TILES, CATEGORIES } from "@/lib/casino-categories";
 
 /**
@@ -92,6 +93,7 @@ export function CasinoAllGamesView() {
               draggable={false}
               className="absolute inset-0 h-full w-full object-cover pointer-events-none"
             />
+            <GameTileInfo />
           </button>
         ))}
       </motion.div>

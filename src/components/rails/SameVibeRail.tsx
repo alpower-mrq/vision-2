@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
+import { GameTileInfo } from "@/components/GameTileInfo";
 
 /**
  * "Same vibe as <game>" — horizontal scroll of large landscape
@@ -58,7 +59,7 @@ export function SameVibeRail({
         {items.map((card, i) => (
           <div
             key={`${card.alt}-${i}`}
-            className="shrink-0 snap-start overflow-hidden rounded-[14px]"
+            className="relative shrink-0 snap-start overflow-hidden rounded-[14px]"
             style={{
               width: "min(82%, calc(var(--mobile-width) - 60px))",
               aspectRatio: "16 / 11",
@@ -78,6 +79,9 @@ export function SameVibeRail({
                 draggable={false}
               />
             </button>
+            {/* Landscape cards are taller — scale the badge up so it
+                doesn't look puny against the larger surface. */}
+            <GameTileInfo size={64} chipSize={32} />
           </div>
         ))}
       </div>

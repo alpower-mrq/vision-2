@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
+import { GameTileInfo } from "@/components/GameTileInfo";
 
 /**
  * Generic horizontal-scroll game tile rail — matches the structure of every
@@ -107,6 +108,7 @@ function GameTile({
         className="absolute inset-0 h-full w-full object-cover pointer-events-none"
         draggable={false}
       />
+      <GameTileInfo />
     </button>
   );
 }

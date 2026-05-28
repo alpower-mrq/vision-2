@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { useShell } from "@/lib/filter-context";
+import { GameTileInfo } from "@/components/GameTileInfo";
 
 /**
  * Buffalo Bills game page — Figma 1485:95206.
@@ -397,6 +398,7 @@ function GameInfoCard() {
                   className="absolute inset-0 size-full object-cover"
                   draggable={false}
                 />
+                <GameTileInfo />
               </div>
             ))}
           </div>
