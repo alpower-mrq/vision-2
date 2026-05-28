@@ -47,11 +47,12 @@ export default function RewardsPage() {
 
   return (
     <div
-      className="relative min-h-[100dvh] pb-[32px]"
+      className="relative min-h-[100dvh] pt-[20px] pb-[32px]"
       style={{
-        // BrandBar already has 14px bottom padding so the tab
-        // switcher sits 14px below the BrandBar's content
-        // without any additional top padding from this page.
+        // 20px breathing room between the BrandBar's bottom edge
+        // and the tab switcher (BrandBar's own pb-14 + this 20
+        // = 34px gap total — feels like a deliberate header /
+        // content break rather than a cramped seam).
         background:
           "linear-gradient(180deg, #0a2ecb 0%, #181f43 100%)",
       }}
@@ -224,14 +225,25 @@ function AvailableToCollect() {
   return (
     <section>
       <h2
-        className="px-[16px] text-white font-extrabold text-[16px]"
-        style={{ lineHeight: 1.6 }}
+        className="text-white font-extrabold text-[16px]"
+        style={{ paddingLeft: 16, paddingRight: 16, lineHeight: 1.6 }}
       >
         Available to collect
       </h2>
       <div
-        className="mt-[12px] flex gap-[16px] overflow-x-auto no-scrollbar px-[16px] pb-[2px]"
-        style={{ scrollSnapType: "x mandatory" }}
+        className="mt-[12px] flex gap-[16px] overflow-x-auto no-scrollbar pb-[2px]"
+        // Inline paddingLeft/Right (matching the 16px page gutter
+        // used by every other section). Tailwind's px-[16px] on
+        // an overflow-x scroll container can be ignored at the
+        // right edge in some browsers, but the left padding is
+        // what we care about here — first card starts at 16px
+        // from the page edge so it aligns with the section title
+        // and the tab switcher above.
+        style={{
+          scrollSnapType: "x mandatory",
+          paddingLeft: 16,
+          paddingRight: 16,
+        }}
       >
         {cards.map((c, i) => (
           <AvailableCard key={i} {...c} />

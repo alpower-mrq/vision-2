@@ -63,7 +63,14 @@ export function BrandBar() {
   // surfaces merge cleanly, the BrandBar drops its rounded bottom on
   // /search and the search band picks up the 20px radius at the
   // bottom of the combined blue panel instead.
-  const roundedBottom = pathname !== "/search";
+  //
+  // Same treatment on /rewards — the Rewards page sits on a
+  // brand-blue gradient so the BrandBar should merge cleanly into
+  // it. With rounded bottom corners the mobile-frame's #f5f5f5
+  // canvas would peek through the curve area as two small white
+  // crescents at the BrandBar's bottom-left/right.
+  const roundedBottom =
+    pathname !== "/search" && !pathname.startsWith("/rewards");
 
   return (
     <header
