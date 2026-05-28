@@ -91,28 +91,40 @@ export function BuffaloBillsView() {
       <Hero />
 
       {/* ── Game info section ─────────────────────────────────────
-         Pop-up-then-settle entrance: the section starts off-screen
-         below the viewport, swings up past its natural position so
-         the user sees it clearly (the "hey, there's more here"
-         teaser), then settles back down to its resting place in
-         normal flow below the hero. After the entrance the section
-         is just normal-flow content — scrolling moves it up the
-         page in the usual way. */}
+         Pop-up-and-disappear entrance:
+
+           1. At rest the section sits BELOW the viewport — the
+              `marginTop: 100dvh - heroH` spacer pushes its natural
+              top edge to the viewport bottom, so nothing peeks
+              from below on load.
+           2. On mount the section peeks 50px up into the viewport
+              — a brief "hey, there's more here" tease.
+           3. It then slides back down to its resting position
+              (off-screen again).
+           4. The user scrolls to reveal the cards properly.
+
+         Easing is ease-in-out so the peek+return reads as a single
+         smooth gesture rather than a snappy spring.
+         */}
       <motion.div
         className="relative flex flex-col items-stretch px-[16px] py-[24px]"
         style={{
           backgroundColor: PAGE_BG,
           gap: 24,
+          // Hero + header band ~ 630 + ~100 below the top of the
+          // mobile-frame. Subtracting from 100dvh leaves a spacer
+          // so the cards' natural top lands at the viewport bottom
+          // — entirely hidden until the user scrolls.
+          marginTop: "max(0px, calc(100dvh - 630px))",
         }}
-        initial={reduce ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}
+        initial={reduce ? { y: 0, opacity: 1 } : { y: 0, opacity: 0 }}
         animate={
           reduce
             ? { y: 0, opacity: 1 }
             : {
-                // Three-stop keyframe path: from below → peeked up
-                // above its natural position (so the user sees the
-                // card content) → back down to its resting place.
-                y: ["100%", "-28%", "0%"],
+                // Peek 50px up into the viewport at the midpoint,
+                // then slide back to the resting (hidden) position.
+                y: [0, -50, 0],
                 opacity: [0, 1, 1],
               }
         }
@@ -120,10 +132,10 @@ export function BuffaloBillsView() {
           reduce
             ? { duration: 0.2 }
             : {
-                duration: 1.8,
-                delay: 0.2,
-                times: [0, 0.55, 1],
-                ease: [0.22, 1, 0.36, 1],
+                duration: 1.4,
+                delay: 0.3,
+                times: [0, 0.45, 1],
+                ease: "easeInOut",
               }
         }
       >
@@ -137,115 +149,114 @@ export function BuffaloBillsView() {
 /* ============================================================
    In-game header — back button + balance pill.
 
-   Fixed-positioned (not sticky) so the hero artwork can fill the
-   full top of the page underneath the header chrome — matching
-   the Figma where the warm slot art bleeds up under the back +
-   balance buttons. `--frame-right-offset` clamps the bar to the
-   mobile-frame's column on desktop instead of spanning the full
-   monitor.
-
-   Background is a layered gradient that bleeds off into transparency
-   at the bottom, matching the Figma's warm-orange overlay
-   (`rgba(225,140,88,0.4)` → transparent at ~61% of its height) on
-   top of a dark-navy chrome base that fades out over the full
-   header height. The combined gradient gives the bar weight at the
-   top edge (so the buttons read against the slot art) while
-   bleeding cleanly into whatever content sits behind it lower
-   down — instead of a hard band cutting across the page.
+   Matches Figma 1485:95207 exactly:
+     • Solid dark-navy `#101626` band at the top of the page,
+       sitting in normal flow before the hero (no fixed/sticky
+       positioning — the band scrolls offscreen with the page).
+     • Warm-orange gradient overlay 116px tall, anchored at
+       top:-2px so it bleeds through the safe-area inset:
+       `rgba(225,140,88,0.4)` → `rgba(225,140,88,0)` at ~61% of
+       its height. This gradient is the "bleeding" warmth from
+       the Figma — decorative, not chrome.
+     • Header pill row sits relative inside the band so it paints
+       above the warm overlay.
    ============================================================ */
 function GameHeader() {
   const { openSideNav, openDeposit } = useShell();
 
   return (
-    <header
-      className="fixed top-0 z-20 flex items-center justify-between"
+    <div
+      className="relative w-full"
       style={{
-        left: "var(--frame-right-offset)",
-        right: "var(--frame-right-offset)",
+        backgroundColor: PAGE_BG,
         paddingTop: "calc(env(safe-area-inset-top) + 12px)",
-        // Extra bottom padding gives the gradient room to bleed
-        // off naturally — the band itself is taller than just the
-        // pill row's height.
-        paddingBottom: 32,
-        paddingLeft: 16,
-        paddingRight: 16,
-        background: [
-          // Top layer — warm orange tint from the Figma spec.
-          // Fades to transparent ~61% down so it sits as a halo
-          // over the slot art rather than tinting the whole bar.
-          "linear-gradient(to bottom, rgba(225, 140, 88, 0.4) 0%, rgba(225, 140, 88, 0) 60.94%)",
-          // Bottom layer — dark navy chrome. Fades to transparent
-          // over the full header height so the bottom edge bleeds
-          // cleanly into whatever's behind (hero artwork early on,
-          // Game Info card after scroll).
-          "linear-gradient(to bottom, rgba(16, 22, 38, 0.78) 0%, rgba(16, 22, 38, 0) 100%)",
-        ].join(", "),
+        paddingBottom: 16,
+        overflow: "hidden",
       }}
     >
-      {/* Back to lobby */}
-      <Link
-        href="/"
-        aria-label="Exit game"
-        className="grid place-items-center rounded-full active:scale-[0.94] transition-transform"
-        style={{
-          width: 40,
-          height: 40,
-          backgroundColor: "rgba(255, 255, 255, 0.4)",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-        }}
-      >
-        <ExitIcon />
-      </Link>
-
-      {/* Balance + avatar pill — mirrors the BrandBar pill so the user
-          stays oriented inside the global UI. */}
+      {/* Warm-orange gradient overlay — Figma decorative accent. */}
       <div
-        className="flex items-center rounded-full"
+        aria-hidden
+        className="pointer-events-none absolute"
         style={{
-          height: 40,
-          paddingLeft: 16,
-          paddingRight: 4,
-          gap: 8,
-          backgroundColor: "rgba(255, 255, 255, 0.32)",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
+          top: -2,
+          left: 0,
+          width: "100%",
+          height: 116,
+          background:
+            "linear-gradient(to bottom, rgba(225, 140, 88, 0.4) 0%, rgba(225, 140, 88, 0) 60.944%)",
         }}
+      />
+
+      <header
+        className="relative flex items-center justify-between"
+        style={{ paddingLeft: 20, paddingRight: 20 }}
       >
-        <button
-          type="button"
-          onClick={openDeposit}
-          aria-label="Make a deposit"
-          className="text-white text-[16px] leading-none font-extrabold pt-[1px] active:scale-[0.95] transition-transform"
-        >
-          £113.59
-        </button>
-        <span
-          className="h-[20px] w-px"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.5)" }}
-          aria-hidden
-        />
-        <button
-          type="button"
-          onClick={openSideNav}
-          aria-label="Open account menu"
-          className="relative size-[32px] rounded-full overflow-hidden bg-white shrink-0 active:scale-[0.95] transition-transform"
+        {/* Back to lobby */}
+        <Link
+          href="/"
+          aria-label="Exit game"
+          className="grid place-items-center rounded-full active:scale-[0.94] transition-transform"
           style={{
-            border: "1.78px solid rgba(10, 46, 203, 1)",
-            boxShadow: "3.56px 3.56px 7.11px 0 rgba(10, 46, 203, 0.24)",
+            width: 40,
+            height: 40,
+            backgroundColor: "rgba(255, 255, 255, 0.4)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
           }}
         >
-          <Image
-            src="/assets/avatar.png"
-            alt=""
-            fill
-            sizes="32px"
-            className="object-cover"
-            priority
+          <ExitIcon />
+        </Link>
+
+        {/* Balance + avatar pill — mirrors the BrandBar pill so the
+            user stays oriented inside the global UI. */}
+        <div
+          className="flex items-center rounded-full"
+          style={{
+            height: 40,
+            paddingLeft: 16,
+            paddingRight: 4,
+            gap: 8,
+            backgroundColor: "rgba(255, 255, 255, 0.32)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={openDeposit}
+            aria-label="Make a deposit"
+            className="text-white text-[16px] leading-none font-extrabold pt-[1px] active:scale-[0.95] transition-transform"
+          >
+            £113.59
+          </button>
+          <span
+            className="h-[20px] w-px"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.5)" }}
+            aria-hidden
           />
-        </button>
-      </div>
-    </header>
+          <button
+            type="button"
+            onClick={openSideNav}
+            aria-label="Open account menu"
+            className="relative size-[32px] rounded-full overflow-hidden bg-white shrink-0 active:scale-[0.95] transition-transform"
+            style={{
+              border: "1.78px solid rgba(10, 46, 203, 1)",
+              boxShadow: "3.56px 3.56px 7.11px 0 rgba(10, 46, 203, 0.24)",
+            }}
+          >
+            <Image
+              src="/assets/avatar.png"
+              alt=""
+              fill
+              sizes="32px"
+              className="object-cover"
+              priority
+            />
+          </button>
+        </div>
+      </header>
+    </div>
   );
 }
 
