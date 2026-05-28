@@ -257,11 +257,15 @@ function ReelView({
         aria-hidden
       />
 
-      {/* Bottom-left meta: studio + game title. */}
+      {/* Bottom-left meta: studio + game title. Anchored to the
+          BottomNav's actual top edge via --bottom-nav-h, so the
+          title sits at a consistent visual offset in browser mode
+          AND standalone PWA mode (where the bottom nav has a
+          different effective height). */}
       <div
         className="absolute left-0 right-[88px] px-[18px] flex flex-col gap-[4px] text-white pointer-events-none"
         style={{
-          bottom: "calc(env(safe-area-inset-bottom) + 120px)",
+          bottom: "calc(var(--bottom-nav-h) + 28px)",
           textShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
         }}
       >
@@ -273,11 +277,13 @@ function ReelView({
         </h2>
       </div>
 
-      {/* Right-edge action stack: Info / Heart / Play (primary). */}
+      {/* Right-edge action stack — same --bottom-nav-h anchor so the
+          buttons clear the floating tab bar by the same gap in every
+          mode. */}
       <div
         className="absolute right-[12px] flex flex-col items-center gap-[14px]"
         style={{
-          bottom: "calc(env(safe-area-inset-bottom) + 150px)",
+          bottom: "calc(var(--bottom-nav-h) + 60px)",
         }}
       >
         <ActionButton aria="Game info">

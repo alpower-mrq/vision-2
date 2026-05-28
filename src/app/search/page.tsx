@@ -62,13 +62,12 @@ type TileSpec = {
 };
 
 // All four Figma SVGs share the same 65×45 viewBox, so each tile
-// gets the same icon footprint (preserves the design's proportions
-// and avoids any "padding" band above or below the sticker — it
-// fills the tile's full height edge-to-edge).
-const TILE_H = 62;
+// gets the same icon footprint. Tile height is 54px — small enough
+// that the sticker doesn't crash into the label on the left.
+const TILE_H = 54;
 const ICON_RATIO = 65 / 45; // viewBox width / height
 const ICON_H = TILE_H;
-const ICON_W = Math.round(ICON_H * ICON_RATIO); // 89
+const ICON_W = Math.round(ICON_H * ICON_RATIO); // 78
 
 const BROWSE: TileSpec[] = [
   {
@@ -535,11 +534,11 @@ function StartBrowsing({ items }: { items: typeof BROWSE }) {
 }
 
 function BrowseTile({ item }: { item: TileSpec }) {
-  // Slightly taller (62px vs the previous 58px) so the bigger stickers
-  // from Figma 216:46506 have room to breathe without clipping at the
-  // top/bottom edges.
+  // 54px tile height — small enough that the right-side sticker
+  // (sized to fill the tile height) doesn't crash into the label
+  // on the left at the narrow 2-column grid width.
   const className =
-    "relative h-[62px] overflow-hidden rounded-[10px] active:scale-[0.98] transition-transform";
+    "relative h-[54px] overflow-hidden rounded-[10px] active:scale-[0.98] transition-transform";
   const style = { backgroundColor: "#0322ac" } as const;
 
   // Tile interior is identical for linked vs inert tiles — only the

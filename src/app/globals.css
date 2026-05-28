@@ -55,6 +55,24 @@
      viewport edge. The desktop media query below overrides it to
      centre-align with the 375px frame. */
   --frame-right-offset: 0px;
+
+  /* Bottom nav effective height, including its own bottom inset.
+     Anchor any "above the bottom nav" content to this so the layout
+     stays consistent across mobile Safari (with URL bar visible),
+     mobile Safari with URL bar hidden, AND PWA standalone mode
+     where the home indicator is the only thing eating bottom space.
+
+     Inner content of the bar is ~52px; the bottom inset varies:
+       • Browser: env(safe-area-inset-bottom) is the URL bar's
+         visible chrome (≈ 30–40px on iOS Safari).
+       • PWA standalone: reduced inset (see .bottom-nav-pad media
+         query lower in this file) so the bar hugs the home
+         indicator instead of floating above a band of white.
+
+     The PWA override is below in the @media (display-mode:
+     standalone) block — keeps this default in sync with the
+     browser case. */
+  --bottom-nav-h: calc(52px + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 600px) {
@@ -187,5 +205,14 @@ body::-webkit-scrollbar {
      iOS overlays on top anyway). */
   .bottom-nav-pad {
     padding-bottom: max(6px, calc(env(safe-area-inset-bottom) - 24px)) !important;
+  }
+  /* Keep --bottom-nav-h in sync with the reduced padding above so
+     pages anchoring content to "above the bottom nav" (e.g. the
+     reels feed) sit at the same visual offset across browser and
+     standalone modes. */
+  :root {
+    --bottom-nav-h: calc(
+      52px + max(6px, calc(env(safe-area-inset-bottom) - 24px))
+    );
   }
 }
