@@ -47,8 +47,11 @@ export default function RewardsPage() {
 
   return (
     <div
-      className="relative min-h-[100dvh] pt-[12px] pb-[32px]"
+      className="relative min-h-[100dvh] pb-[32px]"
       style={{
+        // BrandBar already has 14px bottom padding so the tab
+        // switcher sits 14px below the BrandBar's content
+        // without any additional top padding from this page.
         background:
           "linear-gradient(180deg, #0a2ecb 0%, #181f43 100%)",
       }}
@@ -123,10 +126,12 @@ function MyRewardsContent() {
  *  tagline + 200 + Free Spins stacked centred. */
 function YourQRewardsHero() {
   return (
-    <div className="relative flex flex-col items-center gap-[8px] px-[16px]">
+    <div className="relative flex flex-col items-center gap-[2px] px-[16px]">
       {/* Ellipse backdrop — Figma 238:5742 (518×252 positioned at
           left=-87.5 top=30 inside a 343-wide page). Drawn behind
-          the number, adds the soft darker halo. */}
+          the number, creates the soft darker halo. The negative
+          z-index pushes it BEHIND the text in case stacking
+          context fights it. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/assets/rewards/ellipse.svg"
@@ -138,15 +143,17 @@ function YourQRewardsHero() {
           top: 30,
           width: 518,
           height: 252,
+          zIndex: 0,
         }}
       />
 
-      {/* Tagline: "Your [Q] Rewards" — yellow text wrapping the
-          Q logo inline. Q SVG is ~22px wide, sits between the
-          two words with the same baseline. */}
-      <div className="relative flex items-center justify-center gap-[6px] h-[22px]">
+      {/* Tagline: "Your [Q] Rewards". Yellow Medium text, white Q
+          SVG (the MrQ "Q" mark — Figma 238:5745) at 28px so it
+          reads as a prominent logo between the words rather than
+          just inline punctuation. */}
+      <div className="relative z-[1] flex items-center justify-center gap-[6px]">
         <span
-          className="text-[14px] font-medium"
+          className="font-medium text-[14px]"
           style={{ color: YELLOW, lineHeight: 1.6, letterSpacing: 0.1 }}
         >
           Your
@@ -155,31 +162,40 @@ function YourQRewardsHero() {
         <img
           src="/assets/rewards/q-title.svg"
           alt="Q"
-          className="h-[20px] w-auto"
+          // Explicit width+height — q-title.svg has
+          // preserveAspectRatio="none" so the box dimensions
+          // dictate the render. 28×22 keeps the viewBox 25/19.4
+          // ratio (~1.27) intact within rounding.
+          width={28}
+          height={22}
+          style={{ width: 28, height: 22 }}
         />
         <span
-          className="text-[14px] font-medium"
+          className="font-medium text-[14px]"
           style={{ color: YELLOW, lineHeight: 1.6, letterSpacing: 0.1 }}
         >
           Rewards
         </span>
       </div>
 
-      {/* Big 200 — Figma 238:5748: 59.874px, tracking -0.998,
-          leading 1.2. */}
+      {/* Big 200 — Figma 238:5748: 59.874px ExtraBold, tracking
+          -0.998, leading 1.2. */}
       <p
-        className="relative text-center text-white font-extrabold"
+        className="relative z-[1] text-center text-white font-extrabold"
         style={{
           fontSize: 60,
-          letterSpacing: -1,
+          letterSpacing: "-1px",
           lineHeight: 1.2,
         }}
       >
         200
       </p>
 
-      {/* "Free Spins" with coin icon to the left. Figma 238:5749. */}
-      <div className="relative flex items-center justify-center gap-[6px]">
+      {/* "Free Spins" with coin icon to the left.
+          Figma 238:5750: 15.592px ExtraBold, tracking -0.26,
+          leading 1.6. Coin icon (Figma 238:5751) sized 18×17 in
+          the source — rendering at 18 square for simplicity. */}
+      <div className="relative z-[1] flex items-center justify-center gap-[6px] mt-[4px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/rewards/spins-icon.png"
@@ -188,8 +204,12 @@ function YourQRewardsHero() {
           className="size-[18px] object-contain"
         />
         <span
-          className="text-white font-extrabold text-[14px]"
-          style={{ letterSpacing: 0.1, lineHeight: 1.6 }}
+          className="text-white font-extrabold"
+          style={{
+            fontSize: 15.5,
+            letterSpacing: "-0.26px",
+            lineHeight: 1.6,
+          }}
         >
           Free Spins
         </span>
@@ -261,7 +281,7 @@ function AvailableCard({
 }: AvailableCardData) {
   return (
     <div
-      className="shrink-0 w-[300px] bg-white rounded-[16px] overflow-hidden"
+      className="shrink-0 w-[300px] bg-white rounded-[16px]"
       style={{ scrollSnapAlign: "start" }}
     >
       <div className="p-[8px]">
@@ -269,23 +289,34 @@ function AvailableCard({
           className="flex gap-[16px] items-start p-[12px] rounded-[12px]"
           style={{ backgroundColor: INNER_CARD }}
         >
-          {/* Game tile 56×56 — white border, rounded-12, with a
-              "Free" gift badge at the bottom-left. */}
-          <div
-            className="relative shrink-0 size-[56px] rounded-[12px] overflow-hidden"
-            style={{ border: "2px solid #ffffff", backgroundColor: "#cccdd0" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={gameSrc}
-              alt=""
-              className="absolute inset-0 size-full object-cover"
-            />
-            {/* "Free" badge — sits below+left of the tile, half
-                hanging off. */}
+          {/* Game tile 56×56 — image clipped to a rounded inner
+              div with the white border, then the "Free" badge is
+              a SIBLING of that inner div so it can hang off the
+              bottom-left corner without being clipped. (Earlier
+              the badge was inside the overflow-hidden div and got
+              silently clipped to almost nothing.) */}
+          <div className="relative shrink-0 size-[56px]">
             <div
-              className="absolute -bottom-[6px] -left-[6px] flex items-center gap-[3px] px-[6px] h-[18px] rounded-full"
+              className="absolute inset-0 rounded-[12px] overflow-hidden"
               style={{
+                border: "2px solid #ffffff",
+                backgroundColor: "#cccdd0",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={gameSrc}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+              />
+            </div>
+            {/* "Free" gift badge — hangs off the bottom-left
+                corner of the tile. */}
+            <div
+              className="absolute flex items-center gap-[3px] px-[6px] h-[18px] rounded-full"
+              style={{
+                bottom: -6,
+                left: -6,
                 backgroundColor: BRAND_DARK,
                 color: "#ffffff",
                 border: "1.5px solid #ffffff",
