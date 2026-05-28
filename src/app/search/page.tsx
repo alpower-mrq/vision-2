@@ -61,43 +61,46 @@ type TileSpec = {
   iconRotate: number;
 };
 
+// Stickers sit flat on each tile (no rotation). The SVGs from Figma
+// 216:46506 already carry their own playful tilt baked into the
+// artwork, so a CSS rotate on top double-tilts them and looks off.
 const BROWSE: TileSpec[] = [
   {
     label: "Casino",
     href: "/casino",
     icon: "/assets/search/casino.svg",
-    iconW: 65,
-    iconH: 45,
-    iconRight: -6,
-    iconTop: 4,
-    iconRotate: 14,
+    iconW: 64,
+    iconH: 44,
+    iconRight: 8,
+    iconTop: 9,
+    iconRotate: 0,
   },
   {
     label: "Live Casino",
     icon: "/assets/search/live.svg",
-    iconW: 65,
-    iconH: 45,
-    iconRight: -4,
-    iconTop: 3,
-    iconRotate: -9,
+    iconW: 64,
+    iconH: 44,
+    iconRight: 8,
+    iconTop: 9,
+    iconRotate: 0,
   },
   {
     label: "Bingo",
     icon: "/assets/search/bingo.svg",
-    iconW: 56,
-    iconH: 56,
-    iconRight: 2,
-    iconTop: 0,
-    iconRotate: -17,
+    iconW: 50,
+    iconH: 50,
+    iconRight: 10,
+    iconTop: 6,
+    iconRotate: 0,
   },
   {
     label: "Arena",
     icon: "/assets/search/arena.svg",
-    iconW: 50,
-    iconH: 58,
-    iconRight: 4,
-    iconTop: -2,
-    iconRotate: 32,
+    iconW: 44,
+    iconH: 52,
+    iconRight: 12,
+    iconTop: 5,
+    iconRotate: 0,
   },
 ];
 
