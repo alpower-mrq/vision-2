@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CategoriesSheet, type Category } from "../CategoriesSheet";
-import { ChevronDownIcon } from "../CategoryChevron";
-import { GameRail } from "@/components/rails/GameRail";
 import { BINGO_ROOMS, type BingoRoom } from "@/lib/bingo-rooms";
 
 /**
@@ -14,16 +10,13 @@ import { BINGO_ROOMS, type BingoRoom } from "@/lib/bingo-rooms";
  *   ┌──────────────────────────────────────┐
  *   │  ←                          £113.59 ▢│  ← BrandBar (back arrow)
  *   ├──────────────────────────────────────┤
- *   │  Bingo                    Rooms ⌄    │  ← In-page header
- *   ├──────────────────────────────────────┤
- *   │  ┌──────────────────────────────────┐│
- *   │  │  [featured room artwork]         ││  ← Featured "next up" hero
- *   │  │  Next game in 4 min              ││
- *   │  │  Tropic Like It's Hot            ││
+ *   │  Bingo                                │  ← Title only — the
+ *   ├──────────────────────────────────────┤    Rooms chevron pill
+ *   │  ┌──────────────────────────────────┐│    was redundant against
+ *   │  │  [featured room artwork]         ││    the All-rooms list and
+ *   │  │  ▲ Next game in 4 min  (badge)   ││    has been dropped.
+ *   │  │  Tropic Like It's Hot            ││  ← Featured "next up" hero
  *   │  └──────────────────────────────────┘│
- *   │                                       │
- *   │  Popular rooms          (no See all)  │
- *   │  ▢▢▢ ▢▢▢ ▢▢▢ ▢▢▢ ▢▢▢                  │  ← 146×146 tile rail
  *   │                                       │
  *   │  All rooms                            │
  *   │  ┌────────────────────────────────┐  │
@@ -34,69 +27,31 @@ import { BINGO_ROOMS, type BingoRoom } from "@/lib/bingo-rooms";
  *   │  ... (5 rooms)                        │
  *   └──────────────────────────────────────┘
  *
- * The header chevron pill opens the same CategoriesSheet used by the
- * Casino routes, but feeds it the bingo rooms list so tapping a room
- * could later scroll to that section. For now the sheet selection
- * just closes — the prototype is single-page so there's nowhere to
- * navigate to.
+ * Previously this view also had a "Popular rooms" carousel between
+ * the hero and the All-rooms list — dropped because the carousel
+ * surfaced the same five rooms the list does, just less usefully
+ * (no metadata, no Join). The Rooms chevron pill was dropped at the
+ * same time: with only one bingo surface it had nowhere meaningful
+ * to send the user.
  */
 export function BingoView() {
-  const [sheetOpen, setSheetOpen] = useState(false);
   const reduce = useReducedMotion();
 
   // First room is the "featured" hero — Tropic Like It's Hot, the
   // brand flagship room.
   const featured = BINGO_ROOMS[0];
 
-  // The sheet reuses Casino's CategoriesSheet, which takes a generic
-  // Category[]. Map each bingo room into that shape.
-  const sheetCategories: Category[] = BINGO_ROOMS.map((r) => ({
-    key: r.key,
-    label: r.name,
-  }));
-
-  // Tile rail wants {src, alt}. The lobby PNGs are landscape-ish but
-  // we render them in 146×146 squares (object-cover) — the room art
-  // crops cleanly to a square thumbnail.
-  const popularTiles = BINGO_ROOMS.map((r) => ({ src: r.image, alt: r.name }));
-
   return (
     <>
-      {/* In-page header — same pattern as /casino. */}
-      <div className="flex items-center justify-between px-[16px] pt-[16px] pb-[18px]">
+      {/* In-page header — title only. No CTA pill on bingo since the
+          page is single-surface (rooms list lives right below). */}
+      <div className="px-[16px] pt-[16px] pb-[18px]">
         <h1 className="text-[28px] font-extrabold leading-none text-[var(--mrq-blue-dark)]">
           Bingo
         </h1>
-        <button
-          type="button"
-          onClick={() => setSheetOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={sheetOpen}
-          // Shared pale-lavender chevron pill — same component as
-          // Casino's Categories, Casino category pages' pluralised
-          // CTAs, Arena's Dashboard pill.
-          className="inline-flex items-center gap-[6px] h-[30px] pl-[14px] pr-[12px] rounded-full text-[16px] font-extrabold active:scale-[0.97] transition-transform"
-          style={{
-            backgroundColor: "#dee3f7",
-            color: "var(--mrq-blue-dark)",
-          }}
-        >
-          <span>Rooms</span>
-          <ChevronDownIcon size={14} />
-        </button>
       </div>
 
       <FeaturedRoom room={featured} reduce={reduce} />
-
-      <GameRail
-        title="Popular rooms"
-        tiles={popularTiles}
-        tileWidth={146}
-        tileHeight={146}
-        // No dedicated "popular rooms" landing page — the rail is
-        // self-contained, so the See all chrome would dead-end.
-        showSeeAll={false}
-      />
 
       <section className="px-[16px] pt-[8px] pb-[24px]">
         <h2 className="text-[18px] font-extrabold leading-none text-[var(--mrq-blue)] mb-[12px]">
@@ -108,25 +63,18 @@ export function BingoView() {
           ))}
         </div>
       </section>
-
-      <CategoriesSheet
-        open={sheetOpen}
-        // No row active — the bingo homepage isn't a specific room.
-        selected={undefined}
-        categories={sheetCategories}
-        // No per-room route yet — selecting from the sheet just
-        // dismisses it. (Future: scroll to the room's row, or navigate
-        // to a /bingo/[room] page.)
-        onSelect={() => setSheetOpen(false)}
-        onClose={() => setSheetOpen(false)}
-        title="Bingo Rooms"
-      />
     </>
   );
 }
 
 /* ============================================================
    Featured hero — single big room card at the top of the page.
+
+   The "Next game in" indicator is now a floating yellow badge in the
+   top-left of the hero: clock icon + countdown text in a high-
+   contrast pill. Separating it from the title block at the bottom
+   makes the time-sensitive signal pop instead of competing with the
+   room name for attention.
    ============================================================ */
 function FeaturedRoom({
   room,
@@ -159,7 +107,49 @@ function FeaturedRoom({
           draggable={false}
           className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none"
         />
-        {/* Dark gradient at the bottom for text legibility. */}
+
+        {/* Floating countdown badge — top-left. Yellow pill, navy
+            text, soft shadow. Pulses subtly to reinforce that the
+            countdown is live. */}
+        <motion.div
+          className="absolute top-[14px] left-[14px] flex items-center rounded-full"
+          style={{
+            backgroundColor: "#FFBD29", // brand-aligned yellow
+            color: "var(--mrq-blue-dark)",
+            height: 30,
+            paddingLeft: 10,
+            paddingRight: 14,
+            gap: 6,
+            boxShadow:
+              "0 4px 12px -4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+          }}
+          animate={
+            reduce
+              ? undefined
+              : {
+                  // Gentle scale pulse every ~2s — calls the eye
+                  // without distracting from the rest of the card.
+                  scale: [1, 1.04, 1],
+                }
+          }
+          transition={
+            reduce
+              ? undefined
+              : {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        >
+          <ClockIcon />
+          <span className="text-[13px] font-extrabold leading-none">
+            Next game in {room.nextGameMins} min
+          </span>
+        </motion.div>
+
+        {/* Dark gradient at the bottom for text legibility. Holds
+            the room title + ball/ticket/jackpot summary. */}
         <div
           className="absolute inset-x-0 bottom-0 px-[18px] pb-[16px] pt-[80px] flex flex-col gap-[4px] text-left text-white"
           style={{
@@ -168,9 +158,6 @@ function FeaturedRoom({
             textShadow: "0 2px 8px rgba(0, 0, 0, 0.55)",
           }}
         >
-          <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] opacity-90">
-            Next game in {room.nextGameMins} min
-          </p>
           <h3 className="text-[24px] font-extrabold leading-tight">
             {room.name}
           </h3>
@@ -180,6 +167,26 @@ function FeaturedRoom({
         </div>
       </button>
     </motion.section>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      focusable={false}
+    >
+      <circle cx="7" cy="7" r="5.5" />
+      <path d="M7 4v3l2 1.4" />
+    </svg>
   );
 }
 
