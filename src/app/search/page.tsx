@@ -337,8 +337,8 @@ const BROWSE_CATEGORIES: Theme[] = [
 
 // Stub data for the "Recently searched" takeover state — would be
 // driven by real user history once we have one.
-const RECENTLY_SEARCHED: Array<{ src: string; name: string }> = [
-  { src: "/assets/games/slot-01.png", name: "Buffalo Bills" },
+const RECENTLY_SEARCHED: Array<{ src: string; name: string; href?: string }> = [
+  { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
   { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
   { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
   { src: "/assets/games/slot-13.png", name: "Big Bass Real Repeat" },
@@ -346,6 +346,31 @@ const RECENTLY_SEARCHED: Array<{ src: string; name: string }> = [
   { src: "/assets/games/slot-03.png", name: "Snake Arena" },
   { src: "/assets/games/slot-05.png", name: "Western Gold" },
   { src: "/assets/games/slot-07.png", name: "Golden Catch" },
+];
+
+// Searchable catalogue — every game the prototype knows about, with
+// title + thumbnail + optional destination. Drives the search modal's
+// type-to-filter behaviour: as the user types, the list narrows to
+// titles whose name (case-insensitive) contains the query. Empty
+// query falls back to the Recently Searched stub above.
+const ALL_GAMES: Array<{ src: string; name: string; href?: string }> = [
+  { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
+  { src: "/assets/games/slot-02.png", name: "Goldilocks" },
+  { src: "/assets/games/slot-03.png", name: "Big Bass Splash" },
+  { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
+  { src: "/assets/games/slot-05.png", name: "Western Gold" },
+  { src: "/assets/games/slot-06.png", name: "Reactoonz" },
+  { src: "/assets/games/slot-07.png", name: "Mummy Mania" },
+  { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
+  { src: "/assets/games/slot-09.png", name: "Golden Catch" },
+  { src: "/assets/games/slot-10.png", name: "Money Train" },
+  { src: "/assets/games/slot-11.png", name: "Maze Escape" },
+  { src: "/assets/games/slot-12.png", name: "Wild Heist" },
+  { src: "/assets/games/slot-13.png", name: "Snake Arena" },
+  { src: "/assets/games/birds-on-a-wire.png", name: "Birds on a Wire" },
+  { src: "/assets/games/fruit-warp.png", name: "Fruit Warp" },
+  { src: "/assets/games/south-park.png", name: "South Park" },
+  { src: "/assets/games/wild-swarm.png", name: "Wild Swarm" },
 ];
 
 export default function SearchPage() {
@@ -524,15 +549,27 @@ export default function SearchPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              <RecentlySearched
-                items={RECENTLY_SEARCHED}
-                onRemove={(name) => {
-                  // Stub — in a real build this would drop the item
-                  // from the user's search history.
-                  // eslint-disable-next-line no-console
-                  console.log("[Search] remove from history →", name);
-                }}
-              />
+              {/* Empty query → Recently Searched (history fallback).
+                  Non-empty query → live-filtered game results from
+                  ALL_GAMES. Filter is case-insensitive substring
+                  match against the game title. */}
+              {query.trim().length === 0 ? (
+                <RecentlySearched
+                  items={RECENTLY_SEARCHED}
+                  onRemove={(name) => {
+                    // Stub — in a real build this would drop the item
+                    // from the user's search history.
+                    // eslint-disable-next-line no-console
+                    console.log("[Search] remove from history →", name);
+                  }}
+                />
+              ) : (
+                <SearchResults
+                  query={query}
+                  games={ALL_GAMES}
+                  onSelect={closeModal}
+                />
+              )}
             </div>
           </motion.div>
         )}
@@ -558,26 +595,8 @@ function RecentlySearched({
       <ul className="flex flex-col gap-[10px] px-[16px]">
         {items.map((rec, i) => (
           <li key={`${rec.name}-${i}`}>
-            <div
-              className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[45px]"
-            >
-              <button
-                type="button"
-                className="flex flex-1 items-center gap-[14px] text-left active:scale-[0.99] transition-transform min-w-0"
-              >
-                <span className="relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-[4px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={rec.src}
-                    alt=""
-                    draggable={false}
-                    className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                  />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-[#0e1120]">
-                  {rec.name}
-                </span>
-              </button>
+            <div className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[45px]">
+              <ResultBody src={rec.src} name={rec.name} href={rec.href} />
               <button
                 type="button"
                 aria-label={`Remove ${rec.name} from recent searches`}
@@ -591,6 +610,104 @@ function RecentlySearched({
         ))}
       </ul>
     </section>
+  );
+}
+
+/* Type-to-filter results list. Renders titles whose name matches
+   the (case-insensitive) substring query. Cards with an `href` route
+   when tapped; cards without one fire a console stub. */
+function SearchResults({
+  query,
+  games,
+  onSelect,
+}: {
+  query: string;
+  games: typeof ALL_GAMES;
+  onSelect?: () => void;
+}) {
+  const q = query.trim().toLowerCase();
+  const matches = games.filter((g) => g.name.toLowerCase().includes(q));
+
+  return (
+    <section className="pt-[16px] pb-[6px]">
+      <h2 className="px-[16px] pb-[12px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
+        {matches.length} {matches.length === 1 ? "result" : "results"}
+        <span
+          className="ml-[6px] font-medium opacity-70"
+          style={{ fontWeight: 500 }}
+        >
+          for &ldquo;{query}&rdquo;
+        </span>
+      </h2>
+
+      {matches.length === 0 ? (
+        <p className="px-[16px] text-[14px] text-[var(--mrq-blue-dark)] opacity-60">
+          Nothing matches that — try a different spelling or browse
+          the categories instead.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-[10px] px-[16px]">
+          {matches.map((game, i) => (
+            <li key={`${game.name}-${i}`}>
+              <div className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[45px]">
+                <ResultBody
+                  src={game.src}
+                  name={game.name}
+                  href={game.href}
+                  onClick={onSelect}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/* Shared cell body — thumb + name. Renders as a Link when an href
+   is provided so the tap navigates; otherwise an inert button. */
+function ResultBody({
+  src,
+  name,
+  href,
+  onClick,
+}: {
+  src: string;
+  name: string;
+  href?: string;
+  onClick?: () => void;
+}) {
+  const inner = (
+    <>
+      <span className="relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-[4px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+        />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-[#0e1120]">
+        {name}
+      </span>
+    </>
+  );
+  const classes =
+    "flex flex-1 items-center gap-[14px] text-left active:scale-[0.99] transition-transform min-w-0";
+
+  if (href) {
+    return (
+      <Link href={href} className={classes} onClick={onClick}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" className={classes} onClick={onClick}>
+      {inner}
+    </button>
   );
 }
 

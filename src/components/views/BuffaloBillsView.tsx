@@ -75,55 +75,40 @@ export function BuffaloBillsView() {
   const reduce = useReducedMotion();
 
   return (
+    // Page is a flex column so the hero can fill whatever's left of
+    // the viewport after the header band. That way there's no dark
+    // strip between the hero's bottom edge and the off-screen Game
+    // Info section — the hero IS the floor until the user scrolls.
     <div
-      className="relative w-full"
+      className="relative flex flex-col w-full"
       style={{ backgroundColor: PAGE_BG, minHeight: "100dvh" }}
     >
-      {/* ── In-game header ────────────────────────────────────────
-         Floats over the top of the hero. Translucent backdrop
-         carries the warm orange glow from the artwork below
-         through the safe-area gap. */}
+      {/* ── In-game header band — normal-flow, scrolls with page. */}
       <GameHeader />
 
-      {/* ── Sticky hero ───────────────────────────────────────────
-         Stays anchored at the top of the viewport as the user
-         scrolls. The cards below scroll up over it. */}
+      {/* ── Hero — flex-1 so it stretches to fill the viewport. */}
       <Hero />
 
       {/* ── Game info section ─────────────────────────────────────
-         Pop-up-and-disappear entrance:
+         Sits in normal flow immediately after the hero. Because the
+         hero stretches to fill the rest of the viewport, the Game
+         Info section's natural top edge lands exactly at the
+         viewport bottom — entirely hidden until the user scrolls.
 
-           1. At rest the section sits BELOW the viewport — the
-              `marginTop: 100dvh - heroH` spacer pushes its natural
-              top edge to the viewport bottom, so nothing peeks
-              from below on load.
-           2. On mount the section peeks 50px up into the viewport
-              — a brief "hey, there's more here" tease.
-           3. It then slides back down to its resting position
-              (off-screen again).
-           4. The user scrolls to reveal the cards properly.
-
-         Easing is ease-in-out so the peek+return reads as a single
-         smooth gesture rather than a snappy spring.
-         */}
+         On mount it peeks 50px up into the viewport (ease-in-out)
+         then slides back down — a brief "there's more here" tease.
+         No bg colour on the wrapper since the page wrapper already
+         carries `PAGE_BG`; this way the section disappears cleanly
+         without a residual dark band lingering behind the cards.
+      */}
       <motion.div
         className="relative flex flex-col items-stretch px-[16px] py-[24px]"
-        style={{
-          backgroundColor: PAGE_BG,
-          gap: 24,
-          // Hero + header band ~ 630 + ~100 below the top of the
-          // mobile-frame. Subtracting from 100dvh leaves a spacer
-          // so the cards' natural top lands at the viewport bottom
-          // — entirely hidden until the user scrolls.
-          marginTop: "max(0px, calc(100dvh - 630px))",
-        }}
+        style={{ gap: 24 }}
         initial={reduce ? { y: 0, opacity: 1 } : { y: 0, opacity: 0 }}
         animate={
           reduce
             ? { y: 0, opacity: 1 }
             : {
-                // Peek 50px up into the viewport at the midpoint,
-                // then slide back to the resting (hidden) position.
                 y: [0, -50, 0],
                 opacity: [0, 1, 1],
               }
@@ -263,20 +248,19 @@ function GameHeader() {
 /* ============================================================
    Hero — full-bleed slot artwork + yellow play button.
 
-   Normal flow — the hero scrolls offscreen with the page as the
-   user scrolls down. Previously this was `position: sticky; top: 0`
-   so the lower band could slide up OVER the hero, but per design
-   feedback the overlap felt wrong; the page now scrolls plainly.
+   `flex-1` so it stretches to fill whatever's left of the viewport
+   after the header band — that way the hero's bottom edge meets
+   the viewport's bottom edge exactly. No dark strip between the
+   hero and the off-screen Game Info section. A min-height tied
+   to the Figma aspect (630px on a 375 frame) keeps the artwork
+   from collapsing if the viewport is unusually short.
    ============================================================ */
 function Hero() {
   return (
     <div
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden flex-1"
       style={{
-        // 630px in the Figma frame (375 wide × 812 tall). Aspect-ratio
-        // hugs that target ratio so the hero fills the same proportion
-        // on any frame size, including the 375-column desktop view.
-        aspectRatio: "375 / 630",
+        minHeight: 630, // Figma reference hero height
         backgroundColor: PAGE_BG,
       }}
       aria-label="Buffalo Bills — Big Hunt"

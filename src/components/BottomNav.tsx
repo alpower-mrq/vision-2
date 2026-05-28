@@ -118,7 +118,11 @@ function activeTabFor(pathname: string): TabKey {
   if (pathname.startsWith("/discover")) return "discover";
   if (pathname.startsWith("/rewards")) return "rewards";
   if (pathname.startsWith("/search")) return "search";
+  // /casino, /bingo and /arena are all opened from the Explore page
+  // (Start Browsing tiles + mega-cards), so they keep Explore lit.
   if (pathname.startsWith("/casino")) return "search";
+  if (pathname.startsWith("/bingo")) return "search";
+  if (pathname.startsWith("/arena")) return "search";
   return "lobby";
 }
 
