@@ -128,16 +128,18 @@ function MyRewardsContent() {
 function YourQRewardsHero() {
   return (
     <div className="relative flex flex-col items-center gap-[2px] px-[16px]">
-      {/* Ellipse backdrop — Figma 238:5742 (518×252 darker
-          ellipse #122681) positioned behind the "200" to add a
-          soft darker halo. The raw SVG would extend ~120px
-          below this block and bleed into the "Available to
-          collect" cards/title, so we apply a vertical mask-
-          image that holds full opacity for the first 40% and
-          fades to transparent by 100%. Net effect: the dark
-          halo is visible behind the hero content (above the
-          gradient bg) and smoothly disappears before reaching
-          the next section. */}
+      {/* Ellipse backdrop — Figma 238:5742 in spirit, but
+          compressed vertically so it stops inside the hero's
+          own footprint. The Figma asset is 518×252 which is
+          taller than the entire hero, so we render the SVG at
+          518×130 — content gets squished into a flatter
+          ellipse but with preserveAspectRatio="none" it just
+          becomes a wider, shorter halo, which is what we
+          actually want here. Combined with a steep mask
+          (solid for the first 50%, then fades to transparent
+          by 90%), the halo is visible behind the tagline + 200
+          and is fully transparent before reaching the
+          "Available to collect" section title below the hero. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/assets/rewards/ellipse.svg"
@@ -146,14 +148,14 @@ function YourQRewardsHero() {
         className="absolute -translate-x-1/2 max-w-none pointer-events-none"
         style={{
           left: "50%",
-          top: 30,
+          top: 18,
           width: 518,
-          height: 252,
+          height: 130,
           zIndex: 0,
           maskImage:
-            "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+            "linear-gradient(to bottom, black 0%, black 50%, transparent 90%)",
           WebkitMaskImage:
-            "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+            "linear-gradient(to bottom, black 0%, black 50%, transparent 90%)",
         }}
       />
 
@@ -254,19 +256,13 @@ function AvailableToCollect() {
         Available to collect
       </h2>
       <div
-        className="mt-[12px] flex gap-[16px] overflow-x-auto no-scrollbar pb-[2px]"
-        // Inline paddingLeft/Right (matching the 16px page gutter
-        // used by every other section). Tailwind's px-[16px] on
-        // an overflow-x scroll container can be ignored at the
-        // right edge in some browsers, but the left padding is
-        // what we care about here — first card starts at 16px
-        // from the page edge so it aligns with the section title
-        // and the tab switcher above.
-        style={{
-          scrollSnapType: "x mandatory",
-          paddingLeft: 16,
-          paddingRight: 16,
-        }}
+        className="mt-[12px] flex gap-[16px] overflow-x-auto no-scrollbar pb-[2px] pl-[16px] pr-[16px]"
+        // Using Tailwind pl/pr classes here (rather than inline
+        // padding) because they reliably apply in horizontal-
+        // overflow scrollers. First card now sits at 16px from
+        // the page edge, aligned with the section title and the
+        // tab switcher above.
+        style={{ scrollSnapType: "x mandatory" }}
       >
         {cards.map((c, i) => (
           <AvailableCard key={i} {...c} />
