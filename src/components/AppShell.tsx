@@ -32,29 +32,30 @@ import { ResumePlayingBar } from "./ResumePlayingBar";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const ownsBottomFlush = pathname === "/";
-  // Rewards uses the brand-blue gradient as its surface (Figma
-  // 238:5731) instead of the usual #f5f5f5 canvas, so main needs
-  // to match — otherwise the canvas would peek through during
-  // overscroll or where the page content is shorter than the
-  // viewport.
+  // Rewards uses a solid darker brand-blue (#181f43) as its
+  // surface instead of the default #f5f5f5 canvas. Both main
+  // and the mobile-frame wrapper need to pick that colour up,
+  // otherwise overscroll regions and the BrandBar's rounded-
+  // corner curve area would expose the wrong tone.
   const isRewards = pathname.startsWith("/rewards");
+  const REWARDS_BG = "#181f43";
 
   return (
     <>
       <div
         className="mobile-frame"
-        // /rewards uses a brand-blue surface end-to-end so the
-        // BrandBar's 20px rounded bottom corners don't reveal
-        // the default #f5f5f5 canvas through the curve wedge.
-        // Inline style overrides the .mobile-frame stylesheet's
-        // background: #f5f5f5.
-        style={
-          isRewards ? { background: "var(--mrq-blue)" } : undefined
-        }
+        // /rewards uses a solid #181f43 surface so the BrandBar's
+        // 20px rounded bottom corners don't reveal the default
+        // #f5f5f5 canvas through the curve wedge. Inline style
+        // overrides the .mobile-frame stylesheet's #f5f5f5.
+        style={isRewards ? { background: REWARDS_BG } : undefined}
       >
         <BrandBar />
 
-        <main className={isRewards ? "bg-[var(--mrq-blue)]" : "bg-[#f5f5f5]"}>
+        <main
+          className={isRewards ? "" : "bg-[#f5f5f5]"}
+          style={isRewards ? { background: REWARDS_BG } : undefined}
+        >
           {children}
           {!ownsBottomFlush && (
             <div

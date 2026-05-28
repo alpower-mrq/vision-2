@@ -49,12 +49,11 @@ export default function RewardsPage() {
     <div
       className="relative min-h-[100dvh] pt-[20px] pb-[32px]"
       style={{
-        // 20px breathing room between the BrandBar's bottom edge
-        // and the tab switcher (BrandBar's own pb-14 + this 20
-        // = 34px gap total — feels like a deliberate header /
-        // content break rather than a cramped seam).
-        background:
-          "linear-gradient(180deg, #0a2ecb 0%, #181f43 100%)",
+        // Solid darker brand-blue — was a gradient
+        // (#0a2ecb → #181f43) but a single tone reads cleaner.
+        // Matches the BottomNav scrim colour so the bar/page
+        // transition has no value shift.
+        background: "#181f43",
       }}
     >
       {/* Tab switcher — Figma 238:5736. White pill, 4px padding,
@@ -148,7 +147,11 @@ function YourQRewardsHero() {
         className="absolute -translate-x-1/2 max-w-none pointer-events-none"
         style={{
           left: "50%",
-          top: 18,
+          // 18 → 33 — pushed ~15px down so the ellipse sits
+          // BETWEEN the "Your Q Rewards" tagline and the "200"
+          // (Figma 238:5742), rather than starting up near the
+          // tagline.
+          top: 33,
           width: 518,
           height: 130,
           zIndex: 0,
