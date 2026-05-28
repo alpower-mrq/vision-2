@@ -46,6 +46,10 @@ type Reel = {
   game: string;
   studio: string;
   video: string;
+  /** Marks a brand/sponsorship slot. Ad reels render the video full-
+   *  bleed with NO chrome — no studio/title meta, no action stack,
+   *  no sound toggle button. The reel is the creative. */
+  ad?: boolean;
 };
 
 const REELS: Reel[] = [
@@ -73,6 +77,16 @@ const REELS: Reel[] = [
     studio: "Hacksaw Gaming",
     video: "/assets/videos/video4.mp4",
   },
+  // Brand spot — appears once per loop. Renders with zero overlaid UI
+  // (set ad: true) so the video does the entire job. game/studio are
+  // never displayed for ads but kept here for completeness.
+  {
+    id: "v5",
+    game: "",
+    studio: "",
+    video: "/assets/videos/video5.mp4",
+    ad: true,
+  },
 ];
 
 // How many reels to render in the very first batch. Three loops of
@@ -92,6 +106,13 @@ export default function DiscoverPage() {
   // → REELS[0] → REELS[2] → ... — without ever ending.
   const [loops, setLoops] = useState(INITIAL_LOOPS);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Browser autoplay policy: muted-autoplay is the only flavour that
+  // works on a cold page load (no user gesture yet). So videos start
+  // muted, and the user opts in to sound by tapping the speaker
+  // toggle in the action stack (TikTok / Reels convention). The
+  // single page-level `muted` state is mirrored onto every <video>
+  // so toggling is instant and consistent across reels.
+  const [muted, setMuted] = useState(true);
 
   // Materialise the rendered feed by cycling REELS. Each rendered
   // article gets a unique `key` (sourceId + position in the feed)
@@ -138,7 +159,9 @@ export default function DiscoverPage() {
             reel={reel}
             index={i}
             activeIndex={activeIndex}
+            muted={muted}
             onEnter={() => setActiveIndex(i)}
+            onTapVideo={() => setMuted((m) => !m)}
           />
         ))}
       </div>
@@ -150,7 +173,11 @@ export default function DiscoverPage() {
           --frame-right-offset CSS var the rest of the app uses, so
           on desktop the UI sits over the 375px column instead of
           the whole monitor. */}
-      <FixedReelChrome reel={active} />
+      <FixedReelChrome
+        reel={active}
+        muted={muted}
+        onToggleMute={() => setMuted((m) => !m)}
+      />
     </div>
   );
 }
@@ -159,12 +186,16 @@ function ReelArticle({
   reel,
   index,
   activeIndex,
+  muted,
   onEnter,
+  onTapVideo,
 }: {
   reel: Reel;
   index: number;
   activeIndex: number;
+  muted: boolean;
   onEnter: () => void;
+  onTapVideo: () => void;
 }) {
   const articleRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -214,6 +245,25 @@ function ReelArticle({
     }
   }, [isActive, reel.video]);
 
+  // Reflect the page-level `muted` flag onto the actual <video>
+  // element imperatively. React's `muted` prop only writes the
+  // attribute on initial mount; subsequent renders don't update the
+  // DOM property reliably (a long-standing React quirk). Setting
+  // .muted directly is the only way to get audio to start when the
+  // user taps the sound toggle. Also kick play() again — if the
+  // browser had this reel paused waiting for a gesture, unmuting via
+  // a user tap counts as activation and the playback resumes with
+  // audio.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = muted;
+    if (isActive && !muted) {
+      const p = v.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    }
+  }, [muted, isActive]);
+
   return (
     <article
       ref={articleRef}
@@ -230,7 +280,12 @@ function ReelArticle({
         ref={videoRef}
         src={reel.video}
         autoPlay={isActive}
-        muted
+        // `muted` is set to the current page-level flag so the
+        // initial DOM property matches (and muted-autoplay works on
+        // first paint). React's `muted` prop is one-shot for
+        // subsequent renders, so the useEffect above mirrors the
+        // flag onto the DOM imperatively when the user toggles.
+        muted={muted}
         loop
         playsInline
         // eslint-disable-next-line react/no-unknown-property
@@ -245,16 +300,32 @@ function ReelArticle({
         style={{ transform: "translateZ(0)", willChange: "transform" }}
       />
 
-      {/* Soft bottom gradient so the white title + action stack reads
-          on top of the video regardless of frame brightness. */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-[55%] pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0) 100%)",
-        }}
-        aria-hidden
+      {/* Tap-anywhere-on-the-reel sound toggle. Sits above the video
+          and below the fixed chrome (title / action stack), so a tap
+          on the reel body toggles audio while taps on the buttons
+          still hit their own handlers. */}
+      <button
+        type="button"
+        aria-label={muted ? "Unmute video" : "Mute video"}
+        onClick={onTapVideo}
+        className="absolute inset-0 w-full h-full z-10 cursor-pointer"
+        style={{ background: "transparent" }}
       />
+
+      {/* Soft bottom gradient so the white title + action stack reads
+          on top of the video regardless of frame brightness. Skipped
+          on ad reels — there's no overlaid UI to legibility-protect,
+          and the creative should fill edge-to-edge with no darkening. */}
+      {!reel.ad && (
+        <div
+          className="absolute inset-x-0 bottom-0 h-[55%] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0) 100%)",
+          }}
+          aria-hidden
+        />
+      )}
     </article>
   );
 }
@@ -265,7 +336,22 @@ function ReelArticle({
  * Title content crossfades to the new reel's metadata on each
  * activeIndex change (key on the reel id).
  */
-function FixedReelChrome({ reel }: { reel: Reel }) {
+function FixedReelChrome({
+  reel,
+  muted,
+  onToggleMute,
+}: {
+  reel: Reel;
+  muted: boolean;
+  onToggleMute: () => void;
+}) {
+  // Brand spot — render nothing on top of the video. The creative is
+  // the whole experience: no studio meta, no game title, no action
+  // stack, no sound toggle. Tap-to-mute on the video itself still
+  // works (the transparent overlay inside <ReelArticle>), so the
+  // user can silence the ad even without a visible button.
+  if (reel.ad) return null;
+
   return (
     <>
       {/* Bottom-left meta: studio + game title.
@@ -290,7 +376,10 @@ function FixedReelChrome({ reel }: { reel: Reel }) {
         </h2>
       </div>
 
-      {/* Right-edge action stack — Info / Heart / Play (primary). */}
+      {/* Right-edge action stack — Sound / Info / Play (primary).
+          The sound toggle sits at the top so it's the first thing
+          the user sees in the stack — easy to reach and the obvious
+          place to look when wondering "where do I turn on audio?". */}
       <div
         className="fixed z-30 flex flex-col items-center gap-[14px]"
         style={{
@@ -298,6 +387,16 @@ function FixedReelChrome({ reel }: { reel: Reel }) {
           bottom: "calc(var(--bottom-nav-h) + 72px)",
         }}
       >
+        <ActionButton
+          aria={muted ? "Unmute video" : "Mute video"}
+          onClick={onToggleMute}
+        >
+          {muted ? (
+            <SpeakerMutedIcon className="size-[22px] text-white" />
+          ) : (
+            <SpeakerOnIcon className="size-[22px] text-white" />
+          )}
+        </ActionButton>
         <ActionButton aria="Game info">
           <InfoIcon className="size-[22px] text-white" />
         </ActionButton>
@@ -312,14 +411,17 @@ function FixedReelChrome({ reel }: { reel: Reel }) {
 function ActionButton({
   children,
   aria,
+  onClick,
 }: {
   children: React.ReactNode;
   aria: string;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       aria-label={aria}
+      onClick={onClick}
       className="grid size-[46px] place-items-center rounded-full text-white active:scale-[0.9] transition-transform"
       style={{
         backgroundColor: "rgba(0, 0, 0, 0.32)",
@@ -385,6 +487,49 @@ function PlayIcon({ className }: { className?: string }) {
       focusable={false}
     >
       <path d="M4 2.5v11l10-5.5-10-5.5Z" />
+    </svg>
+  );
+}
+
+function SpeakerOnIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+      focusable={false}
+    >
+      {/* Speaker cone */}
+      <path d="M4 9h3l5-4v14l-5-4H4z" fill="currentColor" />
+      {/* Sound waves */}
+      <path d="M16 8.5a4 4 0 0 1 0 7" />
+      <path d="M19 5.5a8 8 0 0 1 0 13" />
+    </svg>
+  );
+}
+
+function SpeakerMutedIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+      focusable={false}
+    >
+      {/* Speaker cone */}
+      <path d="M4 9h3l5-4v14l-5-4H4z" fill="currentColor" />
+      {/* Cross-out */}
+      <path d="m16 9 5 6M21 9l-5 6" />
     </svg>
   );
 }

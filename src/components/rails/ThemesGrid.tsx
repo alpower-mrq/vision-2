@@ -45,7 +45,7 @@ export type Theme = {
 };
 
 export function ThemesGrid({
-  title = "Browse all themes",
+  title = "Browse All Themes",
   items,
 }: {
   title?: string;

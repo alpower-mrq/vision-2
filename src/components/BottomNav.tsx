@@ -2,163 +2,336 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * Persistent bottom navigation — Lobby / Search / Discover / Rewards.
+ * Persistent bottom navigation — Figma 226:52056.
  *
- * Replaces the old single-page BottomBar (home + search pill + gift).
- * Now that Search/Discover/Rewards are real Next.js routes, the bar is
- * a tab bar: each item is a `<Link>`, and the visually active tab is
- * derived from `usePathname()` — survives reloads, deep links, the back
- * button, the lot.
+ * Reproduces the exact pill geometry of the Figma source.
  *
- * Visual treatment (matches Figma node 103:24911):
- *   • Active tab: rounded blue pill behind icon + label, white foreground
- *   • Inactive tabs: just icon + label in MrQ blue, no fill
- *   • Active pill slides between tabs via Framer Motion `layoutId` —
- *     subtle, smooth, no big bounce.
+ * Bar shape (343 × 60, rounded-full):
  *
- * Persists across every route in the shell, sitting above the bottom
- * safe-area inset so it clears the iOS home indicator / Safari chrome.
+ *   ╭─────────────────────────────────────────────────────────╮
+ *   │ ╭─────╮              ╭───────╮                  ╭─────╮ │
+ *   │ │ ⌂   │   ▶︎       🔍         🎁          │ │ ←─┐
+ *   │ ╰─────╯              ╰───────╯                  ╰─────╯ │   │
+ *   │ My Q    Top Picks    Explore           Rewards          │  pills
+ *   ╰─────────────────────────────────────────────────────────╯
+ *      ▲       ▲              ▲                     ▲
+ *      80      84             84                    80
+ *
+ * Spacing rule (the key insight from Figma):
+ *   • Outer pills (My Q, Rewards) are PINNED at 4px from the bar's
+ *     outer edge, and are 80px wide. So they read as having an
+ *     intentional gap to the bar's rounded end-cap, identical on
+ *     both ends.
+ *   • Inner pills (Top Picks, Explore) are 84px wide and centred
+ *     on their column. The extra 4px of width pulls them visually
+ *     wider than the outer pills, which compensates for the lack
+ *     of a bar-edge "anchor" on either side.
+ *
+ * Bar internal padding is asymmetric — pl-4 / pr-8 — exactly per
+ * Figma. The pr-8 absorbs the 4px gap on the Rewards side AS PART
+ * of the bar's padding, so Rewards is pinned at 4px (right padding
+ * of bar 8 minus pill's 4px outer inset). The pl-4 is just My Q's
+ * 4px inset directly.
+ *
+ * The pill carries BOTH x and width — the width animates between
+ * 80 and 84 as the user switches between outer and inner tabs.
+ *
+ * SVG icons live in /public/assets/nav-icons/ (outlined inactive +
+ * filled active per tab). They crossfade via AnimatePresence while
+ * the pill animates to its new position+width.
  */
 
+// ── Figma constants ────────────────────────────────────────────────
+const BAR_MAX_W = 343; // mobile-frame interior (375 - 32 outer gutter)
+const BAR_H = 60;
+const BAR_PAD_L = 4; // Figma pl-4
+const BAR_PAD_R = 8; // Figma pr-8 (asymmetric — see notes above)
+const TAB_GAP = 4; // Figma gap-4
+const PILL_W_OUTER = 80; // My Q, Rewards
+const PILL_W_INNER = 84; // Top Picks, Explore (extends into gaps)
+const PILL_H = 52; // Figma h-52
+const PILL_TOP = 4;
+const PILL_PINNED_INSET = 4; // outer pills pinned this far from bar's outer edge
+const ICON_SIZE = 24;
+const ICON_LABEL_GAP = 2; // Figma gap-2 between icon and label
+const LABEL_FONT_SIZE = 10;
+const LABEL_LINE_H = 16; // Figma leading-1.6 × 10
+
+type TabKey = "lobby" | "discover" | "search" | "rewards";
+
 type Tab = {
-  key: string;
+  key: TabKey;
   href: string;
   label: string;
-  Icon: React.ComponentType<{ className?: string }>;
+  iconInactive: string;
+  iconActive: string;
 };
 
-// Tab keys still mirror the route segments (lobby = /, search-page
-// = /search, discover-page = /discover) for active-state matching;
-// only the visible order + labels + icons change. If we later want
-// `/search` → `/explore` and `/discover` → `/for-you` as real URLs,
-// those are file-rename moves under src/app/.
-//
-// Order swap: For You sits in the 2nd slot now, Explore in the 3rd.
-// Home is relabelled "My Q" but still routes to / and lights up on
-// every category page (no other tab represents those).
+const OUTER_TABS = new Set<TabKey>(["lobby", "rewards"]);
+
 const TABS: Tab[] = [
-  { key: "lobby", href: "/", label: "My Q", Icon: HomeIcon },
-  { key: "discover", href: "/discover", label: "Top Picks", Icon: ForYouIcon },
-  { key: "search", href: "/search", label: "Explore", Icon: ExploreIcon },
-  { key: "rewards", href: "/rewards", label: "Rewards", Icon: GiftIcon },
+  {
+    key: "lobby",
+    href: "/",
+    label: "My Q",
+    iconInactive: "/assets/nav-icons/my-q-inactive.svg",
+    iconActive: "/assets/nav-icons/my-q-active.svg",
+  },
+  {
+    key: "discover",
+    href: "/discover",
+    label: "Top Picks",
+    iconInactive: "/assets/nav-icons/top-picks-inactive.svg",
+    iconActive: "/assets/nav-icons/top-picks-active.svg",
+  },
+  {
+    key: "search",
+    href: "/search",
+    label: "Explore",
+    iconInactive: "/assets/nav-icons/explore-inactive.svg",
+    iconActive: "/assets/nav-icons/explore-active.svg",
+  },
+  {
+    key: "rewards",
+    href: "/rewards",
+    label: "Rewards",
+    iconInactive: "/assets/nav-icons/rewards-inactive.svg",
+    iconActive: "/assets/nav-icons/rewards-active.svg",
+  },
 ];
 
-/** Which tab is "active" given the current pathname. Only the four
- *  top-level destinations light their tab. Category pages (`/casino`
- *  and its `[category]` subpaths) return `null` — the user is "inside"
- *  one of the verticals, no bottom-nav tab represents that, so none
- *  are lit. (Previously these defaulted to "lobby"; the user noted it
- *  felt wrong since they're on a Casino page, not on the Lobby.) */
-function activeTabFor(pathname: string): string | null {
+/** Which tab is "active" for the current pathname. /casino and its
+ *  sub-routes light up Explore — the user is inside the browse
+ *  experience which Explore represents. */
+function activeTabFor(pathname: string): TabKey {
   if (pathname === "/" || pathname === "") return "lobby";
-  if (pathname.startsWith("/search")) return "search";
   if (pathname.startsWith("/discover")) return "discover";
   if (pathname.startsWith("/rewards")) return "rewards";
-  return null;
+  if (pathname.startsWith("/search")) return "search";
+  if (pathname.startsWith("/casino")) return "search";
+  return "lobby";
 }
 
 export function BottomNav() {
   const pathname = usePathname();
   const active = activeTabFor(pathname);
+  const showScrim = pathname !== "/" && !pathname.startsWith("/discover");
 
-  // The bar is always visible. Earlier versions hid it until the splash
-  // dissolved via a context flag, but in dev the shell context value
-  // sometimes split across HMR module instances and the bar stayed
-  // invisible. The splash is opaque and z-60 — it covers the bar
-  // visually while it's up, so there's nothing to hide behind.
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
+    lobby: null,
+    discover: null,
+    search: null,
+    rewards: null,
+  });
+
+  // Pill state carries BOTH position and width — outer tabs use 80
+  // pinned to a bar edge; inner tabs use 84 centred on their column.
+  const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const row = rowRef.current;
+      if (!row) return;
+
+      if (active === "lobby") {
+        // Pinned 4px from bar's left edge.
+        setPill({ x: PILL_PINNED_INSET, w: PILL_W_OUTER });
+        return;
+      }
+      if (active === "rewards") {
+        // Pinned 4px from bar's right edge.
+        const rowWidth = row.getBoundingClientRect().width;
+        setPill({
+          x: rowWidth - PILL_PINNED_INSET - PILL_W_OUTER,
+          w: PILL_W_OUTER,
+        });
+        return;
+      }
+      // Inner tab — centre the wider 84px pill on the column.
+      const el = tabRefs.current[active];
+      if (!el) return;
+      const rowRect = row.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const tabCentre = elRect.left - rowRect.left + elRect.width / 2;
+      setPill({ x: tabCentre - PILL_W_INNER / 2, w: PILL_W_INNER });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active]);
 
   return (
-    // Full-width flat tab bar anchored to the bottom of the
-    // mobile-frame. On desktop the --frame-right-offset CSS var keeps
-    // the bar clamped to the centred 375px column instead of spanning
-    // the entire monitor. On mobile the offset is 0 so the bar runs
-    // edge-to-edge. The bar itself absorbs the iOS safe-area-inset
-    // (replacing the old separate "floor" div).
-    <nav
-      aria-label="Primary"
-      // bottom-nav-pad: sets padding-bottom to env(safe-area-inset-bottom)
-      // in browser mode (full inset to clear iOS Safari's URL bar), and a
-      // reduced inset in standalone PWA mode so the tabs sit closer to
-      // the home indicator instead of floating above a band of white.
-      // See globals.css for the @media (display-mode: standalone) rule.
-      className="bottom-nav-pad fixed bottom-0 z-40"
-      style={{
-        left: "var(--frame-right-offset)",
-        right: "var(--frame-right-offset)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        backgroundColor: "rgba(255, 255, 255, 0.94)",
-        backdropFilter: "blur(24px) saturate(140%)",
-        WebkitBackdropFilter: "blur(24px) saturate(140%)",
-        borderTop: "1px solid rgba(10, 46, 203, 0.10)",
-        // Soft glow above the bar to lift it off the lobby content
-        // without going as heavy as a drop shadow.
-        boxShadow: "0 -8px 24px -12px rgba(10, 46, 203, 0.18)",
-      }}
-    >
-      {/* Inner row — tighter top padding now that the icons are
-          26px. Was pt-[8px] but the bar visually had too much air
-          above the icons; pt-[3px] keeps just enough breathing
-          room before the top border. */}
-      <div className="flex items-stretch px-[8px] pt-[3px] pb-[4px] gap-[4px]">
-        {TABS.map((tab) => (
-          <TabItem key={tab.key} tab={tab} active={tab.key === active} />
-        ))}
-      </div>
-    </nav>
+    <>
+      {/* SCRIM — white-to-transparent fade above the pill. */}
+      {showScrim && (
+        <div
+          aria-hidden
+          className="fixed bottom-0 z-30 pointer-events-none"
+          style={{
+            left: "var(--frame-right-offset)",
+            right: "var(--frame-right-offset)",
+            height: "calc(var(--bottom-nav-h) + 80px)",
+          }}
+        >
+          <div
+            className="absolute inset-x-0 bottom-0 h-[90px]"
+            style={{
+              background:
+                "linear-gradient(to top, #ffffff 30%, rgba(255, 255, 255, 0) 100%)",
+            }}
+          />
+        </div>
+      )}
+
+      <nav
+        aria-label="Primary"
+        className="bottom-nav-pad fixed bottom-0 z-40"
+        style={{
+          left: "var(--frame-right-offset)",
+          right: "var(--frame-right-offset)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        {/* 16px gutter to mobile-frame edge + 8px bottom lift. */}
+        <div className="px-[16px] pb-[8px]">
+          {/* Pill bar — Figma geometry: 343 wide, 60 tall, pl-4 pr-8,
+              tabs gap-4. The asymmetric padding is a design choice;
+              see header notes for the math behind it. */}
+          <div
+            ref={rowRef}
+            className="relative mx-auto flex items-center rounded-full"
+            style={{
+              maxWidth: BAR_MAX_W,
+              height: BAR_H,
+              paddingLeft: BAR_PAD_L,
+              paddingRight: BAR_PAD_R,
+              gap: TAB_GAP,
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(18px) saturate(140%)",
+              WebkitBackdropFilter: "blur(18px) saturate(140%)",
+              boxShadow: "0 4px 22px 0 rgba(17, 17, 17, 0.12)",
+            }}
+          >
+            {/* Active pill — width animates between 80 (outer tabs)
+                and 84 (inner tabs). Anchored at left: 0 so the x
+                transform measures from the bar's outer-left edge. */}
+            {pill && (
+              <motion.span
+                aria-hidden
+                className="absolute rounded-full"
+                style={{
+                  top: PILL_TOP,
+                  left: 0,
+                  height: PILL_H,
+                  backgroundColor: "#dee3f7",
+                }}
+                initial={false}
+                animate={{ x: pill.x, width: pill.w }}
+                transition={{
+                  type: "spring",
+                  stiffness: 380,
+                  damping: 42,
+                  mass: 1,
+                }}
+              />
+            )}
+
+            {TABS.map((tab) => (
+              <TabItem
+                key={tab.key}
+                tab={tab}
+                active={tab.key === active}
+                anchorRef={(el) => {
+                  tabRefs.current[tab.key] = el;
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </nav>
+    </>
   );
 }
 
-function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
-  // Subtle press feedback — separate spring on tap so it feels instant.
+function TabItem({
+  tab,
+  active,
+  anchorRef,
+}: {
+  tab: Tab;
+  active: boolean;
+  anchorRef: (el: HTMLAnchorElement | null) => void;
+}) {
   const [pressed, setPressed] = useState(false);
-  // Reset press state after navigation so the next tap re-fires it.
   useEffect(() => {
     if (!pressed) return;
     const t = setTimeout(() => setPressed(false), 160);
     return () => clearTimeout(t);
   }, [pressed]);
 
-  const Icon = tab.Icon;
-
   return (
     <Link
+      ref={anchorRef}
       href={tab.href}
       aria-current={active ? "page" : undefined}
       onPointerDown={() => setPressed(true)}
-      className="relative flex flex-1 min-w-0 flex-col items-center justify-center rounded-full px-[6px] py-[8px]"
+      className="relative flex h-full flex-1 min-w-0 flex-col items-center justify-center"
       style={{
-        // Active foreground (icon + label) goes white because the pill
-        // behind it is brand-blue; inactive sits in brand-blue on the
-        // pale bar fill.
-        color: active ? "#ffffff" : "var(--mrq-blue)",
+        gap: ICON_LABEL_GAP,
+        color: "var(--mrq-blue)",
         transform: pressed ? "scale(0.94)" : "scale(1)",
-        transition: "transform 160ms cubic-bezier(0.22, 1, 0.36, 1), color 220ms ease",
+        transition: "transform 160ms cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
-      {/* Active-pill background — static, no animation. Earlier
-          versions used Framer Motion's `layoutId` to slide a single
-          shared pill between tab positions, but during route
-          transitions (when the active tab changes) the shared-layout
-          handoff would briefly drop the pill and have it "appear
-          from the bottom" — especially on iOS Safari where the
-          URL-bar reveal fires at the same moment as the route
-          change. A static pill that just snaps to the new tab is
-          dependable across every transition. */}
-      {active && (
-        <span
-          aria-hidden
-          className="absolute inset-0 rounded-full -z-10"
-          style={{ backgroundColor: "var(--mrq-blue)" }}
-        />
-      )}
+      <div
+        className="relative"
+        style={{ width: ICON_SIZE, height: ICON_SIZE }}
+      >
+        <AnimatePresence initial={false}>
+          {active ? (
+            <motion.span
+              key="active"
+              aria-hidden
+              className="absolute inset-0 bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url("${tab.iconActive}")`,
+                backgroundSize: "contain",
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            />
+          ) : (
+            <motion.span
+              key="inactive"
+              aria-hidden
+              className="absolute inset-0 bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url("${tab.iconInactive}")`,
+                backgroundSize: "contain",
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
-      <Icon className="h-[26px] w-auto" />
       <span
-        className="mt-[4px] text-[12px] font-extrabold leading-none whitespace-nowrap"
-        style={{ letterSpacing: "0.01em" }}
+        className="font-extrabold whitespace-nowrap"
+        style={{
+          fontSize: LABEL_FONT_SIZE,
+          lineHeight: `${LABEL_LINE_H}px`,
+          letterSpacing: "0.2px",
+        }}
       >
         {tab.label}
       </span>
@@ -166,78 +339,6 @@ function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
   );
 }
 
-/* ----------- Inline icons (24×24 lucide-style outlines) ----------- */
-
-function HomeIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden focusable={false}>
-      <path d="M12 3.172 3 11.05V21a1 1 0 0 0 1 1h5v-7h6v7h5a1 1 0 0 0 1-1v-9.95l-9-7.878Z" />
-    </svg>
-  );
-}
-
-function ExploreIcon({ className }: { className?: string }) {
-  // Chunky magnifying glass — matches the Figma reference for the
-  // relabelled "Explore" tab (was "Games"). Heavier stroke + larger
-  // lens than a typical search icon so it reads at bottom-nav scale.
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-      focusable={false}
-    >
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m20 20-4.2-4.2" />
-    </svg>
-  );
-}
-
-function ForYouIcon({ className }: { className?: string }) {
-  // Play triangle inside a rounded-square frame — matches the Figma
-  // reference for "For You" (reads as "video feed" / Reels-style
-  // content). Outlined rounded rect + filled triangle inside.
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-      focusable={false}
-    >
-      <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="4" />
-      <path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function GiftIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-      focusable={false}
-    >
-      <rect x="3" y="7" width="18" height="4" rx="1" />
-      <path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9" />
-      <path d="M12 7v14" />
-      <path d="M12 7c-1.5-2-5.5-2-5.5 0 0 1 1 1.5 2.5 1.5 1.5 0 3-.5 3-1.5Z" />
-      <path d="M12 7c1.5-2 5.5-2 5.5 0 0 1-1 1.5-2.5 1.5-1.5 0-3-.5-3-1.5Z" />
-    </svg>
-  );
-}
+// Suppress unused warning for OUTER_TABS — kept exported in case
+// future logic needs to query whether a tab is outer.
+void OUTER_TABS;

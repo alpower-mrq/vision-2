@@ -24,12 +24,17 @@ import { usePathname } from "next/navigation";
  *   • Two dismissal paths:
  *       – Tap the X
  *       – Swipe horizontally past the dismiss threshold
- *   • Dismissal persists for the rest of the session (sessionStorage
- *     `mrq.resume-dismissed`) so it doesn't keep reappearing every
- *     time the user navigates back to the lobby. Cleared on tab close.
+ *   • Dismissal is per-visit only — navigating away from My Q and
+ *     back resets the dismissed flag so the bar reappears. This is a
+ *     prototype affordance: in production we'd persist dismissal for
+ *     the rest of the session (sessionStorage), but for demoing we
+ *     want the bar to be easy to get back. Earlier versions wrote
+ *     to `sessionStorage["mrq.resume-dismissed"]`; we proactively
+ *     clear that on mount so anyone with a stuck dismissal from a
+ *     previous build sees the bar again.
  */
 
-const DISMISSED_KEY = "mrq.resume-dismissed";
+const LEGACY_DISMISSED_KEY = "mrq.resume-dismissed";
 const SWIPE_THRESHOLD = 90;
 const SWIPE_VELOCITY_THRESHOLD = 350;
 
@@ -41,59 +46,88 @@ const GAME = {
 export function ResumePlayingBar() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  // Default to dismissed-on-first-render so we don't flash the bar on
+  // SSR HTML (which would cause a hydration mismatch). The useEffect
+  // below flips it on after mount when we're on the home route.
   const [dismissed, setDismissed] = useState(true);
   const x = useMotionValue(0);
   // Fade out as the user drags toward dismissal so the swipe feels
   // like it's pulling the card off the screen.
   const opacity = useTransform(x, [-200, -40, 0, 40, 200], [0, 1, 1, 1, 0]);
 
-  // Only show on the home route, and only if not already dismissed
-  // in this session.
   const onHome = pathname === "/";
   const show = mounted && onHome && !dismissed;
 
-  // Read sessionStorage on mount so we don't show the bar on the
-  // server-rendered HTML (avoids hydration mismatch) and so the
-  // dismissed state survives lobby navigations within the session.
+  // Mark mounted on first paint + scrub any legacy sessionStorage flag
+  // from earlier builds (where dismissal persisted across navigations).
   useEffect(() => {
     setMounted(true);
     if (typeof window !== "undefined") {
-      setDismissed(
-        sessionStorage.getItem(DISMISSED_KEY) === "1",
-      );
+      sessionStorage.removeItem(LEGACY_DISMISSED_KEY);
     }
   }, []);
 
+  // Re-show the bar every time the user lands on the home route —
+  // dismissal only kills it for the CURRENT visit. Navigating away
+  // and back gives them a fresh prompt.
+  useEffect(() => {
+    if (onHome) setDismissed(false);
+  }, [onHome]);
+
   const dismiss = () => {
     setDismissed(true);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(DISMISSED_KEY, "1");
-    }
   };
 
   return (
     <AnimatePresence>
       {show && (
         <motion.div
+          // Bar lives PERMANENTLY at z-30 — behind the BottomNav
+          // (z-40). The bar's body sits 16px above the nav so the
+          // body itself is fully visible above the nav. The bar's
+          // drop-shadow halo extends ~35px below the body, which
+          // crosses into the nav's footprint, and z-30 makes the
+          // halo cleanly clip behind the nav — no shadow bleed onto
+          // the nav's top edge.
+          //
+          // Earlier versions flipped z-index 30 → 50 once the entry
+          // animation settled, but that created a visible "click"
+          // at the end of entry: the moment z-50 kicked in, the
+          // shadow halo that had been hidden behind the nav popped
+          // into view above it, reading as a sudden opacity change.
+          // Staying at z-30 keeps the shadow hidden throughout.
+          //
           // Clamped to the mobile-frame's column via
-          // --frame-right-offset so on desktop the bar hugs the 375px
-          // column instead of spanning the whole monitor.
-          className="fixed z-40 pointer-events-none"
+          // --frame-right-offset so on desktop the bar hugs the
+          // 375px column instead of spanning the whole monitor.
+          className="fixed pointer-events-none z-30"
           style={{
             left: "var(--frame-right-offset)",
             right: "var(--frame-right-offset)",
-            // Sit immediately above the BottomNav, plus a small
-            // 8px lift so the soft shadow has room to spread under it.
-            bottom: "calc(var(--bottom-nav-h) + 8px)",
+            bottom: "calc(var(--bottom-nav-h) + 16px)",
           }}
-          initial={{ y: 100, opacity: 0 }}
+          // Entry: slides up from below the screen (y=140 puts the
+          // bar well behind the nav) to its resting spot 16px above
+          // the nav.
+          initial={{ y: 140, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
+          // Exit: fast tween — 130ms ease-in. The bar drops behind
+          // the nav and fades out together; staying at z-30 means
+          // the moment it starts moving down it gets clipped behind
+          // the nav, so visually it just vanishes.
+          exit={{
+            y: 80,
+            opacity: 0,
+            transition: { duration: 0.13, ease: [0.4, 0, 1, 1] },
+          }}
+          // Entry transition only — critically-damped-ish spring,
+          // zero overshoot so the bar doesn't briefly oscillate
+          // into the nav region on settle.
           transition={{
             type: "spring",
-            stiffness: 360,
-            damping: 32,
-            mass: 0.9,
+            stiffness: 280,
+            damping: 38,
+            mass: 1,
           }}
         >
           <motion.div

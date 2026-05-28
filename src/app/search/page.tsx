@@ -202,28 +202,28 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
   {
     key: "casino",
     title: "Casino",
-    subtitle: "Hot right now",
+    subtitle: "Hot Right Now",
     sticker: "/assets/mega/casino.svg",
     tiles: TILES_HOT.slice(0, 6),
   },
   {
     key: "live",
     title: "Live Casino",
-    subtitle: "Hot right now",
+    subtitle: "Hot Right Now",
     sticker: "/assets/mega/live.svg",
     tiles: TILES_LIVE_CASINO.slice(0, 6),
   },
   {
     key: "bingo",
     title: "Bingo",
-    subtitle: "Hot right now",
+    subtitle: "Hot Right Now",
     sticker: "/assets/mega/bingo.svg",
     tiles: TILES_BINGO.slice(0, 6),
   },
   {
     key: "arena",
     title: "Arena",
-    subtitle: "Hot right now",
+    subtitle: "Hot Right Now",
     sticker: "/assets/mega/arena.svg",
     tiles: TILES_ARENA.slice(0, 6),
   },
@@ -437,7 +437,7 @@ export default function SearchPage() {
           tileHeight={109}
         />
 
-        <ThemesGrid title="Browse all categories" items={BROWSE_CATEGORIES} />
+        <ThemesGrid title="Browse All Categories" items={BROWSE_CATEGORIES} />
       </div>
 
       {/* Fullscreen white search modal — fixed inset-0 z-[60] so it

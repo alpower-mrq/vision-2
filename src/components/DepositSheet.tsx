@@ -122,7 +122,7 @@ export function DepositSheet() {
             {/* Header */}
             <div className="flex items-center justify-between px-[16px] pb-[16px]">
               <h2 className="text-[18px] font-extrabold text-[var(--mrq-blue-dark)]">
-                Make a deposit
+                Make a Deposit
               </h2>
               <button
                 type="button"
@@ -183,7 +183,7 @@ export function DepositSheet() {
 
               {/* Payment providers */}
               <p className="text-[14px] font-extrabold text-[var(--mrq-blue-dark)] pb-[10px]">
-                Payment providers
+                Payment Providers
               </p>
 
               <div className="flex flex-col gap-[8px] pb-[16px]">
@@ -229,7 +229,7 @@ export function DepositSheet() {
                   type="button"
                   className="text-[13px] font-extrabold text-[var(--mrq-blue)] text-left"
                 >
-                  Safer gambling
+                  Safer Gambling
                 </button>
               </div>
             </div>

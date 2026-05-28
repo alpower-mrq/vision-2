@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 /**
  * "The Q Club" promo card — Figma node 203:42091.
@@ -26,25 +20,28 @@ import {
  *
  * Layered structure (in `expandOnScroll` mode):
  *
- *   <motion.section>            ← scroll-tied paddings (gutter + bottom)
+ *   <motion.section>            ← brand-blue floor + bottom padding
  *     <motion.div surface />     ← brand-blue + W-pattern SVG; THIS is
  *                                  the visible card; absolute-positioned
- *                                  inside the section so it grows with
- *                                  the section's padding-bottom on scroll
- *                                  and the W-pattern SVG stretches with it.
+ *                                  inside the section so it covers the
+ *                                  full card area AND the extended pb.
  *     <motion.div content />     ← aspect-ratio shell that positions the
  *                                  title / reward tiles / CTA absolutely.
  *                                  Visually transparent — the surface
  *                                  below it is what the user sees.
  *
- * On home (`expandOnScroll`), as the user scrolls the section into view:
- *   • gutter padding:        16 → 0   (card → full-width)
- *   • bottom padding:        16 → 120 (brand-blue floor extends down)
- *   • surface border-radius: 12 → 0
- *   • surface drop-shadow:   on → off
- * The surface div is positioned `top: 14 / left: gutter / right: gutter /
- * bottom: 0`, so it covers the full card area AND the extending pb
- * (the W-pattern paints the whole stretch).
+ * Earlier versions tweened the card from "rounded card" → "full-width
+ * section" as you scrolled it into view (gutter, radius, shadow, pb all
+ * eased on `useScroll`). Per user feedback the morph "transition" read
+ * as crap — you'd catch the card mid-morph (half-rounded, half-faded
+ * shadow, growing blue extension) and the visible boundary between the
+ * card art and the extending blue strip created a seam. So in
+ * `expandOnScroll` mode the section now renders in its FINAL expanded
+ * state from the start: no gutter, no corner radius, no shadow, and the
+ * brand-blue floor already extends 120px past the card content so it
+ * reaches the BottomNav's top edge. No scroll-driven tween, no visible
+ * "transition" — the blue section is the same height as the card all
+ * the way through.
  */
 
 const REWARDS: Array<{
@@ -67,58 +64,36 @@ const REWARDS: Array<{
 export function QClubCard({
   expandOnScroll = false,
 }: {
-  /** When true, the card morphs from a normal mobile-frame card into
-   *  a full-width section as the user scrolls it into view. */
+  /** When true, the card renders as a full-width section flush with
+   *  the BottomNav's top edge (used on the home feed where the Q Club
+   *  is the closing block). When false, renders as a normal rounded
+   *  mobile-frame card. No scroll-driven morph between the two states —
+   *  the caller picks one. */
   expandOnScroll?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Scroll progress for the section: 0 below viewport → 1 when its
-  // top reaches the viewport centre.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "start center"],
-  });
-
-  const px = useTransform(
-    scrollYProgress,
-    [0, 1],
-    expandOnScroll ? [16, 0] : [16, 16],
-  );
-  // Section bottom padding grows so the brand-blue surface (which
-  // anchors to the section's bottom edge) stretches past the
-  // card content and down to the BottomNav's top edge.
-  const pb = useTransform(
-    scrollYProgress,
-    [0, 1],
-    expandOnScroll ? [16, 120] : [16, 16],
-  );
-  const radius = useTransform(
-    scrollYProgress,
-    [0, 1],
-    expandOnScroll ? [12, 0] : [12, 12],
-  );
-  const shadowAlpha = useTransform(
-    scrollYProgress,
-    [0, 1],
-    expandOnScroll ? [0.45, 0] : [0.45, 0.45],
-  );
-  const boxShadow = useTransform(
-    shadowAlpha,
-    (a) => `0 12px 28px -16px rgba(10, 46, 203, ${a})`,
-  );
+  // Static layout values — no scroll-driven tweens. `expandOnScroll`
+  // just picks between the two presets at mount time.
+  //   expanded:  full-width, square corners, no shadow, 120px floor
+  //              that reaches the BottomNav's top edge.
+  //   card:      16px gutters, 12px radius, soft drop shadow, 16px pb.
+  const px = expandOnScroll ? 0 : 16;
+  const pb = expandOnScroll ? 120 : 16;
+  const radius = expandOnScroll ? 0 : 12;
+  const boxShadow = expandOnScroll
+    ? "none"
+    : "0 12px 28px -16px rgba(10, 46, 203, 0.45)";
 
   return (
     <motion.section
-      ref={sectionRef}
       aria-label="The Q Club"
       className="relative pt-[14px]"
-      style={
-        reduce
-          ? { paddingLeft: 16, paddingRight: 16, paddingBottom: 16 }
-          : { paddingLeft: px, paddingRight: px, paddingBottom: pb }
-      }
+      style={{
+        paddingLeft: px,
+        paddingRight: px,
+        paddingBottom: pb,
+      }}
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
@@ -126,34 +101,21 @@ export function QClubCard({
       {/* SURFACE — brand-blue + W-pattern. Absolute inside the section
           so its bounds track the section's paddings: insets match
           padding-left/right, top sits below padding-top, bottom is
-          pinned to the section's bottom edge. As padding-bottom
-          grows on scroll, the surface stretches downward and the
-          W-pattern SVG scales with it (preserveAspectRatio="none"). */}
-      <motion.div
+          pinned to the section's bottom edge. The W-pattern SVG
+          stretches to fill the full surface (preserveAspectRatio
+          set on the SVG via CSS). */}
+      <div
         aria-hidden
         className="absolute overflow-hidden"
-        style={
-          reduce
-            ? {
-                top: 14,
-                left: 16,
-                right: 16,
-                bottom: 16,
-                borderRadius: 12,
-                backgroundColor: "#0B2FCB",
-                boxShadow:
-                  "0 12px 28px -16px rgba(10, 46, 203, 0.45)",
-              }
-            : {
-                top: 14,
-                left: px,
-                right: px,
-                bottom: 0,
-                borderRadius: radius,
-                backgroundColor: "#0B2FCB",
-                boxShadow,
-              }
-        }
+        style={{
+          top: 14,
+          left: px,
+          right: px,
+          bottom: 0,
+          borderRadius: radius,
+          backgroundColor: "#0B2FCB",
+          boxShadow,
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -162,7 +124,7 @@ export function QClubCard({
           aria-hidden
           className="absolute inset-0 h-full w-full pointer-events-none"
         />
-      </motion.div>
+      </div>
 
       {/* CONTENT SHELL — invisible. Holds the aspect-ratio that
           defines the card-content height; its absolute children
@@ -201,10 +163,10 @@ export function QClubCard({
           ))}
         </div>
 
-        {/* "See all Rewards" CTA */}
+        {/* "See All Rewards" CTA */}
         <Link
           href="/rewards"
-          aria-label="See all Rewards"
+          aria-label="See All Rewards"
           className="absolute left-[14px] right-[14px] h-[48px] rounded-[12px] bg-white grid place-items-center text-[18px] font-extrabold text-[var(--mrq-blue)] active:scale-[0.98] transition-transform"
           style={{
             bottom: `${(14 / 290) * 100}%`,
@@ -212,7 +174,7 @@ export function QClubCard({
             boxShadow: "0 2px 8px -4px rgba(0, 0, 0, 0.18)",
           }}
         >
-          See all Rewards
+          See All Rewards
         </Link>
       </div>
     </motion.section>

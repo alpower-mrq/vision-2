@@ -30,8 +30,8 @@ export type RecentlyPlayedGame = {
 
 export function RecentlyPlayedGrid({
   items,
-  title = "Recently played",
-  seeAllLabel = "Show all",
+  title = "Recently Played",
+  seeAllLabel = "Show All",
   showSeeAll = true,
 }: {
   items: RecentlyPlayedGame[];

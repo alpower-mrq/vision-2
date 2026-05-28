@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Search Button">
+<g id="Vector">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15.1161 15.1161C15.6043 14.628 16.3957 14.628 16.8839 15.1161L21.8839 20.1161C22.372 20.6043 22.372 21.3957 21.8839 21.8839C21.3957 22.372 20.6043 22.372 20.1161 21.8839L15.1161 16.8839C14.628 16.3957 14.628 15.6043 15.1161 15.1161Z" fill="var(--fill-0, #0A2ECB)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 4.25C7.04822 4.25 4.25 7.04822 4.25 10.5C4.25 13.9518 7.04822 16.75 10.5 16.75C13.9518 16.75 16.75 13.9518 16.75 10.5C16.75 7.04822 13.9518 4.25 10.5 4.25ZM1.75 10.5C1.75 5.66751 5.66751 1.75 10.5 1.75C15.3325 1.75 19.25 5.66751 19.25 10.5C19.25 15.3325 15.3325 19.25 10.5 19.25C5.66751 19.25 1.75 15.3325 1.75 10.5Z" fill="var(--fill-0, #0A2ECB)"/>
+</g>
+<circle id="Ellipse 3658" cx="10.625" cy="10.5" r="5" fill="var(--fill-0, #0A2ECB)"/>
+</g>
+</svg>

@@ -72,7 +72,9 @@
      The PWA override is below in the @media (display-mode:
      standalone) block — keeps this default in sync with the
      browser case. */
-  --bottom-nav-h: calc(52px + env(safe-area-inset-bottom));
+  /* Floating-pill nav (Figma 226:52056): 60px bar + 8px bottom
+     gutter = 68px above the safe-area inset. */
+  --bottom-nav-h: calc(68px + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 600px) {
@@ -212,7 +214,7 @@ body::-webkit-scrollbar {
      standalone modes. */
   :root {
     --bottom-nav-h: calc(
-      52px + max(6px, calc(env(safe-area-inset-bottom) - 24px))
+      68px + max(6px, calc(env(safe-area-inset-bottom) - 24px))
     );
   }
 }

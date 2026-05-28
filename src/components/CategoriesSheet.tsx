@@ -32,7 +32,7 @@ export function CategoriesSheet({
   categories,
   onSelect,
   onClose,
-  title = "Casino categories",
+  title = "Casino Categories",
 }: {
   open: boolean;
   /**

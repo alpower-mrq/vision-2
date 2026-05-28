@@ -43,17 +43,17 @@ export default function RewardsPage() {
 
       {/* Stub feature cards — replace with real content once designs land. */}
       <RewardCard
-        title="50 free spins waiting"
+        title="50 Free Spins Waiting"
         meta="Claim before Sunday"
         accent="#e0007a"
       />
       <RewardCard
-        title="Daily challenge"
+        title="Daily Challenge"
         meta="Spin 10× any slot today"
         accent="#0a2ecb"
       />
       <RewardCard
-        title="Loyalty progress"
+        title="Loyalty Progress"
         meta="Level 3 · 70% to next tier"
         accent="#34c759"
       />

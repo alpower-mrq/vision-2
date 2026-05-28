@@ -13,10 +13,10 @@ import { QClubCard } from "@/components/QClubCard";
  *
  *   1. HeroCarousel                — landscape promo cards (snap rail)
  *   2. Recently Played Games        — 2×2 grid of recent games
- *   3. Your recent big wins        — horiz scroll w/ £ prize pills
- *   4. Same vibe as <game>         — horiz scroll large landscape promos
- *   5. Hot right now               — horiz scroll square game tiles
- *   6. Latest big wins             — horiz scroll social-style win cards
+ *   3. My Recent Wins              — horiz scroll w/ £ prize pills
+ *   4. Same Vibe as <game>         — horiz scroll large landscape promos
+ *   5. Hot Right Now               — horiz scroll square game tiles
+ *   6. Latest Big Wins             — horiz scroll social-style win cards
  *   7. The Q Club                  — rewards card that morphs from
  *                                    a mobile-frame card into a
  *                                    full-width section as it
@@ -110,21 +110,21 @@ export function HomeView() {
         items={PICK_UP_GRID}
       />
 
-      <BigWinsRow title="Your recent big wins" items={RECENT_WINS} />
+      <BigWinsRow title="My Recent Wins" items={RECENT_WINS} />
 
       <SameVibeRail
-        title="Same vibe as Tiki Tumble"
+        title="Same Vibe as Tiki Tumble"
         items={SAME_VIBE_TIKI_TUMBLE}
       />
 
       <GameRail
-        title="Hot right now"
+        title="Hot Right Now"
         tiles={HOT_RIGHT_NOW}
         tileWidth={109}
         tileHeight={109}
       />
 
-      <LatestBigWinsRow title="Latest big wins" items={LATEST_WINS} />
+      <LatestBigWinsRow title="Latest Big Wins" items={LATEST_WINS} />
 
       {/* The Q Club rewards card — the final block on the home feed.
           `expandOnScroll` lets it morph from a normal mobile-frame

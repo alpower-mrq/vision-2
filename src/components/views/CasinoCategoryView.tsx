@@ -121,7 +121,7 @@ export function CasinoCategoryView({ category }: { category: string }) {
         categories={CATEGORIES}
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
-        title="Casino categories"
+        title="Casino Categories"
       />
     </>
   );

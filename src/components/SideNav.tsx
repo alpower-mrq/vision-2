@@ -141,15 +141,15 @@ function DrawerContent({ onClose }: { onClose: () => void }) {
       <MenuGroup>
         <MenuItem icon={<UserIcon />} label="Profile" onClick={onClose} />
         <MenuItem icon={<WalletIcon />} label="Wallet" onClick={onClose} />
-        <MenuItem icon={<HistoryIcon />} label="Transaction history" onClick={onClose} />
-        <MenuItem icon={<HeartIcon />} label="Safer gambling" onClick={onClose} />
+        <MenuItem icon={<HistoryIcon />} label="Transaction History" onClick={onClose} />
+        <MenuItem icon={<HeartIcon />} label="Safer Gambling" onClick={onClose} />
       </MenuGroup>
 
       {/* Group 2 */}
       <MenuGroup>
         <MenuItem icon={<GiftIcon />} label="Get 50 free spins!" accent="#e0007a" onClick={onClose} />
         <MenuItem icon={<LockIcon />} label="Privacy Policy" onClick={onClose} />
-        <MenuItem icon={<DocIcon />} label="Terms & conditions" onClick={onClose} />
+        <MenuItem icon={<DocIcon />} label="Terms & Conditions" onClick={onClose} />
         <MenuItem icon={<QuestionIcon />} label="Help & FAQs" onClick={onClose} />
       </MenuGroup>
 
