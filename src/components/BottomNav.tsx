@@ -41,7 +41,7 @@ type Tab = {
 // every category page (no other tab represents those).
 const TABS: Tab[] = [
   { key: "lobby", href: "/", label: "My Q", Icon: HomeIcon },
-  { key: "discover", href: "/discover", label: "For You", Icon: ForYouIcon },
+  { key: "discover", href: "/discover", label: "Top Picks", Icon: ForYouIcon },
   { key: "search", href: "/search", label: "Explore", Icon: ExploreIcon },
   { key: "rewards", href: "/rewards", label: "Rewards", Icon: GiftIcon },
 ];
