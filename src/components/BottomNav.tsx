@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -139,18 +138,20 @@ function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
         transition: "transform 160ms cubic-bezier(0.22, 1, 0.36, 1), color 220ms ease",
       }}
     >
-      {/* Sliding active-pill background — shared layoutId means Framer
-          animates a single pill between tab positions instead of
-          fading two separate pills in/out. The motion.div only exists
-          on the active tab; AnimatePresence isn't needed because
-          layoutId handles the transition. */}
+      {/* Active-pill background — static, no animation. Earlier
+          versions used Framer Motion's `layoutId` to slide a single
+          shared pill between tab positions, but during route
+          transitions (when the active tab changes) the shared-layout
+          handoff would briefly drop the pill and have it "appear
+          from the bottom" — especially on iOS Safari where the
+          URL-bar reveal fires at the same moment as the route
+          change. A static pill that just snaps to the new tab is
+          dependable across every transition. */}
       {active && (
-        <motion.span
-          layoutId="bottom-nav-pill"
+        <span
+          aria-hidden
           className="absolute inset-0 rounded-full -z-10"
           style={{ backgroundColor: "var(--mrq-blue)" }}
-          transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
-          aria-hidden
         />
       )}
 
