@@ -61,45 +61,51 @@ type TileSpec = {
   iconRotate: number;
 };
 
-// Stickers sit flat on each tile (no rotation). The SVGs from Figma
-// 216:46506 already carry their own playful tilt baked into the
-// artwork, so a CSS rotate on top double-tilts them and looks off.
+// All four Figma SVGs share the same 65×45 viewBox, so each tile
+// gets the same icon footprint (preserves the design's proportions
+// and avoids any "padding" band above or below the sticker — it
+// fills the tile's full height edge-to-edge).
+const TILE_H = 62;
+const ICON_RATIO = 65 / 45; // viewBox width / height
+const ICON_H = TILE_H;
+const ICON_W = Math.round(ICON_H * ICON_RATIO); // 89
+
 const BROWSE: TileSpec[] = [
   {
     label: "Casino",
     href: "/casino",
     icon: "/assets/search/casino.svg",
-    iconW: 64,
-    iconH: 44,
-    iconRight: 8,
-    iconTop: 9,
+    iconW: ICON_W,
+    iconH: ICON_H,
+    iconRight: 0,
+    iconTop: 0,
     iconRotate: 0,
   },
   {
     label: "Live Casino",
     icon: "/assets/search/live.svg",
-    iconW: 64,
-    iconH: 44,
-    iconRight: 8,
-    iconTop: 9,
+    iconW: ICON_W,
+    iconH: ICON_H,
+    iconRight: 0,
+    iconTop: 0,
     iconRotate: 0,
   },
   {
     label: "Bingo",
     icon: "/assets/search/bingo.svg",
-    iconW: 50,
-    iconH: 50,
-    iconRight: 10,
-    iconTop: 6,
+    iconW: ICON_W,
+    iconH: ICON_H,
+    iconRight: 0,
+    iconTop: 0,
     iconRotate: 0,
   },
   {
     label: "Arena",
     icon: "/assets/search/arena.svg",
-    iconW: 44,
-    iconH: 52,
-    iconRight: 12,
-    iconTop: 5,
+    iconW: ICON_W,
+    iconH: ICON_H,
+    iconRight: 0,
+    iconTop: 0,
     iconRotate: 0,
   },
 ];
