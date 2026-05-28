@@ -481,20 +481,22 @@ function AvailableCard({
               />
             </div>
             {/* "Free" gift badge — hangs off the bottom-left
-                corner of the tile. */}
+                corner of the tile. White background with brand-
+                dark text and icon (Figma badge type=inverse). */}
             <div
-              className="absolute flex items-center gap-[3px] px-[6px] h-[18px] rounded-full"
+              className="absolute flex items-center gap-[4px] px-[8px] h-[20px] rounded-full"
               style={{
                 bottom: -6,
                 left: -6,
-                backgroundColor: BRAND_DARK,
-                color: "#ffffff",
-                border: "1.5px solid #ffffff",
+                backgroundColor: "#ffffff",
+                color: BRAND_DARK,
+                boxShadow:
+                  "0 2px 8px -4px rgba(10, 46, 203, 0.18)",
               }}
             >
-              <GiftIconSmall className="size-[10px]" />
+              <GiftIconSmall className="size-[11px]" />
               <span
-                className="text-[9px] font-extrabold"
+                className="text-[10px] font-extrabold"
                 style={{ letterSpacing: 0.2, lineHeight: 1 }}
               >
                 Free
@@ -521,16 +523,18 @@ function AvailableCard({
               {subtitle}
             </p>
             <div
-              className="inline-flex items-center self-start px-[8px] h-[22px] rounded-full"
+              className="inline-flex items-center self-start px-[12px] h-[28px] rounded-full"
               style={{
-                backgroundColor: BRAND_DARK,
-                color: "#ffffff",
-                marginTop: 2,
+                backgroundColor: "#ffffff",
+                color: BRAND_DARK,
+                marginTop: 4,
+                boxShadow:
+                  "0 2px 8px -4px rgba(10, 46, 203, 0.18)",
               }}
             >
               <span
-                className="text-[10px] font-extrabold"
-                style={{ letterSpacing: 0.2, lineHeight: 1 }}
+                className="text-[12px] font-extrabold"
+                style={{ letterSpacing: 0.1, lineHeight: 1 }}
               >
                 Available to play
               </span>
