@@ -151,12 +151,17 @@ function ArenaTitleRow() {
         style={{
           width: 118,
           height: 30,
-          backgroundColor: "#9dabea", // Brand/200
+          backgroundColor: "#ffffff",
         }}
       >
         <span
-          className="text-white font-bold"
-          style={{ fontSize: 16, lineHeight: 1.6, letterSpacing: 0.1 }}
+          className="font-bold"
+          style={{
+            color: BRAND_DARK,
+            fontSize: 16,
+            lineHeight: 1.6,
+            letterSpacing: 0.1,
+          }}
         >
           Dashboard+
         </span>
