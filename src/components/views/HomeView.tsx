@@ -32,20 +32,24 @@ const G = (i: number, alt: string) => ({
 });
 
 const PICK_UP_GRID = [
+  // Buffalo Bills sits first as the most-recently-played title — it
+  // also has a real game page wired through (Figma 1485:95206), so
+  // tapping the tile drops the user into /play/buffalo-bills.
+  { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
   { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
   { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
-  // Buffalo Bills has a real game page now — clicking the tile drops
-  // the user into the /play/buffalo-bills experience (Figma 1485:95206).
-  { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
   { src: "/assets/games/slot-13.png", name: "Big Bass Bonanza" },
 ];
 
 const RECENT_WINS = [
   { src: "/assets/games/slot-04.png", alt: "Western Gold", prize: "£32.34" },
-  { src: "/assets/games/slot-08.png", alt: "Golden Catch", prize: "£28.55" },
+  // Buffalo Bills surfaces as the second-biggest recent win (£28.55) —
+  // replaces the previous Golden Catch placeholder so the carousel
+  // pairs with the new game page wired through the lobby.
+  { src: "/assets/games/slot-01.png", alt: "Buffalo Bills", prize: "£28.55" },
   { src: "/assets/games/slot-13.png", alt: "Snake Arena", prize: "£31.19" },
   { src: "/assets/games/slot-11.png", alt: "Maze Escape", prize: "£24.80" },
-  { src: "/assets/games/slot-01.png", alt: "Buffalo Bills", prize: "£18.50" },
+  { src: "/assets/games/slot-07.png", alt: "Mummy Mania", prize: "£18.50" },
 ];
 
 // Same-vibe recommendations — landscape cards. Re-uses slot artwork
