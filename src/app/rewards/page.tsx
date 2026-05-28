@@ -56,6 +56,14 @@ export default function RewardsPage() {
         // ellipse SVG covers the hard seam and provides the
         // visual curve between the two tones.
         background: "#0a2ecb",
+        // `isolation: isolate` forces this wrapper to be a new
+        // stacking context. Without it, the backdrop's
+        // z-index: -1 escapes upward and ends up painting
+        // behind the wrapper's own background — invisible.
+        // With it, the negative z stays contained: backdrop
+        // paints above the wrapper bg but below static
+        // content.
+        isolation: "isolate",
       }}
     >
       <RewardsBackdrop />
