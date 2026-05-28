@@ -5,36 +5,31 @@ import { useEffect, useRef, useState } from "react";
 /**
  * For You / Discover — vertical-snap reels feed (TikTok / Reels style).
  *
- * Performance contract — every choice here is in service of:
+ * Performance + UX contract:
  *
- *   1. First frame visible almost immediately on landing.
- *   2. Smooth flick-scrolling, no jank from background videos.
- *   3. Minimum bytes pulled over the wire on cellular.
- *   4. Hardware-accelerated playback on iPhone Safari.
+ *   1. Video starts playing instantly — no poster image flashes
+ *      before the first frame. The active reel uses preload="auto"
+ *      so the first frame is decoded and ready by the time the
+ *      page mounts; off-screen reels stay at preload="none".
+ *   2. The reel column extends UP under the brand bar's rounded
+ *      bottom corners (-mt-[24px]) so the page's #f5f5f5 bg can't
+ *      peek through the corner cutouts of the brand bar — only
+ *      the black video shows through.
+ *   3. Title + action stack live OUTSIDE the per-reel <article>,
+ *      fixed-positioned over the reel feed. They stay anchored in
+ *      the same screen position as the user flicks between reels;
+ *      only their content updates (title crossfades to the new
+ *      reel's metadata, action stack persists as-is).
+ *   4. Every UI element clears the bottom nav via --bottom-nav-h
+ *      (defined in globals.css), so layout is identical in mobile
+ *      Safari and PWA standalone mode.
  *
- * How it's achieved:
+ * IntersectionObserver per reel: only the reel ≥60% in view plays.
+ * Off-screen reels are paused, currentTime reset, src detached
+ * + reattached so the browser releases the decoded-frame buffer.
  *
- *   • Native CSS `scroll-snap-type: y mandatory` for the pager — no
- *     JS pager, no Framer drag. Lets iOS Safari's compositor own the
- *     scroll thread.
- *   • IntersectionObserver per reel: only the reel whose video element
- *     is ≥60% in view plays. Off-screen reels are paused AND have
- *     their `currentTime` reset to 0 so the buffer can be reclaimed.
- *   • Eager `<video preload="auto">` only on the active reel + the
- *     next ONE in line. Every other reel sits at `preload="none"` so
- *     the browser doesn't fetch metadata for clips the user may never
- *     reach.
- *   • The `<video>` element uses `poster` (the slot artwork PNG) for
- *     the first paint, then crossfades to the moving frames once
- *     `playing` fires. No spinners, no blank black boxes.
- *   • `muted` + `playsInline` so iOS honours autoplay without a tap.
- *   • `style={{ transform: "translateZ(0)" }}` on the video element
- *     forces it onto its own GPU layer so the compositor can scroll
- *     the page without redrawing the video frames.
- *
- * Source video requirements (re-encode the originals to match these
- * specs before shipping — the raw files in public/assets/videos are
- * 8–15 MB each, which is too heavy for cellular):
+ * Source video re-encode recipe (apply before shipping — 8–15 MB
+ * raw files are too heavy for cellular):
  *
  *   ffmpeg -i input.mp4 \
  *     -c:v libx264 -profile:v main -level 4.0 -pix_fmt yuv420p \
@@ -44,25 +39,12 @@ import { useEffect, useRef, useState } from "react";
  *     -c:a aac -b:a 96k -ac 2 -ar 44100 \
  *     -movflags +faststart \
  *     output.mp4
- *
- *   • H.264 main profile, 4:2:0 YUV — universal hardware decode.
- *   • Max 720x1280 portrait, 30fps, 1.5 Mbps CBR-ish.
- *   • 48-frame keyframe interval (1.6s @ 30fps) so seeks land fast.
- *   • AAC stereo 96 kbps audio.
- *   • `+faststart` rewrites the moov atom to the front of the file
- *     so the player can start decoding before the full file lands.
  */
 
 type Reel = {
   id: string;
   game: string;
   studio: string;
-  /** Static poster shown until the video stream is ready to paint
-   *  its first frame. Same slot artwork used elsewhere in the app
-   *  — already cached if the user has visited Casino. */
-  poster: string;
-  /** MP4 source, served from /public so it streams through the
-   *  Next.js static handler with proper range-request support. */
   video: string;
 };
 
@@ -71,59 +53,63 @@ const REELS: Reel[] = [
     id: "v1",
     game: "Buffalo Bills",
     studio: "Big Time Gaming",
-    poster: "/assets/games/slot-01.png",
     video: "/assets/videos/video1.mp4",
   },
   {
     id: "v2",
     game: "Tiki Tumble",
     studio: "Quickspin",
-    poster: "/assets/games/slot-08.png",
     video: "/assets/videos/video2.mp4",
   },
   {
     id: "v3",
     game: "Jewel Stepper",
     studio: "Microgaming",
-    poster: "/assets/games/slot-04.png",
     video: "/assets/videos/video3.mp4",
   },
 ];
 
 export default function DiscoverPage() {
-  // Index of the reel currently snapped into view. Drives both
-  // playback (only this reel runs its video) and preloading (this
-  // reel + the next one get preload="auto"; the rest stay at "none").
   const [activeIndex, setActiveIndex] = useState(0);
+  const active = REELS[activeIndex] ?? REELS[0];
 
   return (
-    <div
-      // -mt-px tucks the reel column behind the BrandBar's bottom
-      // pixel — without it, the rounded corners of the brand bar
-      // reveal a hairline of #f5f5f5 page bg at the top of the reel.
-      className="-mt-px relative h-[100dvh] overflow-y-auto overflow-x-hidden snap-y snap-mandatory overscroll-contain bg-black"
-      style={{
-        scrollbarWidth: "none",
-        // Tell iOS Safari this scroll-port owns its own scroll
-        // thread; helps keep the video frames smooth while the
-        // user is mid-flick.
-        WebkitOverflowScrolling: "touch",
-      }}
-    >
-      {REELS.map((reel, i) => (
-        <ReelView
-          key={reel.id}
-          reel={reel}
-          index={i}
-          activeIndex={activeIndex}
-          onEnter={() => setActiveIndex(i)}
-        />
-      ))}
+    <div className="relative">
+      {/* Reel column — extends ~24px up under the brand bar's
+          20px rounded bottom corners so the page's white bg can't
+          peek through the corner cutouts. The brand bar is z-30
+          and stays on top visually. */}
+      <div
+        className="relative h-[100dvh] -mt-[24px] overflow-y-auto overflow-x-hidden snap-y snap-mandatory overscroll-contain bg-black"
+        style={{
+          scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {REELS.map((reel, i) => (
+          <ReelArticle
+            key={reel.id}
+            reel={reel}
+            index={i}
+            activeIndex={activeIndex}
+            onEnter={() => setActiveIndex(i)}
+          />
+        ))}
+      </div>
+
+      {/* Fixed UI — title (bottom-left) + action stack (bottom-right).
+          Sit OUTSIDE the per-reel <article> so they stay anchored on
+          screen while the reels scroll past behind them. Width
+          clamped to the mobile-frame's column via the same
+          --frame-right-offset CSS var the rest of the app uses, so
+          on desktop the UI sits over the 375px column instead of
+          the whole monitor. */}
+      <FixedReelChrome reel={active} />
     </div>
   );
 }
 
-function ReelView({
+function ReelArticle({
   reel,
   index,
   activeIndex,
@@ -136,18 +122,15 @@ function ReelView({
 }) {
   const articleRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [firstFramePainted, setFirstFramePainted] = useState(false);
 
   const isActive = index === activeIndex;
-  // Preload aggressively for the active reel + the next one in line.
-  // Everything else stays at "none" so the browser doesn't even fetch
-  // metadata until it's needed.
+  // Preload only the active reel + the next one in line. Anything
+  // further out stays at "none" so Safari doesn't even fetch metadata.
   const preload =
     index === activeIndex || index === activeIndex + 1 ? "auto" : "none";
 
-  // Sync up which reel is in view. IntersectionObserver fires once
-  // ≥60% of the reel is visible — that's the "snapped into place"
-  // threshold for the scroll-snap pager.
+  // Sync up which reel is in view via IntersectionObserver. The
+  // ≥60% threshold matches the moment the reel snaps into place.
   useEffect(() => {
     const el = articleRef.current;
     if (!el) return;
@@ -165,28 +148,20 @@ function ReelView({
     return () => io.disconnect();
   }, [onEnter]);
 
-  // Drive playback off the `isActive` flag. Active reel plays; every
-  // other reel pauses and resets its currentTime so the browser can
-  // reclaim the decoded-frame buffer.
+  // Play/pause + buffer-release on active toggle.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     if (isActive) {
-      // Best-effort autoplay. Safari rejects this if the tab loses
-      // focus mid-flick; we silently swallow the error.
       const p = v.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     } else {
       v.pause();
-      // Reset so the next time this reel comes into view it starts
-      // from the top instead of resuming mid-clip.
       try {
         v.currentTime = 0;
       } catch {
-        // currentTime can throw if the video isn't seekable yet.
+        /* not seekable yet */
       }
-      // Drop any half-buffered frames. Reloading with the same src
-      // is the trick to nudge the browser into freeing memory.
       v.removeAttribute("src");
       v.load();
       v.src = reel.video;
@@ -198,56 +173,34 @@ function ReelView({
       ref={articleRef}
       className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black"
     >
-      {/* Poster — shown until the first real frame paints. Same slot
-          artwork used elsewhere in the app, so it's already in the
-          browser cache by the time the user lands here. Crossfaded
-          out once the video element fires `playing`. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={reel.poster}
-        alt=""
-        aria-hidden
-        draggable={false}
-        className="absolute inset-0 h-full w-full object-cover pointer-events-none transition-opacity duration-200"
-        style={{ opacity: firstFramePainted ? 0 : 1 }}
-      />
-
+      {/* Just the video. No poster image overlay — we want the first
+          video frame on screen instantly, not a static placeholder
+          that crossfades out. The <video> element's own `poster`
+          attribute is also intentionally omitted: the browser shows
+          a black frame for the millisecond before decode catches up,
+          which reads as a clean "loading into video" instead of a
+          flash of a different game's still image. */}
       <video
         ref={videoRef}
         src={reel.video}
-        poster={reel.poster}
-        // Autoplay-friendly defaults: silent + inline so iOS allows
-        // it without a tap; loop so the clip cycles.
         autoPlay={isActive}
         muted
         loop
         playsInline
-        // Hint the codec + container so iOS Safari doesn't sniff.
-        // muted-autoplay also helps preserve battery on iPhone.
         // eslint-disable-next-line react/no-unknown-property
         disableRemotePlayback
-        controls={false}
-        // disablePictureInPicture so the user can't accidentally pop
-        // a reel out — kills the smooth scroll if it happens.
         // eslint-disable-next-line react/no-unknown-property
         disablePictureInPicture
+        controls={false}
         preload={preload}
-        onPlaying={() => setFirstFramePainted(true)}
-        onLoadedData={() => {
-          // If the active reel finishes loading its first frame
-          // before `playing` fires (e.g. the user is mid-scroll and
-          // pause was called), still hide the poster so the eventual
-          // play call doesn't briefly flash the static artwork.
-          if (isActive) setFirstFramePainted(true);
-        }}
-        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-        // Force the video onto its own GPU compositor layer so the
-        // page can scroll without re-rasterising the video frames.
+        className="absolute inset-0 h-full w-full object-cover pointer-events-none bg-black"
+        // GPU-accelerated compositor layer so the page scrolls
+        // without re-rasterising the frames.
         style={{ transform: "translateZ(0)", willChange: "transform" }}
       />
 
-      {/* Soft bottom gradient so the title + action stack reads on
-          top of the video regardless of frame brightness. */}
+      {/* Soft bottom gradient so the white title + action stack reads
+          on top of the video regardless of frame brightness. */}
       <div
         className="absolute inset-x-0 bottom-0 h-[55%] pointer-events-none"
         style={{
@@ -256,18 +209,32 @@ function ReelView({
         }}
         aria-hidden
       />
+    </article>
+  );
+}
 
-      {/* Bottom-left meta: studio + game title. Anchored to the
-          BottomNav's actual top edge via --bottom-nav-h, so the
-          title sits at a consistent visual offset in browser mode
-          AND standalone PWA mode (where the bottom nav has a
-          different effective height). */}
+/**
+ * Title + action stack — fixed over the reel feed, NOT inside each
+ * article, so the UI stays put while the user flicks between reels.
+ * Title content crossfades to the new reel's metadata on each
+ * activeIndex change (key on the reel id).
+ */
+function FixedReelChrome({ reel }: { reel: Reel }) {
+  return (
+    <>
+      {/* Bottom-left meta: studio + game title.
+          Anchored to var(--bottom-nav-h) so it sits the same visual
+          distance above the bottom nav across browser mode and PWA
+          standalone mode. */}
       <div
-        className="absolute left-0 right-[88px] px-[18px] flex flex-col gap-[4px] text-white pointer-events-none"
+        className="fixed left-0 px-[18px] z-30 flex flex-col gap-[4px] text-white pointer-events-none"
         style={{
-          bottom: "calc(var(--bottom-nav-h) + 28px)",
+          left: "var(--frame-right-offset)",
+          right: "calc(var(--frame-right-offset) + 88px)",
+          bottom: "calc(var(--bottom-nav-h) + 32px)",
           textShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
         }}
+        key={reel.id}
       >
         <p className="text-[12px] font-extrabold uppercase tracking-[0.1em] opacity-80">
           {reel.studio}
@@ -277,13 +244,12 @@ function ReelView({
         </h2>
       </div>
 
-      {/* Right-edge action stack — same --bottom-nav-h anchor so the
-          buttons clear the floating tab bar by the same gap in every
-          mode. */}
+      {/* Right-edge action stack — Info / Heart / Play (primary). */}
       <div
-        className="absolute right-[12px] flex flex-col items-center gap-[14px]"
+        className="fixed z-30 flex flex-col items-center gap-[14px]"
         style={{
-          bottom: "calc(var(--bottom-nav-h) + 60px)",
+          right: "calc(var(--frame-right-offset) + 12px)",
+          bottom: "calc(var(--bottom-nav-h) + 72px)",
         }}
       >
         <ActionButton aria="Game info">
@@ -296,7 +262,7 @@ function ReelView({
           <PlayIcon className="size-[22px] text-white translate-x-[2px]" />
         </PlayButton>
       </div>
-    </article>
+    </>
   );
 }
 
