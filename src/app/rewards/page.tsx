@@ -732,7 +732,7 @@ function ThisWeeksOffers() {
           meta="Deposit & Play £50 on The Big Catch 2"
         />
         <WeekOfferCard
-          src="/assets/rewards/offer-lobstermania.png"
+          src="/assets/rewards/slingoreward.png"
           title="Slingo spins"
           meta="Lobstermania is back in the house!"
         />
