@@ -255,18 +255,33 @@ function AvailableToCollect() {
       >
         Available to collect
       </h2>
+      {/* Padding-on-scroll-container is unreliable in browsers
+          (the right edge gets collapsed, sometimes the left
+          edge is reported correctly at runtime but visually
+          renders flush). Splitting the responsibilities:
+            outer  = overflow-x scroller (no padding)
+            inner  = flex row with explicit pl/pr matching the
+                     16px page gutter
+          The inner flex is wider than the viewport, so the
+          outer scrolls horizontally over it; the first card
+          sits at 16px from the inner's left edge, which equals
+          16px from the page edge at scroll position 0. */}
       <div
-        className="mt-[12px] flex gap-[16px] overflow-x-auto no-scrollbar pb-[2px] pl-[16px] pr-[16px]"
-        // Using Tailwind pl/pr classes here (rather than inline
-        // padding) because they reliably apply in horizontal-
-        // overflow scrollers. First card now sits at 16px from
-        // the page edge, aligned with the section title and the
-        // tab switcher above.
+        className="mt-[12px] overflow-x-auto no-scrollbar"
         style={{ scrollSnapType: "x mandatory" }}
       >
-        {cards.map((c, i) => (
-          <AvailableCard key={i} {...c} />
-        ))}
+        <div
+          className="flex gap-[16px] pb-[2px]"
+          style={{
+            paddingLeft: 16,
+            paddingRight: 16,
+            width: "max-content",
+          }}
+        >
+          {cards.map((c, i) => (
+            <AvailableCard key={i} {...c} />
+          ))}
+        </div>
       </div>
     </section>
   );
