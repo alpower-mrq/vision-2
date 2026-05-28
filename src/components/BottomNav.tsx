@@ -134,9 +134,9 @@ export function BottomNav() {
   //                 routes — fades scrolled content into the
   //                 nav region without smearing).
   const scrimIsDark = pathname.startsWith("/rewards");
-  const scrimSolid = scrimIsDark ? "#181f43" : "#ffffff";
+  const scrimSolid = scrimIsDark ? "#0C2287" : "#ffffff";
   const scrimFade = scrimIsDark
-    ? "rgba(24, 31, 67, 0)"
+    ? "rgba(12, 34, 135, 0)"
     : "rgba(255, 255, 255, 0)";
 
   const rowRef = useRef<HTMLDivElement | null>(null);

@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   //                     same dark tone the page ends on.
   const isRewards = pathname.startsWith("/rewards");
   const REWARDS_TOP_BG = "#0a2ecb"; // brand-blue (matches BrandBar)
-  const REWARDS_BOTTOM_BG = "#181f43"; // darker blue below ellipse
+  const REWARDS_BOTTOM_BG = "#0C2287"; // Brand/900 — darker blue below ellipse
 
   return (
     <>

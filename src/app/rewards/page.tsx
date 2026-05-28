@@ -63,7 +63,7 @@ export default function RewardsPage() {
         background:
           tab === "rewards"
             ? "#0a2ecb"
-            : "linear-gradient(180deg, #0a2ecb 0%, #181f43 100%)",
+            : "linear-gradient(180deg, #0a2ecb 0%, #0C2287 100%)",
         // `isolation: isolate` forces this wrapper to be a new
         // stacking context so the rewards backdrop's z-index:-1
         // stays contained.
@@ -140,7 +140,7 @@ function RewardsBackdrop() {
       className="absolute left-0 right-0 bottom-0 pointer-events-none"
       style={{
         top: 194,
-        background: "#181f43",
+        background: "#0C2287",
         // z-index: -1 puts this between the wrapper's bg and
         // the page's static content. Previously z-index: 0 made
         // the backdrop paint ABOVE non-positioned siblings
