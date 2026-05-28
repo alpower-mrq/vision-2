@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * For You / Discover — vertical-snap reels feed (TikTok / Reels style).
@@ -69,9 +69,49 @@ const REELS: Reel[] = [
   },
 ];
 
+// How many reels to render in the very first batch. Three loops of
+// the source clips = nine articles, enough that the user feels the
+// list is "deep" without us mounting a huge initial DOM.
+const INITIAL_LOOPS = 3;
+// When the active reel is within this many of the rendered end, we
+// extend the feed by another loop of the source clips. Two-ahead
+// gives the IntersectionObserver enough lead time to swap in the
+// new articles before the user actually reaches them.
+const PREFETCH_AHEAD = 2;
+
 export default function DiscoverPage() {
+  // Each "loop" is a full pass of REELS (3 source clips). Bumping
+  // `loops` appends another full pass to the rendered feed, giving
+  // the user an effectively infinite scroll — REELS[0] → REELS[2]
+  // → REELS[0] → REELS[2] → ... — without ever ending.
+  const [loops, setLoops] = useState(INITIAL_LOOPS);
   const [activeIndex, setActiveIndex] = useState(0);
-  const active = REELS[activeIndex] ?? REELS[0];
+
+  // Materialise the rendered feed by cycling REELS. Each rendered
+  // article gets a unique `key` (sourceId + position in the feed)
+  // so React doesn't try to reuse <video> elements across the
+  // boundary — every loop iteration is a fresh mount of its own
+  // video, which keeps the playhead and buffer behaviour correct.
+  const reels = useMemo(() => {
+    const out: Array<Reel & { key: string; sourceIndex: number }> = [];
+    const total = loops * REELS.length;
+    for (let i = 0; i < total; i++) {
+      const sourceIndex = i % REELS.length;
+      const r = REELS[sourceIndex];
+      out.push({ ...r, sourceIndex, key: `${r.id}-${i}` });
+    }
+    return out;
+  }, [loops]);
+
+  // Append another loop when the user gets close to the end of the
+  // currently rendered feed.
+  useEffect(() => {
+    if (activeIndex >= reels.length - PREFETCH_AHEAD) {
+      setLoops((n) => n + 1);
+    }
+  }, [activeIndex, reels.length]);
+
+  const active = reels[activeIndex] ?? reels[0];
 
   return (
     <div className="relative">
@@ -86,9 +126,9 @@ export default function DiscoverPage() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {REELS.map((reel, i) => (
+        {reels.map((reel, i) => (
           <ReelArticle
-            key={reel.id}
+            key={reel.key}
             reel={reel}
             index={i}
             activeIndex={activeIndex}
