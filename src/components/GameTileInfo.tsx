@@ -46,7 +46,7 @@ export function GameTileInfo({
         // Quarter-circle concave cut into the tile. Radius equal to
         // the box size gives a perfect 90° arc.
         borderTopLeftRadius: size,
-        backgroundColor: "rgba(245, 245, 245, 0.78)",
+        backgroundColor: "rgba(245, 245, 245, 0.42)",
         backdropFilter: "blur(10px) saturate(140%)",
         WebkitBackdropFilter: "blur(10px) saturate(140%)",
       }}
