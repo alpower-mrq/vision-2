@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -43,8 +43,20 @@ const SURFACE_GREY = "#f2f3f3"; // Surface/primary
 const TEXT_SECONDARY = "#4d505b"; // Text/secondary
 const INNER_CARD = "#eff2ff"; // light blue card
 
+const TAB_ORDER: Tab[] = ["rewards", "offers"];
+
 export default function RewardsPage() {
   const [tab, setTab] = useState<Tab>("rewards");
+
+  // Track previous tab so the AnimatePresence slide animation
+  // knows which direction to slide content from (positive →
+  // moving toward the right tab, negative → toward the left).
+  const prevTabRef = useRef<Tab>(tab);
+  const direction =
+    TAB_ORDER.indexOf(tab) - TAB_ORDER.indexOf(prevTabRef.current);
+  useEffect(() => {
+    prevTabRef.current = tab;
+  }, [tab]);
 
   return (
     <div
@@ -88,19 +100,34 @@ export default function RewardsPage() {
         </div>
       </div>
 
-      {/* Tab content with crossfade transition. AnimatePresence
-          mode="wait" delays the new tab's enter until the
-          outgoing one's exit completes — keeps both contents
-          from rendering on top of each other during the swap.
-          Soft fade + 6px y-shift reads as a gentle "fade
-          through" rather than a hard cut. */}
-      <AnimatePresence mode="wait" initial={false}>
+      {/* Tab content with a directional slide transition.
+          AnimatePresence's `custom` prop carries the slide
+          direction into each variant function:
+            • Moving toward offers (dir > 0): new content slides
+              in from the right, old exits to the left.
+            • Moving toward rewards (dir < 0): new content slides
+              in from the left, old exits to the right.
+          mode="wait" keeps both contents from rendering
+          stacked during the swap, so the slide reads cleanly. */}
+      <AnimatePresence mode="wait" initial={false} custom={direction}>
         <motion.div
           key={tab}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          custom={direction}
+          variants={{
+            enter: (dir: number) => ({
+              x: dir > 0 ? 60 : -60,
+              opacity: 0,
+            }),
+            center: { x: 0, opacity: 1 },
+            exit: (dir: number) => ({
+              x: dir > 0 ? -60 : 60,
+              opacity: 0,
+            }),
+          }}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         >
           {tab === "rewards" ? <MyRewardsContent /> : <OffersContent />}
         </motion.div>
@@ -771,19 +798,25 @@ function AllOffers() {
       >
         All offers
       </h2>
-      <div className="mt-[12px] bg-white rounded-[16px] overflow-hidden">
-        <div
-          className="relative overflow-hidden"
-          style={{ aspectRatio: "343 / 170" }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/rewards/offer_bannerimg.png"
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-          />
+      <div className="mt-[12px] bg-white rounded-[16px] flex flex-col">
+        {/* Banner image with 8px white margin (matching the
+            This-weeks-offers cards). The image has its own
+            rounded-12 corners + overflow-hidden so the inset is
+            cleanly visible on all four sides. */}
+        <div className="p-[8px]">
+          <div
+            className="rounded-[12px] overflow-hidden"
+            style={{ aspectRatio: "343 / 170" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/rewards/offer_bannerimg.png"
+              alt=""
+              className="size-full object-cover"
+            />
+          </div>
         </div>
-        <div className="px-[16px] pt-[14px] pb-[16px] flex flex-col gap-[6px]">
+        <div className="px-[16px] pb-[16px] flex flex-col gap-[6px]">
           <p
             className="font-extrabold text-[16px]"
             style={{ color: BRAND_DARK, lineHeight: 1.4 }}

@@ -58,21 +58,23 @@ export function ResumePlayingBar() {
   const onHome = pathname === "/";
   const show = mounted && onHome && !dismissed;
 
-  // Mark mounted on first paint + scrub any legacy sessionStorage flag
-  // from earlier builds (where dismissal persisted across navigations).
+  // Mark mounted on first paint, kick the SSR `dismissed: true`
+  // default off (so the bar can appear on the home route), and
+  // scrub any legacy sessionStorage flag from older builds.
   useEffect(() => {
     setMounted(true);
+    setDismissed(false);
     if (typeof window !== "undefined") {
       sessionStorage.removeItem(LEGACY_DISMISSED_KEY);
     }
   }, []);
 
-  // Re-show the bar every time the user lands on the home route —
-  // dismissal only kills it for the CURRENT visit. Navigating away
-  // and back gives them a fresh prompt.
-  useEffect(() => {
-    if (onHome) setDismissed(false);
-  }, [onHome]);
+  // Earlier this component reset dismissed=false on every visit
+  // to the home route, which made the bar reappear each time the
+  // user navigated back from another tab. Removed — once the
+  // user dismisses (X or swipe), `dismissed` stays true for the
+  // life of this BrowserSession (i.e. until a full page reload),
+  // since the component is mounted persistently by AppShell.
 
   const dismiss = () => {
     setDismissed(true);
