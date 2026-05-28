@@ -246,10 +246,13 @@ function YourQRewardsHero() {
       </div>
 
       {/* Big 200 — Figma 238:5748: 59.874px ExtraBold, tracking
-          -0.998, leading 1.2. */}
+          -0.998, leading 1.2. 20px top margin pushes the
+          number down off the ellipse top curve so it doesn't
+          feel cramped against the dark dome edge. */}
       <p
         className="relative z-[1] text-center text-white font-extrabold"
         style={{
+          marginTop: 20,
           fontSize: 60,
           letterSpacing: "-1px",
           lineHeight: 1.2,
@@ -314,32 +317,31 @@ function AvailableToCollect() {
       >
         Available to collect
       </h2>
-      {/* No padding, no gap — every card carries its own
-          marginLeft of 16. This is the only reliable way to
-          inset the first card on a horizontal-overflow scroller:
-          padding-left and gap behave inconsistently across
-          browsers when the inner content exceeds the visible
-          width. marginLeft on each card is just plain margin
-          on a flex item, which every browser respects.
-            • First card  → marginLeft: 16 = 16px from page edge
-            • Inner cards → marginLeft: 16 = 16px gap to previous
-            • Last card   → marginRight: 16 = 16px to end of scroll */}
+      {/* Outer = overflow-x scroller (no padding).
+          Inner = flex row with max-content width + paddingLeft/
+                  paddingRight on the inner itself (NOT the
+                  scroller), plus gap-16 between cards.
+          Padding-on-the-inner is reliable in every browser
+          because the inner is just a regular flex item, not an
+          overflow container. First card sits at 16px from the
+          inner's left edge, which is the same as 16px from the
+          page's left edge at scroll-x=0 — matching the
+          "In Progress" card's 16px gutter. */}
       <div
         className="mt-[12px] overflow-x-auto no-scrollbar"
         style={{ scrollSnapType: "x mandatory" }}
       >
-        <div className="flex pb-[2px]" style={{ width: "max-content" }}>
+        <div
+          className="flex pb-[2px]"
+          style={{
+            width: "max-content",
+            paddingLeft: 16,
+            paddingRight: 16,
+            gap: 16,
+          }}
+        >
           {cards.map((c, i) => (
-            <div
-              key={i}
-              style={{
-                flexShrink: 0,
-                marginLeft: 16,
-                marginRight: i === cards.length - 1 ? 16 : 0,
-              }}
-            >
-              <AvailableCard {...c} />
-            </div>
+            <AvailableCard key={i} {...c} />
           ))}
         </div>
       </div>
