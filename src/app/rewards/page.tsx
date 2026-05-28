@@ -127,25 +127,11 @@ function MyRewardsContent() {
 function YourQRewardsHero() {
   return (
     <div className="relative flex flex-col items-center gap-[2px] px-[16px]">
-      {/* Ellipse backdrop — Figma 238:5742 (518×252 positioned at
-          left=-87.5 top=30 inside a 343-wide page). Drawn behind
-          the number, creates the soft darker halo. The negative
-          z-index pushes it BEHIND the text in case stacking
-          context fights it. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/assets/rewards/ellipse.svg"
-        alt=""
-        aria-hidden
-        className="absolute -translate-x-1/2 max-w-none pointer-events-none"
-        style={{
-          left: "50%",
-          top: 30,
-          width: 518,
-          height: 252,
-          zIndex: 0,
-        }}
-      />
+      {/* (Earlier versions placed an ellipse SVG behind this block
+          to add a soft darker halo, but the 518×252 ellipse
+          extended down far enough to overlap the "Available to
+          collect" cards below, washing them out. Dropped. The
+          page's brand-blue gradient is the only background.) */}
 
       {/* Tagline: "Your [Q] Rewards". Yellow Medium text, white Q
           SVG (the MrQ "Q" mark — Figma 238:5745) at 28px so it
@@ -158,18 +144,14 @@ function YourQRewardsHero() {
         >
           Your
         </span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/assets/rewards/q-title.svg"
-          alt="Q"
-          // Explicit width+height — q-title.svg has
-          // preserveAspectRatio="none" so the box dimensions
-          // dictate the render. 28×22 keeps the viewBox 25/19.4
-          // ratio (~1.27) intact within rounding.
-          width={28}
-          height={22}
-          style={{ width: 28, height: 22 }}
-        />
+        {/* Inline SVG so we control the aspect ratio.
+            The exported q-title.svg has preserveAspectRatio="none"
+            and width="100%" height="100%", which was stretching
+            the Q vertically when rendered as <img>. Going inline
+            with explicit viewBox + default preserveAspectRatio
+            (xMidYMid meet) keeps the Q's natural 25×19.44 shape
+            scaled into a 28×22 box. */}
+        <QLogo width={28} height={22} />
         <span
           className="font-medium text-[14px]"
           style={{ color: YELLOW, lineHeight: 1.6, letterSpacing: 0.1 }}
@@ -752,6 +734,37 @@ function AllOffers() {
 /* ============================================================
    ICONS
    ============================================================ */
+
+/** White "Q" mark inline SVG — used in the "Your [Q] Rewards"
+ *  headline. Inlined because the Figma-exported q-title.svg uses
+ *  preserveAspectRatio="none" + width="100%" height="100%", which
+ *  was stretching the Q vertically when rendered via <img>.
+ *  Inline SVG with explicit viewBox + default preserveAspectRatio
+ *  ("xMidYMid meet") keeps the Q's natural 25×19.44 shape scaled
+ *  proportionally into whatever width/height we pass. */
+function QLogo({
+  width = 28,
+  height = 22,
+}: {
+  width?: number;
+  height?: number;
+}) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={width}
+      height={height}
+      viewBox="0 0 25 19.4427"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M21.2899 15.7952C20.0532 15.7952 18.9105 15.4352 17.9399 14.8403C18.8635 13.3532 19.4114 11.5842 19.4114 9.7057C19.4114 4.35191 15.0595 0 9.7057 0C4.35191 0 0 4.35191 0 9.7057C0 15.0595 4.35191 19.4114 9.7057 19.4114C11.8503 19.4114 13.8384 18.707 15.4352 17.5329C17.0789 18.7226 19.0983 19.4427 21.2899 19.4427C22.6049 19.4427 23.8572 19.1922 25 18.7226V14.5899C23.9668 15.3569 22.6832 15.7952 21.2899 15.7952ZM15.2004 11.5216C14.4803 10.7545 13.6349 10.0814 12.6644 9.54916C11.7095 9.03256 10.7076 8.68816 9.7057 8.50031V12.2261C10.1284 12.3513 10.5354 12.5235 10.9267 12.727C11.7564 13.181 12.4452 13.7915 12.9775 14.4959C12.0539 15.1378 10.9267 15.5135 9.72134 15.5135C6.52786 15.5291 3.92924 12.9461 3.92924 9.75266C3.92924 6.55917 6.51221 3.97621 9.7057 3.97621C12.8992 3.97621 15.4822 6.55917 15.4822 9.75266C15.4822 10.3788 15.3882 10.9737 15.2004 11.5216Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
 
 function GiftIconSmall({ className }: { className?: string }) {
   return (
