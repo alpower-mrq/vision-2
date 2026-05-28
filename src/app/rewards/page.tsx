@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Rewards — Figma 238:5731 (My Rewards) + 238:5824 (Offers).
@@ -49,24 +50,27 @@ export default function RewardsPage() {
     <div
       className="relative min-h-[100dvh] pt-[20px] pb-[32px]"
       style={{
-        // Top half of the page is brand-blue #0a2ecb. The
-        // darker #181f43 layer below is painted by a separate
-        // absolute div (see <RewardsBackdrop />) whose top
-        // edge sits at the ellipse's vertical centre, so the
-        // ellipse SVG covers the hard seam and provides the
-        // visual curve between the two tones.
-        background: "#0a2ecb",
+        // Two surface treatments per tab:
+        //   • My Rewards → solid #0a2ecb with an overlaid
+        //                  <RewardsBackdrop /> creating the
+        //                  two-tone effect (ellipse hides the
+        //                  seam between top brand-blue and
+        //                  bottom #181f43).
+        //   • Offers     → smooth vertical gradient from
+        //                  brand-blue to #181f43 over the full
+        //                  page height, no ellipse, no
+        //                  backdrop overlay.
+        background:
+          tab === "rewards"
+            ? "#0a2ecb"
+            : "linear-gradient(180deg, #0a2ecb 0%, #181f43 100%)",
         // `isolation: isolate` forces this wrapper to be a new
-        // stacking context. Without it, the backdrop's
-        // z-index: -1 escapes upward and ends up painting
-        // behind the wrapper's own background — invisible.
-        // With it, the negative z stays contained: backdrop
-        // paints above the wrapper bg but below static
-        // content.
+        // stacking context so the rewards backdrop's z-index:-1
+        // stays contained.
         isolation: "isolate",
       }}
     >
-      <RewardsBackdrop />
+      {tab === "rewards" && <RewardsBackdrop />}
       {/* Tab switcher — Figma 238:5736. White pill, 4px padding,
           two flex-1 inner buttons.  */}
       <div className="px-[16px]">
@@ -84,7 +88,23 @@ export default function RewardsPage() {
         </div>
       </div>
 
-      {tab === "rewards" ? <MyRewardsContent /> : <OffersContent />}
+      {/* Tab content with crossfade transition. AnimatePresence
+          mode="wait" delays the new tab's enter until the
+          outgoing one's exit completes — keeps both contents
+          from rendering on top of each other during the swap.
+          Soft fade + 6px y-shift reads as a gentle "fade
+          through" rather than a hard cut. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {tab === "rewards" ? <MyRewardsContent /> : <OffersContent />}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
