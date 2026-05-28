@@ -44,9 +44,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   //   • main          → dark blue, so any overscroll past the
   //                     bottom of the page content shows the
   //                     same dark tone the page ends on.
-  const isRewards = pathname.startsWith("/rewards");
-  const REWARDS_TOP_BG = "#0a2ecb"; // brand-blue (matches BrandBar)
-  const REWARDS_BOTTOM_BG = "#0C2287"; // Brand/900 — darker blue below ellipse
+  // /rewards and /arena both use the same brand-blue → brand-dark
+  // two-tone surface. The pages paint the visual transition
+  // themselves (rewards via the ellipse halo, arena via a hard
+  // step around the leaderboard); the shell just provides matching
+  // surfaces so the BrandBar curve wedge and any overscroll show
+  // the right colour.
+  const isBrandSurface =
+    pathname.startsWith("/rewards") || pathname.startsWith("/arena");
+  const BRAND_TOP_BG = "#0a2ecb"; // brand-blue (matches BrandBar)
+  const BRAND_BOTTOM_BG = "#0C2287"; // Brand/900 — darker blue
 
   return (
     <>
@@ -56,7 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         // rounded bottom corners reveal a matching surface
         // through the curve wedge.
         style={
-          isRewards ? { background: REWARDS_TOP_BG } : undefined
+          isBrandSurface ? { background: BRAND_TOP_BG } : undefined
         }
       >
         <BrandBar />
@@ -65,9 +72,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           // main gets the darker tone so any overscroll below
           // the page content shows the same colour the page
           // ends on.
-          className={isRewards ? "" : "bg-[#f5f5f5]"}
+          className={isBrandSurface ? "" : "bg-[#f5f5f5]"}
           style={
-            isRewards ? { background: REWARDS_BOTTOM_BG } : undefined
+            isBrandSurface ? { background: BRAND_BOTTOM_BG } : undefined
           }
         >
           {children}

@@ -133,7 +133,8 @@ export function BottomNav() {
   //   everything  → #ffffff (the default for #f5f5f5 page bg
   //                 routes — fades scrolled content into the
   //                 nav region without smearing).
-  const scrimIsDark = pathname.startsWith("/rewards");
+  const scrimIsDark =
+    pathname.startsWith("/rewards") || pathname.startsWith("/arena");
   const scrimSolid = scrimIsDark ? "#0C2287" : "#ffffff";
   const scrimFade = scrimIsDark
     ? "rgba(12, 34, 135, 0)"
