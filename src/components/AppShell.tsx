@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { BrandBar } from "./BrandBar";
 import { BottomNav } from "./BottomNav";
@@ -22,11 +23,15 @@ import { LoadingSplash } from "./LoadingSplash";
  * adding a new route is just dropping a `page.tsx` into `/app/<route>/`.
  *
  * Every route gets a 96px footer spacer so the last block of page
- * content doesn't get trapped under the floating BottomNav — the
- * page-bottom area below the spacer is what the nav floats over, so
- * the last content block visually "ends" at the nav's top edge.
+ * content doesn't get trapped under the floating BottomNav, EXCEPT
+ * the home route — its closing Q Club section grows its own brand-
+ * blue padding-bottom on scroll and visually carries the floor down
+ * to the BottomNav's top edge with no #f5f5f5 strip in between.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const ownsBottomFlush = pathname === "/";
+
   return (
     <>
       <div className="mobile-frame">
@@ -34,12 +39,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="bg-[#f5f5f5]">
           {children}
-          <div
-            style={{
-              height: "max(96px, calc(env(safe-area-inset-bottom) + 96px))",
-            }}
-            aria-hidden
-          />
+          {!ownsBottomFlush && (
+            <div
+              style={{
+                height: "max(96px, calc(env(safe-area-inset-bottom) + 96px))",
+              }}
+              aria-hidden
+            />
+          )}
         </main>
 
         <BottomNav />

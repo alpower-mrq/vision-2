@@ -84,6 +84,30 @@ export function QClubCard({
     [0, 1],
     expandOnScroll ? [16, 0] : [16, 16],
   );
+  // Section's bottom padding grows on expand so the brand-blue
+  // backdrop extends past the card content and down to the
+  // BottomNav's top edge — that's where the home route's
+  // AppShell footer spacer used to live. 120px gives the
+  // "See all Rewards" button ~25px clearance above the nav top.
+  const pb = useTransform(
+    scrollYProgress,
+    [0, 1],
+    expandOnScroll ? [16, 120] : [16, 16],
+  );
+  // Section bg fades from transparent to brand-blue across the
+  // second half of the scroll-in. By the time the section is
+  // fully in view, its bg matches the card's bg, so the
+  // padding-bottom extension reads as a seamless continuation
+  // of the card (no #f5f5f5 strip between card and BottomNav).
+  const sectionBgAlpha = useTransform(
+    scrollYProgress,
+    [0.5, 1],
+    expandOnScroll ? [0, 1] : [0, 0],
+  );
+  const sectionBg = useTransform(
+    sectionBgAlpha,
+    (a) => `rgba(11, 47, 203, ${a})`,
+  );
   const radius = useTransform(
     scrollYProgress,
     [0, 1],
@@ -103,15 +127,21 @@ export function QClubCard({
     <motion.section
       ref={sectionRef}
       aria-label="The Q Club"
-      className="pt-[14px] pb-[16px]"
-      // The section's horizontal padding is the "card gutter" — when
-      // expandOnScroll fires it tweens 16 → 0, dropping the card flush
-      // to the page edges. Cast through `any` because Framer types the
-      // style prop conservatively for motion values.
+      className="pt-[14px]"
+      // Three coordinated scroll-driven tweens:
+      //   paddingX:        16 → 0   (card → full-width)
+      //   paddingBottom:   16 → 120 (brand-blue extends down past card)
+      //   backgroundColor: trans → brand-blue (so the pb extension
+      //                    reads as a continuation of the card)
       style={
         reduce
-          ? { paddingLeft: 16, paddingRight: 16 }
-          : { paddingLeft: px, paddingRight: px }
+          ? { paddingLeft: 16, paddingRight: 16, paddingBottom: 16 }
+          : {
+              paddingLeft: px,
+              paddingRight: px,
+              paddingBottom: pb,
+              backgroundColor: sectionBg,
+            }
       }
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
