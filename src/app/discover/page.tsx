@@ -301,9 +301,6 @@ function FixedReelChrome({ reel }: { reel: Reel }) {
         <ActionButton aria="Game info">
           <InfoIcon className="size-[22px] text-white" />
         </ActionButton>
-        <ActionButton aria="Favourite game">
-          <HeartIcon className="size-[22px] text-white" />
-        </ActionButton>
         <PlayButton aria={`Play ${reel.game}`}>
           <PlayIcon className="size-[22px] text-white translate-x-[2px]" />
         </PlayButton>
@@ -374,24 +371,6 @@ function InfoIcon({ className }: { className?: string }) {
     >
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8h.01M11 12h1v5h1" />
-    </svg>
-  );
-}
-
-function HeartIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-      focusable={false}
-    >
-      <path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 6.5-7 11-7 11Z" />
     </svg>
   );
 }
