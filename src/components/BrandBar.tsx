@@ -39,7 +39,11 @@ import { useShell } from "@/lib/filter-context";
  *  the visible title now (Casino page renders "Casino" next to its
  *  Categories+ CTA, etc.), so we don't render a title here. */
 function showsBackArrow(pathname: string): boolean {
-  return pathname === "/casino" || pathname.startsWith("/casino/");
+  return (
+    pathname === "/casino" ||
+    pathname.startsWith("/casino/") ||
+    pathname.startsWith("/arena")
+  );
 }
 
 /** Where the back arrow leads. Sub-routes under /casino (per-category
