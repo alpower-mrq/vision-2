@@ -172,31 +172,33 @@ function TodaysResult() {
   return (
     <section className="px-[16px]">
       <div
-        className="rounded-[16px] flex flex-col"
+        className="bg-white rounded-[16px] flex flex-col"
         style={{
-          backgroundColor: SURFACE_15,
-          padding: 16,
+          padding: 20,
           gap: 16,
+          boxShadow: "0 8px 24px -8px rgba(10, 46, 203, 0.25)",
         }}
       >
         <div>
           <p
-            className="text-white font-medium opacity-70"
+            className="font-medium"
             style={{
-              fontSize: 12,
-              lineHeight: 1.6,
+              color: "#4d505b",
+              fontSize: 13,
+              lineHeight: 1.4,
               letterSpacing: 0.2,
             }}
           >
             Today&apos;s result
           </p>
           <p
-            className="text-white font-extrabold"
+            className="font-extrabold"
             style={{
+              color: BRAND_DARK,
               fontSize: 30,
               lineHeight: 1.2,
               letterSpacing: -1.5,
-              marginTop: 4,
+              marginTop: 6,
             }}
           >
             You finished #14
@@ -204,13 +206,12 @@ function TodaysResult() {
         </div>
         <button
           type="button"
-          className="w-full flex items-center justify-center rounded-[8px] bg-white active:scale-[0.98] transition-transform"
-          style={{ height: 48 }}
+          className="w-full flex items-center justify-center rounded-[12px] active:scale-[0.98] transition-transform"
+          style={{ height: 56, backgroundColor: BRAND_TOP }}
         >
           <span
-            className="font-extrabold"
+            className="font-extrabold text-white"
             style={{
-              color: BRAND_DARK,
               fontSize: 18,
               lineHeight: 1.6,
               letterSpacing: -0.2,
