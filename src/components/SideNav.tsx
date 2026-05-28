@@ -50,33 +50,45 @@ export function SideNav() {
   return (
     <AnimatePresence>
       {sideNavOpen && (
-        <>
+        // Fixed clip container clamped to the mobile-frame's column
+        // (via --frame-right-offset). On desktop this means the
+        // backdrop + drawer are masked to the centred 375px column
+        // instead of spanning the whole monitor — without this, the
+        // drawer's slide-in/out was visible in the empty space to
+        // the right of the mobile-frame in the desktop preview.
+        // pointer-events:none on the wrapper so the empty area
+        // outside the clip doesn't intercept taps; the backdrop
+        // and drawer re-enable pointer events on themselves.
+        <div
+          className="fixed inset-y-0 z-50 overflow-hidden pointer-events-none"
+          style={{
+            left: "var(--frame-right-offset)",
+            right: "var(--frame-right-offset)",
+          }}
+        >
           {/* Backdrop */}
           <motion.button
             type="button"
             aria-label="Close menu"
             onClick={closeSideNav}
-            className="fixed inset-0 z-50 bg-black/30"
+            className="absolute inset-0 bg-black/30 pointer-events-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           />
 
-          {/* Drawer */}
+          {/* Drawer — now absolute inside the fixed clip container,
+              so its exit `x: 100%` slide is masked at the
+              mobile-frame's right edge instead of escaping into the
+              desktop preview surround. */}
           <motion.aside
             role="dialog"
             aria-label="Account menu"
-            className="fixed right-0 top-0 z-50 h-full overflow-y-auto"
+            className="absolute right-0 top-0 h-full overflow-y-auto pointer-events-auto"
             style={{
-              // Sits within the mobile frame. On phones (any viewport
-              // wider than the 375px design width) the frame is
-              // full-width so --frame-right-offset is 0 and the drawer
-              // hugs the right edge. On desktop (≥600px) the offset
-              // centres the drawer against the clamped 375px frame.
               width: "85%",
               maxWidth: "320px",
-              right: "var(--frame-right-offset)",
               backgroundColor: "#f2f3f3",
               boxShadow: "-12px 0 32px -8px rgba(10, 46, 203, 0.25)",
               paddingTop: "max(20px, env(safe-area-inset-top))",
@@ -89,7 +101,7 @@ export function SideNav() {
           >
             <DrawerContent onClose={closeSideNav} />
           </motion.aside>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
