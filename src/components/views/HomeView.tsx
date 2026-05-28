@@ -95,7 +95,11 @@ const LATEST_WINS = [
 export function HomeView() {
   return (
     <>
-      <HeroCarousel />
+      {/* Small breathing room so the hero card doesn't crash into the
+          brand bar's rounded bottom edge. */}
+      <div className="pt-[10px]">
+        <HeroCarousel />
+      </div>
 
       <RecentlyPlayedGrid
         title="Recently Played Games"
