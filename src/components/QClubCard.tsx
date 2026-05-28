@@ -13,29 +13,38 @@ import {
  * "The Q Club" promo card — Figma node 203:42091.
  *
  *   ┌───────────────────────────────────────┐
- *   │             ✦  THE Q CLUB  ✦           │   ← Title SVG (with crown)
- *   │                                       │
- *   │   ┌──────────┐    ┌──────────┐        │
- *   │   │ Sweet B. │    │ Cheap A. │        │
- *   │   └──────────┘    └──────────┘        │
- *   │   20 Free Spins   1 Free Bingo Bash   │
- *   │   Valid 30 May    Valid 11 June       │
- *   │                                       │
- *   │  ┌─────────────────────────────────┐  │
- *   │  │       See all Rewards           │  │   ← White button
- *   │  └─────────────────────────────────┘  │
+ *   │             ✦  THE Q CLUB  ✦           │
+ *   │   ┌──────────┐    ┌──────────┐         │
+ *   │   │ Sweet B. │    │ Cheap A. │         │
+ *   │   └──────────┘    └──────────┘         │
+ *   │   20 Free Spins   1 Free Bingo Bash    │
+ *   │   Valid 30 May    Valid 11 June        │
+ *   │  ┌─────────────────────────────────┐   │
+ *   │  │       See all Rewards           │   │
+ *   │  └─────────────────────────────────┘   │
  *   └───────────────────────────────────────┘
  *
- * Brand-blue (#0B2FCB) card with a subtle dark-gradient W backdrop,
- * the SVG title (with crown ornament) anchored at the top, and two
- * reward thumbnails.
+ * Layered structure (in `expandOnScroll` mode):
  *
- * `expandOnScroll` mode (used at the bottom of the home feed): as
- * the card enters the viewport from below, its gutter padding, corner
- * radius, and lift-shadow all animate down to zero — so by the time
- * the user has scrolled it into view, the "card" has unfolded into
- * a full-width section that sits flush with the page edges. Acts as
- * a finishing flourish at the bottom of the lobby.
+ *   <motion.section>            ← scroll-tied paddings (gutter + bottom)
+ *     <motion.div surface />     ← brand-blue + W-pattern SVG; THIS is
+ *                                  the visible card; absolute-positioned
+ *                                  inside the section so it grows with
+ *                                  the section's padding-bottom on scroll
+ *                                  and the W-pattern SVG stretches with it.
+ *     <motion.div content />     ← aspect-ratio shell that positions the
+ *                                  title / reward tiles / CTA absolutely.
+ *                                  Visually transparent — the surface
+ *                                  below it is what the user sees.
+ *
+ * On home (`expandOnScroll`), as the user scrolls the section into view:
+ *   • gutter padding:        16 → 0   (card → full-width)
+ *   • bottom padding:        16 → 120 (brand-blue floor extends down)
+ *   • surface border-radius: 12 → 0
+ *   • surface drop-shadow:   on → off
+ * The surface div is positioned `top: 14 / left: gutter / right: gutter /
+ * bottom: 0`, so it covers the full card area AND the extending pb
+ * (the W-pattern paints the whole stretch).
  */
 
 const REWARDS: Array<{
@@ -59,54 +68,31 @@ export function QClubCard({
   expandOnScroll = false,
 }: {
   /** When true, the card morphs from a normal mobile-frame card into
-   *  a full-width section as the user scrolls it into view. Driven
-   *  by `useScroll` tracking the section's progress through the
-   *  viewport — see the inline `offset` for the exact range. */
+   *  a full-width section as the user scrolls it into view. */
   expandOnScroll?: boolean;
 }) {
   const reduce = useReducedMotion();
   const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Scroll progress for the section. `target: sectionRef` + the
-  // `offset` below give us a `scrollYProgress` of 0 when the section
-  // is BELOW the viewport (about to enter), reaches 1 when its TOP
-  // edge has reached the viewport center. That's the window where
-  // the card should be unfolding into a full-width section.
+  // Scroll progress for the section: 0 below viewport → 1 when its
+  // top reaches the viewport centre.
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "start center"],
   });
 
-  // Snap to the start/end state when reduced-motion is on (no
-  // intermediate scroll-driven animation).
   const px = useTransform(
     scrollYProgress,
     [0, 1],
     expandOnScroll ? [16, 0] : [16, 16],
   );
-  // Section's bottom padding grows on expand so the brand-blue
-  // backdrop extends past the card content and down to the
-  // BottomNav's top edge — that's where the home route's
-  // AppShell footer spacer used to live. 120px gives the
-  // "See all Rewards" button ~25px clearance above the nav top.
+  // Section bottom padding grows so the brand-blue surface (which
+  // anchors to the section's bottom edge) stretches past the
+  // card content and down to the BottomNav's top edge.
   const pb = useTransform(
     scrollYProgress,
     [0, 1],
     expandOnScroll ? [16, 120] : [16, 16],
-  );
-  // Section bg fades from transparent to brand-blue across the
-  // second half of the scroll-in. By the time the section is
-  // fully in view, its bg matches the card's bg, so the
-  // padding-bottom extension reads as a seamless continuation
-  // of the card (no #f5f5f5 strip between card and BottomNav).
-  const sectionBgAlpha = useTransform(
-    scrollYProgress,
-    [0.5, 1],
-    expandOnScroll ? [0, 1] : [0, 0],
-  );
-  const sectionBg = useTransform(
-    sectionBgAlpha,
-    (a) => `rgba(11, 47, 203, ${a})`,
   );
   const radius = useTransform(
     scrollYProgress,
@@ -127,42 +113,48 @@ export function QClubCard({
     <motion.section
       ref={sectionRef}
       aria-label="The Q Club"
-      className="pt-[14px]"
-      // Three coordinated scroll-driven tweens:
-      //   paddingX:        16 → 0   (card → full-width)
-      //   paddingBottom:   16 → 120 (brand-blue extends down past card)
-      //   backgroundColor: trans → brand-blue (so the pb extension
-      //                    reads as a continuation of the card)
+      className="relative pt-[14px]"
       style={
         reduce
           ? { paddingLeft: 16, paddingRight: 16, paddingBottom: 16 }
-          : {
-              paddingLeft: px,
-              paddingRight: px,
-              paddingBottom: pb,
-              backgroundColor: sectionBg,
-            }
+          : { paddingLeft: px, paddingRight: px, paddingBottom: pb }
       }
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
+      {/* SURFACE — brand-blue + W-pattern. Absolute inside the section
+          so its bounds track the section's paddings: insets match
+          padding-left/right, top sits below padding-top, bottom is
+          pinned to the section's bottom edge. As padding-bottom
+          grows on scroll, the surface stretches downward and the
+          W-pattern SVG scales with it (preserveAspectRatio="none"). */}
       <motion.div
-        className="relative w-full overflow-hidden"
-        style={{
-          backgroundColor: "#0B2FCB",
-          // Tween radius + shadow alongside the gutter so the card
-          // "unfolds" as a single coordinated motion: corners square
-          // off, lift shadow fades, gutter padding collapses.
-          borderRadius: reduce ? 12 : radius,
-          boxShadow: reduce
-            ? "0 12px 28px -16px rgba(10, 46, 203, 0.45)"
-            : boxShadow,
-          aspectRatio: "357 / 290",
-        }}
+        aria-hidden
+        className="absolute overflow-hidden"
+        style={
+          reduce
+            ? {
+                top: 14,
+                left: 16,
+                right: 16,
+                bottom: 16,
+                borderRadius: 12,
+                backgroundColor: "#0B2FCB",
+                boxShadow:
+                  "0 12px 28px -16px rgba(10, 46, 203, 0.45)",
+              }
+            : {
+                top: 14,
+                left: px,
+                right: px,
+                bottom: 0,
+                borderRadius: radius,
+                backgroundColor: "#0B2FCB",
+                boxShadow,
+              }
+        }
       >
-        {/* Backdrop W-gradient — the dark "diamond" shape baked into
-            the original Figma frame. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/qclub/backdrop-rays.svg"
@@ -170,11 +162,19 @@ export function QClubCard({
           aria-hidden
           className="absolute inset-0 h-full w-full pointer-events-none"
         />
+      </motion.div>
 
-        {/* "The Q Club" title — kept as the original Figma SVG so the
-            crown ornament's exact geometry survives. Centred at the
-            top. Width is the Figma's 224/357 ratio = 62.8% of the
-            card. */}
+      {/* CONTENT SHELL — invisible. Holds the aspect-ratio that
+          defines the card-content height; its absolute children
+          position relative to this shell (title at 14/290, reward
+          tiles at 76/290, CTA at bottom: 14/290), so they keep
+          their Figma positions even though the visible brand-blue
+          surface below extends further down. */}
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: "357 / 290" }}
+      >
+        {/* "The Q Club" title */}
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
@@ -191,7 +191,7 @@ export function QClubCard({
           />
         </div>
 
-        {/* Two reward cards, side-by-side. */}
+        {/* Two reward cards, side-by-side */}
         <div
           className="absolute left-0 right-0 grid grid-cols-2 gap-[14px] px-[11px]"
           style={{ top: `${(76 / 290) * 100}%` }}
@@ -201,8 +201,7 @@ export function QClubCard({
           ))}
         </div>
 
-        {/* "See all Rewards" — full-width white pill button anchored
-            to the bottom of the card. Drops the user onto /rewards. */}
+        {/* "See all Rewards" CTA */}
         <Link
           href="/rewards"
           aria-label="See all Rewards"
@@ -215,7 +214,7 @@ export function QClubCard({
         >
           See all Rewards
         </Link>
-      </motion.div>
+      </div>
     </motion.section>
   );
 }
@@ -231,7 +230,6 @@ function RewardTile({
         className="relative overflow-hidden"
         style={{
           aspectRatio: "157 / 80",
-          // 1.75px white outline matches the Figma's reward frame.
           border: "1.75px solid #ffffff",
           borderRadius: "14px",
         }}
