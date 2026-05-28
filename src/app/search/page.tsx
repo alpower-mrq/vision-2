@@ -298,11 +298,12 @@ const LIVE_CASINO_CARDS: Theme[] = [
   { key: "mega-wheel", label: "Mega Wheel",  subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS["mega-wheel"] },
 ];
 
-// Group 3 — closing verticals. Bingo (pink) + Arena (red) — both
-// inert until those pages return.
+// Group 3 — closing verticals. Bingo (pink) + Arena (red).
+// Arena now links to the dedicated /arena page (built per
+// Figma 230:57295); Bingo stays inert until its page is built.
 const VERTICAL_CARDS: Theme[] = [
   { key: "bingo", label: "Bingo", color: "#DB2777", thumbs: CATEGORY_THUMBS.bingo },
-  { key: "arena", label: "Arena", color: "#DC2626", thumbs: CATEGORY_THUMBS.arena },
+  { key: "arena", label: "Arena", color: "#DC2626", href: "/arena", thumbs: CATEGORY_THUMBS.arena },
 ];
 
 const BROWSE_CATEGORIES: Theme[] = [
