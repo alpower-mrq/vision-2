@@ -128,11 +128,34 @@ function MyRewardsContent() {
 function YourQRewardsHero() {
   return (
     <div className="relative flex flex-col items-center gap-[2px] px-[16px]">
-      {/* (Earlier versions placed an ellipse SVG behind this block
-          to add a soft darker halo, but the 518×252 ellipse
-          extended down far enough to overlap the "Available to
-          collect" cards below, washing them out. Dropped. The
-          page's brand-blue gradient is the only background.) */}
+      {/* Ellipse backdrop — Figma 238:5742 (518×252 darker
+          ellipse #122681) positioned behind the "200" to add a
+          soft darker halo. The raw SVG would extend ~120px
+          below this block and bleed into the "Available to
+          collect" cards/title, so we apply a vertical mask-
+          image that holds full opacity for the first 40% and
+          fades to transparent by 100%. Net effect: the dark
+          halo is visible behind the hero content (above the
+          gradient bg) and smoothly disappears before reaching
+          the next section. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/assets/rewards/ellipse.svg"
+        alt=""
+        aria-hidden
+        className="absolute -translate-x-1/2 max-w-none pointer-events-none"
+        style={{
+          left: "50%",
+          top: 30,
+          width: 518,
+          height: 252,
+          zIndex: 0,
+          maskImage:
+            "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+        }}
+      />
 
       {/* Tagline: "Your [Q] Rewards". Yellow Medium text, white Q
           SVG (the MrQ "Q" mark — Figma 238:5745) at 28px so it
