@@ -124,22 +124,38 @@ export function BuffaloBillsView() {
 }
 
 /* ============================================================
-   In-game header — back button + balance pill
+   In-game header — back button + balance pill.
+
+   Sticky-positioned so the chrome stays anchored at the top of the
+   viewport across the whole page. The bar carries a translucent
+   dark-navy backdrop with a heavy blur so it reads cleanly against
+   any background — the warm slot art on initial load, the brown
+   Game Info card once the user has scrolled. Without that backdrop
+   the header was visually disappearing into the hero (which was
+   the "top overlay is missing" symptom).
    ============================================================ */
 function GameHeader() {
   const { openSideNav, openDeposit } = useShell();
 
   return (
     <header
-      className="absolute inset-x-0 top-0 z-20 flex items-center justify-between"
+      className="sticky top-0 z-20 flex items-center justify-between"
       style={{
         paddingTop: "calc(env(safe-area-inset-top) + 12px)",
         paddingBottom: 12,
         paddingLeft: 16,
         paddingRight: 16,
-        // Gentle warm gradient softens the chrome onto the slot art.
-        background:
-          "linear-gradient(to bottom, rgba(225, 140, 88, 0.32) 0%, rgba(225, 140, 88, 0) 100%)",
+        // Translucent dark-navy band with backdrop-blur. Tracks the
+        // mobile-frame's #101626 surface but softens whatever sits
+        // behind through the blur, so the bar reads as iOS-style
+        // frosted chrome instead of a hard navy stripe.
+        backgroundColor: "rgba(16, 22, 38, 0.72)",
+        backdropFilter: "blur(14px) saturate(140%)",
+        WebkitBackdropFilter: "blur(14px) saturate(140%)",
+        // Hairline at the bottom edge separates the bar from the
+        // hero artwork below — keeps the band readable as chrome
+        // rather than bleeding into the slot art.
+        boxShadow: "inset 0 -1px 0 rgba(255, 255, 255, 0.06)",
       }}
     >
       {/* Back to lobby */}
@@ -210,12 +226,17 @@ function GameHeader() {
 }
 
 /* ============================================================
-   Hero — full-bleed slot artwork + yellow play button
+   Hero — full-bleed slot artwork + yellow play button.
+
+   Normal flow — the hero scrolls offscreen with the page as the
+   user scrolls down. Previously this was `position: sticky; top: 0`
+   so the lower band could slide up OVER the hero, but per design
+   feedback the overlap felt wrong; the page now scrolls plainly.
    ============================================================ */
 function Hero() {
   return (
     <div
-      className="sticky top-0 w-full overflow-hidden"
+      className="relative w-full overflow-hidden"
       style={{
         // 630px in the Figma frame (375 wide × 812 tall). Aspect-ratio
         // hugs that target ratio so the hero fills the same proportion
@@ -263,19 +284,26 @@ function GameInfoCard() {
       className="overflow-hidden rounded-[16px] w-full"
       style={{ backgroundColor: GAME_INFO_BG }}
     >
-      {/* Header row — "Game info" + MrQ wordmark on the right */}
+      {/* Header row — "Game info" + MrQ wordmark on the right. The
+          SVG ships with width="100%" height="100%" baked in, which
+          makes <img> render it with no intrinsic size (causing it
+          to stretch). We pin BOTH width and height explicitly to
+          preserve the 83:32 aspect (~2.6:1) and force right
+          alignment so the wordmark sits flush with the card edge. */}
       <div className="flex items-center justify-between px-[24px] py-[14px]">
         <h2
           className="text-white text-[16px] font-extrabold leading-none"
         >
           Game info
         </h2>
-        {/* MrQ wordmark — small white version sized to match Figma */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/logo-mrq.svg"
           alt="MrQ"
-          className="h-[16px] w-auto opacity-95"
+          width={42}
+          height={16}
+          className="opacity-95 shrink-0"
+          style={{ width: 42, height: 16 }}
           draggable={false}
         />
       </div>
