@@ -113,7 +113,14 @@ function RewardsBackdrop() {
       style={{
         top: 194,
         background: "#181f43",
-        zIndex: 0,
+        // z-index: -1 puts this between the wrapper's bg and
+        // the page's static content. Previously z-index: 0 made
+        // the backdrop paint ABOVE non-positioned siblings
+        // (tabs, hero, cards), covering them entirely. The
+        // negative value places the backdrop in the wrapper's
+        // "negative stack levels" layer, which paints above
+        // the wrapper's background but below static content.
+        zIndex: -1,
       }}
     />
   );
