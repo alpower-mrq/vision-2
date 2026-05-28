@@ -32,13 +32,19 @@ import { ResumePlayingBar } from "./ResumePlayingBar";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const ownsBottomFlush = pathname === "/";
+  // Rewards uses the brand-blue gradient as its surface (Figma
+  // 238:5731) instead of the usual #f5f5f5 canvas, so main needs
+  // to match — otherwise the canvas would peek through during
+  // overscroll or where the page content is shorter than the
+  // viewport.
+  const isRewards = pathname.startsWith("/rewards");
 
   return (
     <>
       <div className="mobile-frame">
         <BrandBar />
 
-        <main className="bg-[#f5f5f5]">
+        <main className={isRewards ? "bg-[var(--mrq-blue)]" : "bg-[#f5f5f5]"}>
           {children}
           {!ownsBottomFlush && (
             <div
