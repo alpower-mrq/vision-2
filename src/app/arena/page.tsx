@@ -452,11 +452,16 @@ function ArenaGameRail({
   tiles: string[];
   marginTop: number;
 }) {
+  // SECTION carries the 16px page gutter (paddingLeft) so the
+  // title AND the scroll's first tile both inherit it. This is
+  // the same pattern that fixed the Rewards Available carousel
+  // — putting padding on the inner flex of an overflow-x scroller
+  // is unreliable, but the section's own padding is rock-solid.
   return (
-    <section style={{ marginTop }}>
+    <section style={{ marginTop, paddingLeft: 16 }}>
       <h2
         className="text-white font-extrabold"
-        style={{ paddingLeft: 16, fontSize: 16, lineHeight: 1.6 }}
+        style={{ paddingRight: 16, fontSize: 16, lineHeight: 1.6 }}
       >
         {title}
       </h2>
@@ -471,7 +476,6 @@ function ArenaGameRail({
         <div
           style={{
             display: "inline-flex",
-            paddingLeft: 16,
             paddingRight: 16,
             gap: 8,
           }}
