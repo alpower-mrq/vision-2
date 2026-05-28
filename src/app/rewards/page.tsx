@@ -727,7 +727,7 @@ function ThisWeeksOffers() {
       </h2>
       <div className="mt-[12px] grid grid-cols-2 gap-[12px]">
         <WeekOfferCard
-          src="/assets/rewards/offer-big-catch.png"
+          src="/assets/rewards/catchreward.png"
           title="Catch 25 free spins"
           meta="Deposit & Play £50 on The Big Catch 2"
         />
