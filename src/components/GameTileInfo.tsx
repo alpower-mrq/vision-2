@@ -81,6 +81,9 @@ function InfoGlyph({ size }: { size: number }) {
       height={size}
       viewBox="0 0 14 14"
       fill="var(--mrq-blue)"
+      // Glyph at 70% opacity — soft enough to feel like a quiet
+      // affordance, still legible against the white chip.
+      style={{ opacity: 0.7 }}
       aria-hidden
       focusable={false}
     >
