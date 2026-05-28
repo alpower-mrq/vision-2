@@ -28,8 +28,8 @@
  *   • Mega-card preview tiles (72px) — same crowding issue.
  */
 export function GameTileInfo({
-  size = 52,
-  chipSize = 28,
+  size = 36,
+  chipSize = 20,
 }: {
   /** Width/height of the frosted corner backdrop (px). */
   size?: number;
@@ -39,7 +39,7 @@ export function GameTileInfo({
   return (
     <span
       aria-hidden
-      className="absolute bottom-0 right-0 grid place-items-center pointer-events-none"
+      className="absolute bottom-0 right-0 pointer-events-none"
       style={{
         width: size,
         height: size,
@@ -51,21 +51,22 @@ export function GameTileInfo({
         WebkitBackdropFilter: "blur(10px) saturate(140%)",
       }}
     >
+      {/* Chip is absolute-positioned in the bottom-right of the
+          backdrop so it tucks into the very corner of the tile —
+          not centred in the cutout. 4px inset from each edge. */}
       <span
-        className="grid place-items-center rounded-full"
+        className="absolute grid place-items-center rounded-full"
         style={{
           width: chipSize,
           height: chipSize,
-          // Sit slightly toward the bottom-right of the cutout so
-          // the chip sits "inside" the curve, not floating over it.
-          marginRight: 2,
-          marginBottom: 2,
+          right: 4,
+          bottom: 4,
           backgroundColor: "var(--mrq-blue)",
           boxShadow:
             "0 2px 6px -2px rgba(10, 46, 203, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18)",
         }}
       >
-        <InfoGlyph size={Math.round(chipSize * 0.42)} />
+        <InfoGlyph size={Math.round(chipSize * 0.5)} />
       </span>
     </span>
   );

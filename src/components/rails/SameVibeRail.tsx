@@ -79,9 +79,10 @@ export function SameVibeRail({
                 draggable={false}
               />
             </button>
-            {/* Landscape cards are taller — scale the badge up so it
-                doesn't look puny against the larger surface. */}
-            <GameTileInfo size={64} chipSize={32} />
+            {/* Landscape cards are taller — scale the badge up a
+                touch so it doesn't get lost against the larger
+                surface, but keep it well in the corner. */}
+            <GameTileInfo size={44} chipSize={24} />
           </div>
         ))}
       </div>
