@@ -129,20 +129,25 @@ function activeTabFor(pathname: string): TabKey {
 export function BottomNav() {
   const pathname = usePathname();
   const active = activeTabFor(pathname);
-  // Scrim now renders on every route — the previous skip-list
-  // for / and /discover is gone. The colour is route-dependent
-  // so it always matches the page surface at the bottom edge:
-  //   /rewards    → #181f43 (the bottom stop of the rewards
-  //                 page's brand-blue gradient)
-  //   everything  → #ffffff (the default for #f5f5f5 page bg
-  //                 routes — fades scrolled content into the
-  //                 nav region without smearing).
-  const scrimIsDark =
-    pathname.startsWith("/rewards") || pathname.startsWith("/arena");
-  const scrimSolid = scrimIsDark ? "#0C2287" : "#ffffff";
-  const scrimFade = scrimIsDark
-    ? "rgba(12, 34, 135, 0)"
-    : "rgba(255, 255, 255, 0)";
+  // Scrim renders on every route. The colour matches the page
+  // surface at the bottom edge so the fade doesn't smear into a
+  // different tone behind the nav:
+  //   /discover            → #000 (black, matches the reels feed)
+  //   /rewards, /arena     → #0C2287 (Brand/900 dark blue, matches
+  //                          the bottom stop of both pages' gradients)
+  //   everything else      → #ffffff (default for #f5f5f5 routes)
+  let scrimSolid = "#ffffff";
+  let scrimFade = "rgba(255, 255, 255, 0)";
+  if (pathname.startsWith("/discover")) {
+    scrimSolid = "#000000";
+    scrimFade = "rgba(0, 0, 0, 0)";
+  } else if (
+    pathname.startsWith("/rewards") ||
+    pathname.startsWith("/arena")
+  ) {
+    scrimSolid = "#0C2287";
+    scrimFade = "rgba(12, 34, 135, 0)";
+  }
 
   const rowRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
