@@ -39,6 +39,7 @@ const PICK_UP_GRID = [
   { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
   { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
   { src: "/assets/games/slot-13.png", name: "Big Bass Bonanza" },
+  { src: "/assets/games/slot-07.png", name: "Mummy Mania" },
 ];
 
 const RECENT_WINS = [
