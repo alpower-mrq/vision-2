@@ -248,24 +248,17 @@ export function WeeklyPassView() {
   };
 
   return (
-    // Page reads as a sheet takeover — slides up from the bottom on
-    // mount. Wrapping the whole view in a transformed motion.div
-    // also makes any `position: fixed` descendants (the bottom CTA
-    // bar) resolve against this container instead of the viewport,
-    // so the footer rides up with the rest of the chrome during
-    // the entry animation. The sticky header is inside the same
-    // transform context, so it slides up as part of the page —
-    // it doesn't pop into the viewport ahead of the body.
-    //
-    // Animation is a quick easeOut tween (≈260ms) rather than the
-    // previous spring — the spring's heavy damping made the page
-    // feel sluggish, particularly the moment the chrome settled at
-    // the top. The tween lands in one clean motion.
+    // Page entrance: dissolves in while drifting up a touch — a
+    // softer arrival than the previous full slide-up from the
+    // viewport bottom. The transform still creates a containing
+    // block for any `position: fixed` descendants (the bottom
+    // CTA), so the footer is anchored to this motion.div rather
+    // than the viewport.
     <motion.div
       className="relative w-full"
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
       style={{
         backgroundColor: PAGE_BG,
         // Reserve enough room at the bottom of the scroll area so the
