@@ -124,11 +124,13 @@ export function SimpleSplashGate() {
             )}
 
             {/* Tagline — "THE CASINO YOU / LOVE TO HATE", rises up
-                + fades in just after the logo settles. The second
-                line uses a larger font size than the first so it
-                visually fills the same width even though "LOVE TO
-                HATE" has fewer characters than "THE CASINO YOU"
-                — matches the Figma cadence. */}
+                + fades in just after the logo settles. Set in
+                Gilroy Bold (the real font, loaded via @font-face
+                from /public/fonts). The second line uses a larger
+                font size than the first so it visually fills the
+                same width even though "LOVE TO HATE" has fewer
+                characters than "THE CASINO YOU" — matches the
+                Figma cadence. */}
             {active && (
               <motion.div
                 initial={{ y: 24, opacity: 0 }}
@@ -141,8 +143,8 @@ export function SimpleSplashGate() {
                 className="text-center"
                 style={{
                   color: "#ffffff",
-                  fontFamily: "var(--font-manrope), 'Gilroy', sans-serif",
-                  fontWeight: 800,
+                  fontFamily: "'Gilroy', var(--font-manrope), sans-serif",
+                  fontWeight: 700,
                   letterSpacing: 0.4,
                   lineHeight: 1.12,
                   textTransform: "uppercase",
@@ -158,8 +160,12 @@ export function SimpleSplashGate() {
 
           {/* ───────────────────────────────────────────────
               BOTTOM BLOCK — "All winnings / paid in cash".
-              Line 1 slides in from the left, line 2 slides
-              in from the right.
+              Set in Formula Condensed Bold (Anton is the free
+              stand-in loaded via next/font in layout.tsx — same
+              treatment used elsewhere for promo headlines like
+              "BIG WEEKENDER"). Line 1 slides in from the left,
+              line 2 slides in from the right with a small delay
+              so the two beats read sequentially.
               ─────────────────────────────────────────────── */}
           {active && (
             <div
@@ -169,11 +175,14 @@ export function SimpleSplashGate() {
                 paddingLeft: 24,
                 paddingRight: 24,
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 56px)",
-                fontFamily: "var(--font-anton), 'Anton', 'Gilroy', sans-serif",
+                fontFamily: "var(--font-anton), 'Anton', sans-serif",
                 fontWeight: 700,
                 fontSize: 48,
                 letterSpacing: -0.4,
-                lineHeight: 1.05,
+                // Bumped from 1.05 → 1.18 so the two lines breathe
+                // a little. With fontSize 48 that's an extra ~6px
+                // gap between the baselines.
+                lineHeight: 1.18,
               }}
             >
               <motion.div
