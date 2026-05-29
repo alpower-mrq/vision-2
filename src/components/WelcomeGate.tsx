@@ -82,18 +82,30 @@ export function WelcomeGate() {
               gap: 12,
             }}
           >
-            {/* MrQ wordmark — already shipped white-filled, so a
-                plain <img> renders correctly on the blue surface.
-                Size from the Figma node (105×57). */}
+            {/* MrQ wordmark — rendered via mask-image so the SVG's
+                preserveAspectRatio="none" + width="100%"/height="100%"
+                baked-in attributes don't stretch the glyph. Box is
+                104×40 — natural 83:32 viewBox ratio at the height
+                the Figma uses for the visible logo (~40px). White
+                paint over the brand-blue surface. */}
             <div className="flex flex-col items-center w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/logo-mrq.svg"
-                alt="MrQ"
-                width={105}
-                height={57}
-                style={{ width: 105, height: 57 }}
-                draggable={false}
+              <span
+                role="img"
+                aria-label="MrQ"
+                style={{
+                  display: "block",
+                  width: 104,
+                  height: 40,
+                  backgroundColor: "#ffffff",
+                  WebkitMaskImage: "url(/assets/logo-mrq.svg)",
+                  maskImage: "url(/assets/logo-mrq.svg)",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                }}
               />
             </div>
 
@@ -134,8 +146,15 @@ export function WelcomeGate() {
               </div>
             </div>
 
-            {/* CTA stack + footer */}
-            <div className="flex flex-col items-stretch w-full" style={{ gap: 20 }}>
+            {/* CTA stack + footer. marginTop pushes the whole
+                stack down so there's breathing room between the
+                video card and Sign up; gap: 10 keeps the two
+                buttons feeling like a single primary pairing
+                rather than two separate options. */}
+            <div
+              className="flex flex-col items-stretch w-full"
+              style={{ gap: 10, marginTop: 24 }}
+            >
               <button
                 type="button"
                 onClick={dismiss}
@@ -173,30 +192,34 @@ export function WelcomeGate() {
               </button>
 
               {/* Footer trust badges — 18+, GambleAware, Trustpilot.
-                  All three are downloaded SVGs sized to the Figma
-                  spec (20px tall). */}
+                  18+ and GambleAware are grouped tighter (8px
+                  apart) since they read as one badge — the
+                  GambleAware text was floating loose with a uniform
+                  20px gap. Trustpilot stays at 20px from the group. */}
               <div
                 className="flex items-center justify-center"
                 style={{ gap: 20, paddingTop: 4 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/welcome/eighteen-plus.svg"
-                  alt="18+"
-                  width={36}
-                  height={20}
-                  style={{ width: 36, height: 20 }}
-                  draggable={false}
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/welcome/gambleaware.svg"
-                  alt="GambleAware"
-                  width={108}
-                  height={20}
-                  style={{ width: 108, height: 20 }}
-                  draggable={false}
-                />
+                <div className="flex items-center" style={{ gap: 8 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/assets/welcome/eighteen-plus.svg"
+                    alt="18+"
+                    width={20}
+                    height={20}
+                    style={{ width: 20, height: 20 }}
+                    draggable={false}
+                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/assets/welcome/gambleaware.svg"
+                    alt="GambleAware"
+                    width={108}
+                    height={20}
+                    style={{ width: 108, height: 20 }}
+                    draggable={false}
+                  />
+                </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/welcome/trustpilot.svg"
