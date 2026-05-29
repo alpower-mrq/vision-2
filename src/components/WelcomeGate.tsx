@@ -75,11 +75,17 @@ export function WelcomeGate() {
           <div
             className="flex flex-col h-full w-full items-center"
             style={{
-              paddingTop: "calc(env(safe-area-inset-top) + 12px)",
+              // Extra top breathing — was env-top + 12px and the logo
+              // felt cramped against the status bar.
+              paddingTop: "calc(env(safe-area-inset-top) + 24px)",
               paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
               paddingLeft: 16,
               paddingRight: 16,
-              gap: 12,
+              // Outer column gap bumped from 12 → 32 so the video
+              // sits well below the logo. The CTA stack's own
+              // marginTop is reduced below to keep the
+              // video → Sign-up distance roughly where it was.
+              gap: 32,
             }}
           >
             {/* MrQ wordmark — rendered via mask-image so the SVG's
@@ -146,14 +152,14 @@ export function WelcomeGate() {
               </div>
             </div>
 
-            {/* CTA stack + footer. marginTop pushes the whole
-                stack down so there's breathing room between the
-                video card and Sign up; gap: 10 keeps the two
-                buttons feeling like a single primary pairing
-                rather than two separate options. */}
+            {/* CTA stack + footer. marginTop is small (4px) because
+                the outer column gap (32) now provides most of the
+                breathing room between the video card and Sign up;
+                gap: 10 keeps the two buttons feeling like a single
+                primary pairing rather than two separate options. */}
             <div
               className="flex flex-col items-stretch w-full"
-              style={{ gap: 10, marginTop: 24 }}
+              style={{ gap: 10, marginTop: 4 }}
             >
               <button
                 type="button"
