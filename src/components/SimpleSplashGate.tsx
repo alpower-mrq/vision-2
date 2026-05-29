@@ -182,60 +182,62 @@ export function SimpleSplashGate() {
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 56px)",
                 display: "flex",
                 flexDirection: "column",
+                // Centre the stagger block horizontally inside
+                // the splash. The inner wrapper sizes itself to
+                // the wider of the two staggered lines (line 2's
+                // right edge wins because of the indent), so the
+                // whole block lands in the middle of the screen
+                // rather than hugging the left edge.
+                alignItems: "center",
               }}
             >
-              <motion.img
-                src="/assets/splash/allwinnings.svg"
-                alt=""
-                draggable={false}
-                initial={{ x: -56, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.55,
-                  ease: [0.22, 1, 0.36, 1],
-                  delay: 0.38,
-                }}
-                style={{
-                  display: "block",
-                  // 64 → 48 so the bottom block sits more
-                  // proportionally to the screen rather than
-                  // dominating the lower half.
-                  height: 48,
-                  width: "auto",
-                  alignSelf: "flex-start",
-                }}
-              />
-              <motion.img
-                src="/assets/splash/paidincash.svg"
-                alt=""
-                draggable={false}
-                initial={{ x: 56, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.55,
-                  ease: [0.22, 1, 0.36, 1],
-                  delay: 0.58,
-                }}
-                style={{
-                  display: "block",
-                  height: 48,
-                  width: "auto",
-                  // "paid in cash" is left-aligned with the
-                  // same baseline as "All winnings" but indented
-                  // so the "p" of "paid" lands roughly under
-                  // the "w" of "winnings" — matches the design
-                  // reference where the two lines stagger
-                  // diagonally instead of spanning the full
-                  // width on opposite edges.
-                  alignSelf: "flex-start",
-                  marginLeft: 64,
-                  // Small positive offset for a proper bold-
-                  // display line-height (~1.2): descender +
-                  // ascender separated by a hairline of breathing
-                  // space, not overlapping, not pulled apart.
-                  marginTop: 8,
-                }}
-              />
+              {/* Stagger wrapper — width sized to its widest
+                  child via fit-content, so the centering works
+                  off the visual bounding box of the diagonal
+                  arrangement (line 1 left-aligned, line 2 indented
+                  to put its "p" under line 1's "w"). */}
+              <div style={{ width: "fit-content" }}>
+                <motion.img
+                  src="/assets/splash/allwinnings.svg"
+                  alt=""
+                  draggable={false}
+                  initial={{ x: -56, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: 0.38,
+                  }}
+                  style={{
+                    display: "block",
+                    height: 48,
+                    width: "auto",
+                  }}
+                />
+                <motion.img
+                  src="/assets/splash/paidincash.svg"
+                  alt=""
+                  draggable={false}
+                  initial={{ x: 56, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: 0.58,
+                  }}
+                  style={{
+                    display: "block",
+                    height: 48,
+                    width: "auto",
+                    // Indents "paid in cash" so the "p" lands
+                    // roughly under the "w" of "winnings" above.
+                    marginLeft: 64,
+                    // Small positive offset for a proper bold-
+                    // display line-height (~1.2).
+                    marginTop: 8,
+                  }}
+                />
+              </div>
             </div>
           )}
         </motion.div>
