@@ -33,7 +33,6 @@ import { WelcomeGate } from "./WelcomeGate";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const ownsBottomFlush = pathname === "/";
   // Rewards uses a two-tone surface: brand-blue #0a2ecb at the
   // top of the page (matching the BrandBar), transitioning to
   // a darker #181f43 below the hero's ellipse. The rewards
@@ -103,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
         >
           {children}
-          {!ownsBottomFlush && !isGameSurface && (
+          {!isGameSurface && (
             <div
               style={{
                 height: "max(96px, calc(env(safe-area-inset-bottom) + 96px))",

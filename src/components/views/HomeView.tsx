@@ -4,7 +4,7 @@ import { RecentlyPlayedGrid } from "@/components/rails/RecentlyPlayedGrid";
 import { BigWinsRow } from "@/components/rails/BigWinsRow";
 import { SameVibeRail } from "@/components/rails/SameVibeRail";
 import { LatestBigWinsRow } from "@/components/rails/LatestBigWinsRow";
-import { QClubCard } from "@/components/QClubCard";
+import { QRewardsCard } from "@/components/QRewardsCard";
 
 /**
  * Default lobby view (Home tab).
@@ -138,16 +138,13 @@ export function HomeView() {
 
       <LatestBigWinsRow title="Latest Big Wins" items={LATEST_WINS} />
 
-      {/* The Q Club rewards card — the final block on the home feed.
-          `expandOnScroll` lets it morph from a normal mobile-frame
-          card into a full-width section as the user scrolls toward
-          it (gutter padding + corner radius + shadow all fade to
-          zero), so it reads as a "finishing flourish" at the bottom
-          of the page. AppShell's 96px footer spacer sits below this
-          element, so when scrolled to the bottom the Q Club's bottom
-          edge lands at the BottomNav's top edge — the whole card
-          stays visible and the nav doesn't cover any of it. */}
-      <QClubCard expandOnScroll />
+      {/* Q Rewards summary — Figma 255:37506. Brand-blue card with
+          "Your Q Rewards" heading + gift sticker, two active reward
+          rows (Free Spins, Free Bingo Bash) and a "See all Rewards"
+          CTA routing to /rewards. Replaces the previous scroll-
+          expand QClubCard treatment with a tighter, on-brand
+          rewards summary at the bottom of the feed. */}
+      <QRewardsCard />
     </>
   );
 }

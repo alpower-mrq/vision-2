@@ -40,6 +40,29 @@ export const metadata: Metadata = {
     // Shortcut icon for legacy crawlers / RSS readers.
     shortcut: [APP_ICON],
   },
+  // OpenGraph / Twitter card — same source PNG as the favicon so
+  // share previews on iMessage, Slack, Discord, Twitter, etc. all
+  // use the brand app icon.
+  openGraph: {
+    type: "website",
+    title: "MrQ — Concept",
+    description: "MrQ mobile app concept",
+    siteName: "MrQ",
+    images: [
+      {
+        url: APP_ICON,
+        width: 536,
+        height: 536,
+        alt: "MrQ",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "MrQ — Concept",
+    description: "MrQ mobile app concept",
+    images: [APP_ICON],
+  },
   appleWebApp: {
     capable: true,
     title: "MrQ",
