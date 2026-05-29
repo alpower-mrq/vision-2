@@ -7,9 +7,9 @@ import { BottomNav } from "./BottomNav";
 import { SideNav } from "./SideNav";
 import { DepositSheet } from "./DepositSheet";
 import { GameDetailsSheet } from "./GameDetailsSheet";
-import { LoadingSplash } from "./LoadingSplash";
 import { LoginGate } from "./LoginGate";
 import { ResumePlayingBar } from "./ResumePlayingBar";
+import { WelcomeGate } from "./WelcomeGate";
 
 /**
  * App-wide chrome that wraps every route under `/app/layout.tsx`.
@@ -125,16 +125,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <GameDetailsSheet />
       </div>
 
-      {/* Splash uses position:fixed + the --frame-right-offset CSS var
-          so it always covers exactly the mobile-frame column, never the
-          whole monitor on desktop. */}
-      <LoadingSplash />
+      {/* Welcome gate — z-[60], the very first thing the user sees
+          on every app open (per design feedback, "for now, every
+          refresh"). Replaces the old LoadingSplash. Calls
+          markBootDone on dismiss so the LoginGate behind it can
+          take the stage. */}
+      <WelcomeGate />
 
-      {/* Login gate — z-[55], rendered after the splash so the splash
-          (z-[60]) dissolves first and reveals the login form
-          underneath. Once the user submits, the gate sets a session
-          flag and fades out to leave them on whatever page they
-          landed on (typically the My Q lobby). */}
+      {/* Login gate — z-[55], rendered behind the welcome gate so
+          when the welcome's CTA fires markBootDone, the login form
+          fades up into view. Once the user submits, the gate fades
+          out and leaves them on the My Q lobby. */}
       <LoginGate />
     </>
   );
