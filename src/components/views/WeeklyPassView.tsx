@@ -130,23 +130,30 @@ export function WeeklyPassView() {
       }}
     >
       {/* ────────────────────────────────────────────────────────
-          Sheet chrome — brand-blue header band lifted directly from
-          Figma 266:47065. First row: "Weekly Pass" title on the
-          left, X close on the right (plain icon, no pill). Second
-          row: three tier tabs, each 109px wide (Figma 266:47148)
-          spanning the full inner width with 8px gaps. Sticky to
-          the top so the chrome stays reachable during scroll.
+          Top section — one continuous brand-blue band that holds
+          the chrome (title + X + tier tabs) AND extends down past
+          it with curved bottom corners. The content underneath is
+          pulled up with negative margin so the Plus card overlaps
+          the bottom of this band, matching Figma 266:47065 where
+          the curved blue sits behind the top of the Plus card.
+          Whole composition scrolls together — no sticky chrome —
+          so it reads as one cohesive page rather than a separate
+          floating bar.
           ──────────────────────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-30 w-full"
+      <section
+        className="relative w-full"
         style={{
           backgroundColor: HEADER_BG,
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
           paddingTop: "calc(env(safe-area-inset-top) + 10px)",
-          paddingBottom: 16,
           paddingLeft: 16,
           paddingRight: 16,
+          // Extra blue below the tier tabs so the curve carries on
+          // past the chrome and sits behind the Plus card's top
+          // section. Combined with content marginTop:-72, the Plus
+          // card overlaps the band by ~72px on entry.
+          paddingBottom: 96,
         }}
       >
         {/* Title row — "Weekly Pass" left, X close right. */}
@@ -206,52 +213,55 @@ export function WeeklyPassView() {
             );
           })}
         </div>
-      </header>
-
-      {/* ────────────────────────────────────────────────────────
-          Decorative gem — yellow diamond rotated 15deg, sitting in
-          the top-right corner of the benefits card. Sized down to
-          44px and pulled in to right: 22px so it sits neatly within
-          the page gutter rather than bleeding off the edge.
-          Pointer-events-none so taps fall through to the card.
-          ──────────────────────────────────────────────────────── */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          // Header is now: safe-area + 10 (top pad) + 40 (title
-          // row) + 12 (gap) + 34 (tabs) + 16 (bottom pad)
-          // = safe-area + 112. Drop the gem ~16px under that so
-          // it nests against the top-right corner of the benefits
-          // card.
-          top: "calc(env(safe-area-inset-top) + 128px)",
-          right: 22,
-          width: 44,
-          height: 44,
-          transform: "rotate(15deg)",
-          zIndex: 5,
-        }}
-        aria-hidden
-      >
-        <DiamondGem />
-      </div>
+      </section>
 
       {/* ────────────────────────────────────────────────────────
           Scrollable content — benefits card + comparison card.
-          Page-level padding mirrors every other inner page (16px).
+          marginTop: -72 pulls the cards up under the bottom of the
+          blue band so the curved background sits behind the top
+          ~72px of the Plus card (Figma intent: a layered seam
+          between chrome and content rather than a hard edge).
           ──────────────────────────────────────────────────────── */}
       <motion.div
         key={tier} /* re-mount on tier switch for a fresh fade-in */
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col"
+        className="relative flex flex-col"
         style={{
           paddingLeft: 16,
           paddingRight: 16,
-          paddingTop: 16,
+          marginTop: -72,
           gap: 16,
         }}
       >
+        {/* ──────────────────────────────────────────────────────
+            Decorative gem — yellow diamond rotated 15deg, sitting
+            on the edge of the Plus card per Figma 266:47154. It
+            peeks above the card top into the blue band and lands
+            its body on the white card, anchored to the card's
+            top-right corner. Position is relative to this content
+            container so the gem stays glued to the card as the
+            page scrolls. Pointer-events-none so taps fall through.
+            ────────────────────────────────────────────────────── */}
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            // -28px lifts the gem so ~28px of it (about a third)
+            // sits above the Plus card's top edge into the blue
+            // band; the rest is on the white card.
+            top: -28,
+            right: 22,
+            width: 88,
+            height: 88,
+            transform: "rotate(15deg)",
+            zIndex: 5,
+          }}
+          aria-hidden
+        >
+          <DiamondGem />
+        </div>
+
         {/* Benefits card */}
         {tier === "plus" ? (
           <BenefitsCard
