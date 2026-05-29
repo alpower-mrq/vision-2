@@ -125,12 +125,12 @@ export function SimpleSplashGate() {
 
             {/* Tagline — "THE CASINO YOU / LOVE TO HATE", rises up
                 + fades in just after the logo settles. Set in
-                Gilroy Bold (the real font, loaded via @font-face
-                from /public/fonts). The second line uses a larger
-                font size than the first so it visually fills the
-                same width even though "LOVE TO HATE" has fewer
-                characters than "THE CASINO YOU" — matches the
-                Figma cadence. */}
+                Gilroy Bold (real font, loaded via @font-face from
+                /public/fonts). Both lines share the same heavy
+                font-size so the headline reads as one stacked
+                block, matching the design crop where the lines
+                fill an equal width by virtue of Gilroy's letter
+                shapes. */}
             {active && (
               <motion.div
                 initial={{ y: 24, opacity: 0 }}
@@ -145,15 +145,16 @@ export function SimpleSplashGate() {
                   color: "#ffffff",
                   fontFamily: "'Gilroy', var(--font-manrope), sans-serif",
                   fontWeight: 700,
-                  letterSpacing: 0.4,
-                  lineHeight: 1.12,
+                  fontSize: 32,
+                  letterSpacing: -0.6,
+                  lineHeight: 1.05,
                   textTransform: "uppercase",
                 }}
               >
-                <div style={{ fontSize: 20 }}>
+                <div>
                   THE <span style={{ color: CASINO_YELLOW }}>CASINO</span> YOU
                 </div>
-                <div style={{ fontSize: 30, marginTop: 2 }}>LOVE TO HATE</div>
+                <div>LOVE TO HATE</div>
               </motion.div>
             )}
           </div>
