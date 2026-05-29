@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/lib/filter-context";
 
 /**
@@ -11,34 +11,46 @@ import { useShell } from "@/lib/filter-context";
  *   ┌─────────────────────────────┐
  *   │                             │
  *   │           MrQ               │  ← brand wordmark
+ *   │   Took you long enough._    │  ← randomised typed line
  *   │                             │
  *   └─────────────────────────────┘
  *
- * Plays for ~1500 ms on every app open ONLY if the user has the
+ * Plays for ~2200 ms on every app open ONLY if the user has the
  * `hasLoggedIn` flag set in localStorage. First-time users get the
  * WelcomeGate instead; this component dismisses itself instantly
  * for them.
  *
+ * The typed message below the logo cycles randomly through a short
+ * pool of brand voice lines on every load. Easy to add / edit:
+ * just push to the `LINES` array.
+ *
  * Sits at z-[65] — above the WelcomeGate (z-[60]) so on first
- * paint the brand-blue splash surface covers both possible paths
- * (welcome OR splash), and the right one stays visible after the
- * mount-time localStorage check decides. Brand-blue surface on
- * both gates means there's no visible artifact when the wrong one
- * dismisses behind the right one.
- *
- * On dismiss it fires `markBootDone` so the LoginGate (which is
- * mounted but gated on bootDone + !hasLoggedIn) can run its own
- * skip check and stay hidden for returning users.
- *
- * The user mentioned they'll redesign this screen next — keep the
- * markup minimal so the swap stays simple.
+ * paint the brand-blue splash surface covers both possible paths,
+ * and the right one stays visible after the mount-time
+ * localStorage check decides.
  */
 
-const HOLD_MS = 1500;
+const HOLD_MS = 2200;
+// Pool of brand voice lines — randomly picked on each app open.
+// User maintains this list; new entries can be appended freely.
+const LINES = [
+  "Took you long enough.",
+  "I was starting to worry.",
+  "Here for the vibes, I hope.",
+];
+
+const TYPE_INTERVAL_MS = 38;
 
 export function SimpleSplashGate() {
   const { markBootDone } = useShell();
   const [visible, setVisible] = useState(true);
+  const [active, setActive] = useState(false);
+
+  // Pick the line once per mount so it doesn't change mid-type.
+  const line = useMemo(
+    () => LINES[Math.floor(Math.random() * LINES.length)],
+    [],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -52,9 +64,9 @@ export function SimpleSplashGate() {
       return;
     }
 
-    // Returning user — hold the splash briefly, then mark boot
-    // done and fade out. LoginGate also gates on hasLoggedIn so
-    // it won't show.
+    // Returning user — show the splash, run the typewriter, then
+    // mark boot done and fade out.
+    setActive(true);
     const timer = window.setTimeout(() => {
       markBootDone();
       setVisible(false);
@@ -66,11 +78,12 @@ export function SimpleSplashGate() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed top-0 bottom-0 z-[65] overflow-hidden flex items-center justify-center"
+          className="fixed top-0 bottom-0 z-[65] overflow-hidden flex flex-col items-center justify-center"
           style={{
             left: "var(--frame-right-offset)",
             right: "var(--frame-right-offset)",
             backgroundColor: "var(--mrq-blue)",
+            gap: 24,
           }}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
@@ -78,10 +91,10 @@ export function SimpleSplashGate() {
           transition={{ duration: 0.3, ease: [0.55, 0, 0.45, 1] }}
           aria-hidden
         >
-          {/* MrQ wordmark — same mask-image trick the other gates
-              use so the SVG's preserveAspectRatio="none" baked in
-              doesn't stretch it. 140×54 at the natural 83:32
-              ratio. White paint on the brand-blue surface. */}
+          {/* MrQ wordmark — mask-image trick so the SVG's
+              preserveAspectRatio="none" baked in doesn't stretch it.
+              140×54 at the natural 83:32 ratio. White paint over
+              the brand-blue surface. */}
           <span
             role="img"
             aria-label="MrQ"
@@ -100,8 +113,65 @@ export function SimpleSplashGate() {
               maskPosition: "center",
             }}
           />
+
+          {/* Typewriter line — renders only when `active` is true
+              (i.e. for the returning-user path), starts blank,
+              types one character at a time. */}
+          {active && <TypedLine text={line} />}
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function TypedLine({ text }: { text: string }) {
+  // Track how many characters we've revealed so far.
+  const [shown, setShown] = useState(0);
+
+  useEffect(() => {
+    if (shown >= text.length) return;
+    const t = window.setTimeout(() => setShown((n) => n + 1), TYPE_INTERVAL_MS);
+    return () => window.clearTimeout(t);
+  }, [shown, text]);
+
+  return (
+    <p
+      className="text-center"
+      style={{
+        color: "#ffffff",
+        fontSize: 18,
+        fontWeight: 700,
+        letterSpacing: -0.1,
+        lineHeight: 1.4,
+        minHeight: 26, // reserve space so the layout doesn't jump on first char
+        paddingLeft: 16,
+        paddingRight: 16,
+      }}
+    >
+      {text.slice(0, shown)}
+      {/* Blinking cursor — visible while we're still typing, hidden
+          once the full line is revealed. */}
+      {shown < text.length && (
+        <span
+          aria-hidden
+          style={{
+            display: "inline-block",
+            width: "2px",
+            height: "0.95em",
+            marginLeft: "2px",
+            verticalAlign: "text-bottom",
+            backgroundColor: "#ffffff",
+            animation: "splashCursorBlink 0.9s steps(1) infinite",
+          }}
+        />
+      )}
+      <style jsx>{`
+        @keyframes splashCursorBlink {
+          50% {
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </p>
   );
 }

@@ -31,20 +31,23 @@ const G = (i: number, alt: string) => ({
   alt,
 });
 
+// Distinct artwork pool — the thumb-NN + branded PNGs, not the
+// slot-NN set used by My Recent Wins. Keeps the two rails visually
+// separate even though Buffalo Bills appears in both (it's the
+// wired game, so we lean into the repeat as continuity).
 const PICK_UP_GRID = [
-  // Buffalo Bills sits first as the most-recently-played title — it
-  // also has a real game page wired through (Figma 1485:95206), so
-  // tapping the tile drops the user into /play/buffalo-bills.
+  // Buffalo Bills opens the rail — tapping it routes into the live
+  // /play/buffalo-bills page (Figma 1485:95206).
   { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
-  { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
-  { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
-  { src: "/assets/games/slot-13.png", name: "Big Bass Bonanza" },
-  { src: "/assets/games/slot-07.png", name: "Mummy Mania" },
-  { src: "/assets/games/slot-11.png", name: "Maze Escape" },
-  { src: "/assets/games/slot-03.png", name: "Big Bass Splash" },
-  { src: "/assets/games/slot-12.png", name: "Western Gold" },
-  { src: "/assets/games/slot-09.png", name: "Golden Catch" },
-  { src: "/assets/games/slot-05.png", name: "Reactoonz" },
+  { src: "/assets/games/thumb-01.png", name: "Sweet Bonanza" },
+  { src: "/assets/games/thumb-02.png", name: "Sugar Rush" },
+  { src: "/assets/games/thumb-03.png", name: "Gates of Olympus" },
+  { src: "/assets/games/thumb-04.png", name: "The Dog House" },
+  { src: "/assets/games/thumb-05.png", name: "Wolf Gold" },
+  { src: "/assets/games/thumb-06.png", name: "Starburst" },
+  { src: "/assets/games/thumb-07.png", name: "Bonanza Megaways" },
+  { src: "/assets/games/fruit-warp.png", name: "Fruit Warp" },
+  { src: "/assets/games/wild-swarm.png", name: "Wild Swarm" },
 ];
 
 const RECENT_WINS = [
