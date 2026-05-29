@@ -118,8 +118,8 @@ export function HomeView() {
 
       <RecentlyPlayedGrid
         title="Recently Played Games"
-        seeAllLabel="Show all"
         items={PICK_UP_GRID}
+        showSeeAll={false}
       />
 
       <BigWinsRow title="My Recent Wins" items={RECENT_WINS} />
