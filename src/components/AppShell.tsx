@@ -8,6 +8,7 @@ import { SideNav } from "./SideNav";
 import { DepositSheet } from "./DepositSheet";
 import { GameDetailsSheet } from "./GameDetailsSheet";
 import { LoadingSplash } from "./LoadingSplash";
+import { LoginGate } from "./LoginGate";
 import { ResumePlayingBar } from "./ResumePlayingBar";
 
 /**
@@ -128,6 +129,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           so it always covers exactly the mobile-frame column, never the
           whole monitor on desktop. */}
       <LoadingSplash />
+
+      {/* Login gate — z-[55], rendered after the splash so the splash
+          (z-[60]) dissolves first and reveals the login form
+          underneath. Once the user submits, the gate sets a session
+          flag and fades out to leave them on whatever page they
+          landed on (typically the My Q lobby). */}
+      <LoginGate />
     </>
   );
 }
