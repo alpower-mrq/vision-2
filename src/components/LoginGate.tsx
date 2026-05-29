@@ -109,10 +109,15 @@ export function LoginGate() {
           role="dialog"
           aria-label="Log in"
         >
+          {/* Outer column — flex centred vertically so the form sits
+              in the middle of the viewport with the safe-area still
+              accounted for at the top + bottom. */}
           <div
-            className="flex flex-col items-center w-full"
+            className="flex flex-col items-center justify-center w-full"
             style={{
-              paddingTop: "calc(env(safe-area-inset-top) + 32px)",
+              minHeight: "100dvh",
+              paddingTop: "calc(env(safe-area-inset-top) + 24px)",
+              paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)",
               paddingLeft: 16,
               paddingRight: 16,
               gap: 32,
@@ -120,16 +125,28 @@ export function LoginGate() {
           >
             {/* Logo + welcome heading */}
             <div className="flex flex-col items-center gap-[12px] w-full">
-              {/* MrQ wordmark — pin width/height explicitly so the
-                  100%×100% baked into the SVG doesn't collapse it. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/logo-mrq.svg"
-                alt="MrQ"
-                width={132}
-                height={72}
-                style={{ width: 132, height: 72 }}
-                draggable={false}
+              {/* MrQ wordmark — rendered via mask-image so we can
+                  recolour it (Figma SVG ships fill="white" baked in)
+                  AND control the box size precisely. Aspect ratio
+                  83:32 (Figma viewBox) → 132×~51px target; mask-size
+                  contain keeps it crisp. */}
+              <span
+                role="img"
+                aria-label="MrQ"
+                style={{
+                  display: "block",
+                  width: 132,
+                  height: 51, // 132 × 32/83 ≈ 51 — matches Figma viewBox
+                  backgroundColor: "var(--mrq-blue)",
+                  WebkitMaskImage: "url(/assets/logo-mrq.svg)",
+                  maskImage: "url(/assets/logo-mrq.svg)",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                }}
               />
               <div className="flex flex-col items-center gap-[4px] w-full">
                 <h1
