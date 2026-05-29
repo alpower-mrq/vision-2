@@ -1,0 +1,25 @@
+{
+  "name": "MrQ",
+  "short_name": "MrQ",
+  "description": "MrQ mobile app concept",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a2ecb",
+  "theme_color": "#0a2ecb",
+  "icons": [
+    {
+      "src": "/assets/rewards/app_icon.png",
+      "sizes": "536x536",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/rewards/app_icon.png",
+      "sizes": "536x536",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

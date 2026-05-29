@@ -19,11 +19,27 @@ const anton = Anton({
   weight: ["400"],
 });
 
+// Single source for the home-screen / favicon artwork. The PNG
+// lives at /public/assets/rewards/app_icon.png — 536×536 RGBA, big
+// enough that iOS (180px) and Android (192/512px) both downscale
+// cleanly without needing pre-rendered variants.
+const APP_ICON = "/assets/rewards/app_icon.png";
+
 export const metadata: Metadata = {
   title: "MrQ — Concept",
   description: "MrQ mobile app concept",
   // PWA / Add-to-Home-Screen
   manifest: "/manifest.webmanifest",
+  icons: {
+    // Tab favicon + generic icon for browsers that don't read the
+    // manifest (older desktop Safari, etc.).
+    icon: [{ url: APP_ICON, type: "image/png" }],
+    // iOS Add-to-Home-Screen. Safari rounds the corners itself, so
+    // ship a full-bleed square — no need to pre-round.
+    apple: [{ url: APP_ICON, sizes: "180x180", type: "image/png" }],
+    // Shortcut icon for legacy crawlers / RSS readers.
+    shortcut: [APP_ICON],
+  },
   appleWebApp: {
     capable: true,
     title: "MrQ",
