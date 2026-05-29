@@ -594,10 +594,11 @@ function PassesFooter({
         alignItems: "center",
       }}
     >
-      {/* Soft gradient fade so content scrolling underneath doesn't
-          hit a hard edge against the footer. Long enough now (72px)
-          to actually feather the content into the footer surface —
-          the previous 20px read as a hard step. */}
+      {/* Soft gradient fade above the footer. We deliberately let
+          the gradient max out around 65% opacity (instead of solid
+          PAGE_BG) so content scrolling underneath stays partially
+          visible — users could otherwise mistake the opaque band
+          for the end of the page and miss the rest of the list. */}
       <div
         aria-hidden
         className="absolute"
@@ -606,7 +607,8 @@ function PassesFooter({
           left: 0,
           right: 0,
           height: 72,
-          background: `linear-gradient(to top, ${PAGE_BG}, rgba(242, 243, 243, 0))`,
+          background:
+            "linear-gradient(to top, rgba(242, 243, 243, 0.65), rgba(242, 243, 243, 0))",
           pointerEvents: "none",
         }}
       />
