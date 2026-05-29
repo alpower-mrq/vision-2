@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { animate, motion, useMotionValue } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Weekly Pass landing — Figma 266:47065 ("Plus expanded").
@@ -92,6 +92,43 @@ export function WeeklyPassView() {
   const router = useRouter();
   const [tier, setTier] = useState<Tier>("plus");
   const [plan, setPlan] = useState<Plan>("once");
+  const tierIndex = TIERS.findIndex((t) => t.id === tier);
+
+  // Horizontal swipe rail — three panels (one per tier) live side
+  // by side inside an overflow:hidden viewport; the motion.div's
+  // `x` motion-value translates the rail to bring the active panel
+  // into view. Width is measured on mount + resize so the snap
+  // distance matches the actual mobile-frame column rather than
+  // assuming 375px.
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [panelWidth, setPanelWidth] = useState(0);
+  const x = useMotionValue(0);
+
+  useEffect(() => {
+    const measure = () => {
+      if (viewportRef.current) {
+        const w = viewportRef.current.clientWidth;
+        setPanelWidth(w);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // Snap x to the active tier whenever the tier changes (tap on
+  // a tier pill) or the panel width changes (resize). The drag
+  // handler below also calls setTier, which triggers this effect
+  // — so swipe-release re-uses the same snap path.
+  useEffect(() => {
+    if (panelWidth === 0) return;
+    animate(x, -tierIndex * panelWidth, {
+      type: "spring",
+      stiffness: 360,
+      damping: 36,
+      mass: 0.8,
+    });
+  }, [tierIndex, panelWidth, x]);
 
   const dismiss = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -216,61 +253,105 @@ export function WeeklyPassView() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
-          Scrollable content — benefits card + comparison card.
-          marginTop: -72 pulls the cards up under the bottom of the
-          blue band so the curved background sits behind the top
-          ~72px of the Plus card (Figma intent: a layered seam
-          between chrome and content rather than a hard edge).
-          ──────────────────────────────────────────────────────── */}
-      <motion.div
-        key={tier} /* re-mount on tier switch for a fresh fade-in */
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="relative flex flex-col"
-        style={{
-          paddingLeft: 16,
-          paddingRight: 16,
-          marginTop: -72,
-          gap: 16,
-        }}
-      >
-        {/* Benefits card — the Plus tier renders with a corner gem
-            anchored to the card itself (see `showGem` prop) so the
-            ornament tracks the card's top-right edge precisely,
-            independent of any surrounding layout math. */}
-        {tier === "plus" ? (
-          <BenefitsCard
-            title="Plus"
-            worth="Worth £50"
-            benefits={PLUS_BENEFITS}
-            showGem
-          />
-        ) : (
-          <PlaceholderTierCard tier={tier} />
-        )}
+            Swipeable tier panels — three full-width panels (Plus,
+            Flex, Premium) live side-by-side inside an overflow-
+            hidden viewport. Dragging horizontally past a small
+            offset/velocity threshold steps to the neighbouring
+            tier; the pill row above stays in sync via the shared
+            `tier` state.
 
-        {/* "What you miss" subheading + comparison card. Only shown
-            on the Plus tier — the other tiers don't pitch the same
-            price-comparison story. */}
-        {tier === "plus" && (
-          <section className="flex flex-col" style={{ gap: 8 }}>
-            <h2
-              className="text-[16px]"
+            marginTop: -72 pulls the rail up under the bottom of
+            the blue band so the curved background sits behind the
+            top ~72px of the active panel — same overlap that was
+            here before, just one level higher in the tree.
+          ──────────────────────────────────────────────────────── */}
+      <div
+        ref={viewportRef}
+        className="relative overflow-hidden"
+        style={{ marginTop: -72 }}
+      >
+        <motion.div
+          className="flex"
+          style={{ x, width: panelWidth * TIERS.length, touchAction: "pan-y" }}
+          drag="x"
+          dragConstraints={{
+            left: -((TIERS.length - 1) * panelWidth),
+            right: 0,
+          }}
+          dragElastic={0.18}
+          dragMomentum={false}
+          onDragEnd={(_, info) => {
+            const SWIPE_OFFSET = 50; // px
+            const SWIPE_VELOCITY = 350; // px/s
+            const offset = info.offset.x;
+            const velocity = info.velocity.x;
+            let nextIndex = tierIndex;
+            if (
+              (offset < -SWIPE_OFFSET || velocity < -SWIPE_VELOCITY) &&
+              tierIndex < TIERS.length - 1
+            ) {
+              nextIndex = tierIndex + 1;
+            } else if (
+              (offset > SWIPE_OFFSET || velocity > SWIPE_VELOCITY) &&
+              tierIndex > 0
+            ) {
+              nextIndex = tierIndex - 1;
+            }
+            if (nextIndex === tierIndex) {
+              // Didn't commit a swipe — snap back to the current
+              // tier's resting position.
+              animate(x, -tierIndex * panelWidth, {
+                type: "spring",
+                stiffness: 360,
+                damping: 36,
+              });
+            } else {
+              setTier(TIERS[nextIndex].id);
+            }
+          }}
+        >
+          {TIERS.map((t) => (
+            <div
+              key={t.id}
+              className="shrink-0 flex flex-col"
               style={{
-                fontFamily: "'Gilroy', sans-serif",
-                fontWeight: 700,
-                letterSpacing: 0.1,
-                color: TERTIARY_TEXT,
-                lineHeight: 1.6,
+                width: panelWidth || "100%",
+                paddingLeft: 16,
+                paddingRight: 16,
+                gap: 16,
               }}
             >
-              What you miss
-            </h2>
-            <ComparablesCard />
-          </section>
-        )}
-      </motion.div>
+              {t.id === "plus" ? (
+                <>
+                  <BenefitsCard
+                    title="Plus"
+                    worth="Worth £50"
+                    benefits={PLUS_BENEFITS}
+                    showGem
+                  />
+                  <section className="flex flex-col" style={{ gap: 8 }}>
+                    <h2
+                      className="text-[16px]"
+                      style={{
+                        fontFamily: "'Gilroy', sans-serif",
+                        fontWeight: 700,
+                        letterSpacing: 0.1,
+                        color: TERTIARY_TEXT,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      What you miss
+                    </h2>
+                    <ComparablesCard />
+                  </section>
+                </>
+              ) : (
+                <PlaceholderTierCard tier={t.id} />
+              )}
+            </div>
+          ))}
+        </motion.div>
+      </div>
 
       {/* ────────────────────────────────────────────────────────
           Sticky footer — price selector + Start free trial CTA.
