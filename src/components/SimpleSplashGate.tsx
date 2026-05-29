@@ -182,12 +182,6 @@ export function SimpleSplashGate() {
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 56px)",
                 display: "flex",
                 flexDirection: "column",
-                // Tight gap between the two lines so they read as
-                // one stacked block — matches the design where
-                // "All winnings / paid in cash" feels like a
-                // single phrase on two lines, not two separate
-                // captions.
-                gap: 4,
               }}
             >
               <motion.img
@@ -227,6 +221,11 @@ export function SimpleSplashGate() {
                   height: 48,
                   width: "auto",
                   alignSelf: "flex-end",
+                  // Negative top margin pulls "paid in cash" up
+                  // into the empty space below "All winnings"'s
+                  // descender — matches the reference where the
+                  // two lines almost touch.
+                  marginTop: -14,
                 }}
               />
             </div>
