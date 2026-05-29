@@ -80,18 +80,19 @@ const REELS: Reel[] = [
 ];
 
 // How many reels to render in the very first batch. Each loop is
-// a full pass of the source clips, so this is a *count of loops*
-// not articles. Kept at 1 so the initial DOM has only ~5 <video>
-// elements — browsers cap concurrent media requests around 6-8,
-// and mounting 15 on first paint made some videos never finish
-// loading because they got starved out.
-const INITIAL_LOOPS = 1;
+// a full pass of the source clips (4 clips), so 2 loops = 8
+// articles up front. Brings concurrent <video> count to ~8, but
+// only the active reel + next preload "auto" — the rest stay on
+// "metadata", which is just headers (~10 KB each) so the browser's
+// concurrent-media cap (~6) holds even with all 8 mounted.
+const INITIAL_LOOPS = 2;
 // When the active reel is within this many of the rendered end,
-// extend the feed by another loop. One-ahead is enough because we
-// keep prior reels mounted (with their buffers warm), so the
-// IntersectionObserver always has the next article ready by the
-// time the user reaches it.
-const PREFETCH_AHEAD = 1;
+// extend the feed by another loop. Two-ahead so the next loop's
+// articles are mounted + start loading well before the user
+// arrives — otherwise the first scroll past the end of the
+// rendered feed lands on an article that hasn't decoded its
+// first frame yet, which reads as a black screen.
+const PREFETCH_AHEAD = 2;
 
 export default function DiscoverPage() {
   // Each "loop" is a full pass of REELS (3 source clips). Bumping
