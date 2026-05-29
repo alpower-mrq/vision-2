@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useMotionValue,
-} from "framer-motion";
+import { animate, motion, useMotionValue } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -375,7 +370,13 @@ export function WeeklyPassView() {
       <div
         ref={viewportRef}
         className="relative overflow-hidden"
-        style={{ marginTop: -72 }}
+        // marginTop -100 (was -72) so the rail extends ~28px
+        // further up under the blue band. Paired with paddingTop:
+        // 28 on each panel, the cards stay at their original
+        // visual position but the gem (lifted with top: -15
+        // inside its card) lives entirely INSIDE the viewport's
+        // overflow-hidden box and isn't cropped at the top.
+        style={{ marginTop: -100 }}
       >
         <motion.div
           className="flex"
@@ -434,6 +435,13 @@ export function WeeklyPassView() {
                   width: panelWidth || "100%",
                   paddingLeft: 16,
                   paddingRight: 16,
+                  // 28px of top padding so the gem (which lifts
+                  // top: -15 inside its card) has room to render
+                  // without being cropped by the rail viewport's
+                  // overflow-hidden. The matching marginTop: -100
+                  // on the viewport keeps the card at the same
+                  // visual position on the page.
+                  paddingTop: 28,
                   gap: 16,
                 }}
               >
@@ -442,6 +450,7 @@ export function WeeklyPassView() {
                   worth={WORTH[t.id]}
                   benefits={benefits}
                   defaultBullet={defaultBullet}
+                  gemSrc={GEMS[t.id]}
                   // Pass the global active tier as the animation
                   // key so the benefits list reruns its staggered
                   // rise-up animation every time the user changes
@@ -475,57 +484,6 @@ export function WeeklyPassView() {
       </div>
 
       {/* ────────────────────────────────────────────────────────
-          Floating corner gem — lives outside the swipe rail's
-          overflow:hidden so its peek above the benefits card
-          isn't clipped. Anchored at the same visual spot as the
-          card's top-right corner (top: ~safe-area + 100, right:
-          ~20). Asset cross-fades when the tier changes so the
-          yellow / pink / blue gem swap reads as a single morph.
-          ──────────────────────────────────────────────────────── */}
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={tier}
-          aria-hidden
-          className="pointer-events-none absolute"
-          style={{
-            // safe-area + 105 = previous resting position + 5px so
-            // the gem sits a touch lower on the seam. Size shaved
-            // 5% (124 → 118) for a slightly tidier ornament.
-            top: "calc(env(safe-area-inset-top) + 105px)",
-            right: 20,
-            width: 118,
-            height: 118,
-            transform: "rotate(15deg)",
-            zIndex: 6,
-          }}
-          initial={{ opacity: 0, scale: 0.88 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0.92,
-            transition: { duration: 0.16, ease: [0.4, 0, 1, 1] },
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={GEMS[tier]}
-            alt=""
-            draggable={false}
-            style={{
-              display: "block",
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
-        </motion.div>
-      </AnimatePresence>
-
-      {/* ────────────────────────────────────────────────────────
           Sticky footer — price selector + Start free trial CTA.
           Clamped to the mobile-frame column via --frame-right-offset
           so on desktop it hugs the 375px column rather than the
@@ -544,6 +502,7 @@ function BenefitsCard({
   worth,
   benefits,
   defaultBullet,
+  gemSrc,
   animationKey,
 }: {
   title: string;
@@ -552,6 +511,8 @@ function BenefitsCard({
   benefits: ReadonlyArray<Benefit>;
   /** Bullet style used when a benefit doesn't specify its own. */
   defaultBullet: Bullet;
+  /** Path to the corner gem PNG (yellow / pink / blue). */
+  gemSrc: string;
   /** Changes whenever the active tier changes — used as a remount
    *  key on the benefits list so the staggered rise animation
    *  replays. */
@@ -568,6 +529,39 @@ function BenefitsCard({
         gap: 16,
       }}
     >
+      {/* Corner diamond — anchored to the card's top-right edge so
+          it moves horizontally with the card as the user swipes
+          between tiers. Sized at 118 (5% smaller than the prior
+          124) and lifted top: -15 so a slim peek lands in the
+          blue band; the rest sits on the white card. The rail
+          viewport carries paddingTop:28 + marginTop:-100 so this
+          peek lives entirely inside the overflow-hidden region —
+          no clipping. The asset switches by tier. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          top: -15,
+          right: 4,
+          width: 118,
+          height: 118,
+          transform: "rotate(15deg)",
+          zIndex: 5,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={gemSrc}
+          alt=""
+          draggable={false}
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+          }}
+        />
+      </div>
 
       {/* Title row: tier name + optional Worth pill. Right padded so
           the tier name doesn't collide with the corner gem. */}
