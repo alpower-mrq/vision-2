@@ -110,10 +110,13 @@ export function WeeklyPassView() {
           exactly (same safe-area padding, same 14px bottom, same
           20px rounded-bottom corners, same 48px inner row) so the
           chrome rhythm is consistent with /casino, /search, etc.
+          Sticky-top so the back + tier tabs stay reachable while
+          the user scrolls through the benefits + comparison cards
+          underneath — same behaviour as the global BrandBar.
           Houses the back arrow + 3 tier tabs.
           ──────────────────────────────────────────────────────── */}
       <header
-        className="relative w-full"
+        className="sticky top-0 z-30 w-full"
         style={{
           backgroundColor: HEADER_BG,
           borderBottomLeftRadius: 20,
@@ -204,7 +207,12 @@ export function WeeklyPassView() {
           width: 96,
           height: 96,
           transform: "rotate(15deg)",
-          zIndex: 5,
+          // Above the sticky header (z-30) so the gem reads as a
+          // sticker peeking over the chrome at initial paint. The
+          // gem itself is absolute-on-page (not part of the header)
+          // so it scrolls away with the content as the user moves
+          // down the page.
+          zIndex: 31,
         }}
         aria-hidden
       >
