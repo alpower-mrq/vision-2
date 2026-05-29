@@ -312,11 +312,12 @@ export function HeroCarousel() {
               <PromoCard
                 src={card.src}
                 alt={card.alt}
-                // The active card opens its destination on tap (if
-                // wired); off-centre cards still just snap into focus
-                // so the user can read the artwork before committing.
+                // Any tap on a card with an `href` routes immediately
+                // — no "snap then tap again" two-step. Cards without
+                // a destination still snap into focus on tap so the
+                // user can centre an off-screen artwork.
                 onClick={() => {
-                  if (isActive && card.href) {
+                  if (card.href) {
                     router.push(card.href);
                     return;
                   }
