@@ -157,7 +157,7 @@ export function HomeView() {
       <LatestBigWinsRow title="Latest Big Wins" items={LATEST_WINS} />
 
       {/* Q Rewards summary — Figma 255:37506. Brand-blue card with
-          "Your Q Rewards" heading + gift sticker, two active reward
+          "My Q Rewards" heading + gift sticker, two active reward
           rows (Free Spins, Free Bingo Bash) and a "See all Rewards"
           CTA routing to /rewards. Replaces the previous scroll-
           expand QClubCard treatment with a tighter, on-brand

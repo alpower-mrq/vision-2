@@ -256,7 +256,7 @@ function MyRewardsContent() {
   );
 }
 
-/** "Your Q Rewards" headline block.
+/** "My Q Rewards" headline block.
  *  Figma 238:5741 — relative-positioned ellipse behind, then the
  *  tagline + 200 + Free Spins stacked centred. */
 function YourQRewardsHero() {
@@ -283,7 +283,7 @@ function YourQRewardsHero() {
         style={{
           left: "50%",
           // 18 → 33 — pushed ~15px down so the ellipse sits
-          // BETWEEN the "Your Q Rewards" tagline and the "200"
+          // BETWEEN the "My Q Rewards" tagline and the "200"
           // (Figma 238:5742), rather than starting up near the
           // tagline.
           top: 33,
@@ -306,7 +306,7 @@ function YourQRewardsHero() {
           className="font-medium text-[14px]"
           style={{ color: YELLOW, lineHeight: 1.6, letterSpacing: 0.1 }}
         >
-          Your
+          My
         </span>
         {/* Inline SVG so we control the aspect ratio.
             The exported q-title.svg has preserveAspectRatio="none"

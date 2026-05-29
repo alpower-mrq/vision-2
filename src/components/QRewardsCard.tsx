@@ -7,7 +7,7 @@ import { motion, useReducedMotion } from "framer-motion";
  * Q Rewards summary card — Figma 255:37506.
  *
  *   ┌───────────────────────────────────┐
- *   │  Your Q Rewards          🎁       │  ← yellow heading + gift sticker
+ *   │  My Q Rewards          🎁       │  ← yellow heading + gift sticker
  *   │  ┌──────────────────────────────┐ │
  *   │  │ [art] 20 Free Spins Avail.   │ │  ← reward row
  *   │  │       Valid until 30th June  │ │
@@ -23,7 +23,7 @@ import { motion, useReducedMotion } from "framer-motion";
  *
  * Surface:
  *   • Brand-blue #0b2fcb body, rounded-12.
- *   • Yellow "Your Q Rewards" headline with the swirly MrQ Q glyph
+ *   • Yellow "My Q Rewards" headline with the swirly MrQ Q glyph
  *     inserted between the two words (top-left).
  *   • Wrapped-ribbon gift box graphic top-right, rotated ~12°.
  *
@@ -65,7 +65,7 @@ export function QRewardsCard() {
 
   return (
     <motion.section
-      aria-label="Your Q Rewards"
+      aria-label="My Q Rewards"
       className="px-[16px] pt-[12px] pb-[16px]"
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [10, 0] }}
@@ -122,7 +122,7 @@ export function QRewardsCard() {
               letterSpacing: 0.15,
             }}
           >
-            Your
+            My
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
