@@ -139,29 +139,61 @@ export function HeroCarousel() {
   // Pointer-drag + smooth release snap. Touch scrolls natively;
   // mouse drag is captured here so we can fire the tween on
   // release instead of letting the browser hard-snap the rail.
+  //
+  // Critical detail: we DON'T call setPointerCapture on pointerdown.
+  // Capturing immediately would redirect the synthesized `click`
+  // event away from any button inside the rail — meaning a pure
+  // tap on a card with a routed `href` would never reach its
+  // onClick handler. Instead we defer the capture until we've
+  // detected movement past a small threshold; a plain tap stays
+  // entirely a button click and the rail never gets involved.
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
 
+    // States:
+    //   pressed = pointer is down, may or may not become a drag
+    //   dragging = we've moved past the threshold and locked in
+    let pressed = false;
     let dragging = false;
+    let pointerId = -1;
     let startX = 0;
     let startScroll = 0;
     let velocitySamples: { x: number; t: number }[] = [];
 
+    // Movement threshold (px) before we promote a press into a drag.
+    // Below this we treat the gesture as a click and let it pass
+    // through to the underlying card button.
+    const DRAG_THRESHOLD = 4;
+
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
       cancelTween();
-      dragging = true;
+      pressed = true;
+      dragging = false;
+      pointerId = e.pointerId;
       startX = e.clientX;
       startScroll = rail.scrollLeft;
       velocitySamples = [{ x: e.clientX, t: performance.now() }];
-      rail.style.cursor = "grabbing";
-      rail.setPointerCapture(e.pointerId);
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!dragging) return;
-      rail.scrollLeft = startScroll - (e.clientX - startX);
+      if (!pressed) return;
+      const dx = e.clientX - startX;
+      // Promote to drag once we've moved past the threshold. Capture
+      // the pointer at that point so subsequent moves/up events flow
+      // to the rail even if the user veers off the carousel.
+      if (!dragging) {
+        if (Math.abs(dx) < DRAG_THRESHOLD) return;
+        dragging = true;
+        rail.style.cursor = "grabbing";
+        try {
+          rail.setPointerCapture(e.pointerId);
+        } catch {
+          /* some browsers throw if the pointer is gone — ignore */
+        }
+      }
+      rail.scrollLeft = startScroll - dx;
       const now = performance.now();
       velocitySamples.push({ x: e.clientX, t: now });
       while (velocitySamples.length > 1 && now - velocitySamples[0].t > 80) {
@@ -170,11 +202,18 @@ export function HeroCarousel() {
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      if (!dragging) return;
+      if (!pressed) return;
+      pressed = false;
+      // No drag happened → it was a tap. Bail out entirely; the
+      // button's onClick will fire from the browser's synthesized
+      // click event without any interference.
+      if (!dragging) {
+        return;
+      }
       dragging = false;
       rail.style.cursor = "grab";
       try {
-        rail.releasePointerCapture(e.pointerId);
+        rail.releasePointerCapture(pointerId);
       } catch {
         /* ignore */
       }
@@ -199,6 +238,8 @@ export function HeroCarousel() {
         Math.min(CARDS.length - 1, naturalIdx + bias),
       );
       snapTo(target);
+      // Reference e so the param isn't flagged unused.
+      void e;
     };
 
     rail.style.cursor = "grab";
