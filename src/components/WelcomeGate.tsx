@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useShell } from "@/lib/filter-context";
 
 /**
@@ -38,11 +38,6 @@ import { useShell } from "@/lib/filter-context";
 export function WelcomeGate() {
   const { markBootDone } = useShell();
   const [visible, setVisible] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const dismiss = () => {
     // Tell the rest of the app that the boot phase is over so the
@@ -51,8 +46,11 @@ export function WelcomeGate() {
     setVisible(false);
   };
 
-  // No SSR render — overlay is client-only to avoid hydration noise.
-  if (!mounted) return null;
+  // No mounted/SSR check — we render the gate from the very first
+  // paint (including SSR) so the user never sees a frame of the
+  // lobby underneath before the gate appears. There's no
+  // sessionStorage / window access at render time, so there's no
+  // hydration mismatch to worry about.
 
   return (
     <AnimatePresence>

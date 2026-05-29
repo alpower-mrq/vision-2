@@ -47,31 +47,32 @@ import {
 
 const HERO_DECK: HeroGame[] = [
   {
-    src: "/assets/games/birds-on-a-wire.png",
-    alt: "Birds on a Wire",
-    title: "Birds on a Wire",
-    rtp: "96.91%",
-    exclusive: true,
-    volatility: "High",
-    maxWin: "10,000x",
-    betRange: "£0.10–£100",
-    gameType: "Slot",
-    provider: "Thunderkick",
-  },
-  {
-    // Buffalo Bills sits in slot #2 of the hero deck so users land on
-    // a real game page when they tap the second card or its play
-    // button. /play/buffalo-bills is the Figma 1485:95206 build.
+    // Buffalo Bills opens the deck — it's the wired game (tapping the
+    // card or the play button drops the user into /play/buffalo-bills,
+    // the Figma 1485:95206 build), so it makes sense as the prominent
+    // first-up showcase.
     src: "/assets/games/slot-01.png",
     alt: "Buffalo Bills",
     title: "Buffalo Bills",
     rtp: "94%",
     href: "/play/buffalo-bills",
+    exclusive: true,
     volatility: "Medium",
     maxWin: "5,000x",
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Goosicorn",
+  },
+  {
+    src: "/assets/games/south-park.png",
+    alt: "South Park",
+    title: "South Park",
+    rtp: "96.55%",
+    volatility: "Medium",
+    maxWin: "2,500x",
+    betRange: "£0.20–£250",
+    gameType: "Slot",
+    provider: "NetEnt",
   },
   {
     src: "/assets/games/fruit-warp.png",
