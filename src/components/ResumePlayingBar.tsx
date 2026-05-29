@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -54,6 +54,12 @@ export function ResumePlayingBar() {
   // below flips it on after mount when we're on the home route.
   const [dismissed, setDismissed] = useState(true);
   const x = useMotionValue(0);
+  // Set on drag start, checked by the inner "Resume playing" button's
+  // onClick. Without this, swiping the bar laterally would release
+  // over the button and immediately route into the game — the
+  // opposite of the dismissal intent. The ref resets on each fresh
+  // pointer-down so a real tap (no intervening drag) routes normally.
+  const dragWasActive = useRef(false);
   // Fade out as the user drags toward dismissal so the swipe feels
   // like it's pulling the card off the screen.
   const opacity = useTransform(x, [-200, -40, 0, 40, 200], [0, 1, 1, 1, 0]);
@@ -147,6 +153,12 @@ export function ResumePlayingBar() {
             drag="x"
             dragElastic={0.4}
             dragMomentum={false}
+            onPointerDown={() => {
+              dragWasActive.current = false;
+            }}
+            onDragStart={() => {
+              dragWasActive.current = true;
+            }}
             onDragEnd={(_, info) => {
               if (
                 Math.abs(info.offset.x) > SWIPE_THRESHOLD ||
@@ -191,7 +203,14 @@ export function ResumePlayingBar() {
             <button
               type="button"
               className="flex-1 min-w-0 flex flex-col items-start justify-center text-left active:scale-[0.99] transition-transform"
-              onClick={() => router.push(GAME.href)}
+              onClick={() => {
+                // Swiping the bar can land the click on this button
+                // (finger releases while still over it). The
+                // dragWasActive flag distinguishes a real tap from
+                // a release-after-swipe.
+                if (dragWasActive.current) return;
+                router.push(GAME.href);
+              }}
             >
               <span
                 className="font-extrabold text-[14px] leading-tight"

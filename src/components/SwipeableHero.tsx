@@ -8,7 +8,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
@@ -177,6 +177,16 @@ function SwipeCard({
   const rotate = useTransform(x, [-300, 0, 300], [-12, 0, 12]);
   const opacity = useTransform(x, [-300, -50, 0, 50, 300], [0.5, 1, 1, 1, 0.5]);
 
+  // Framer's `onTap` still fires on pointer-up after a drag (it's a
+  // "released without leaving the element" signal, not strictly a
+  // tap-vs-drag check). Without this guard, the user dragging the
+  // card sideways and releasing would also open the underlying game,
+  // which is the opposite of the intended behaviour.
+  //
+  // We flip this ref to true on drag start; the tap handler bails
+  // when it sees the flag and the next pointer-down resets it.
+  const dragWasActive = useRef(false);
+
   // Reset x to 0 whenever a fresh card mounts (post-swipe). Without
   // this the new card would inherit the previous card's exit position.
   useEffect(() => {
@@ -224,10 +234,20 @@ function SwipeCard({
         opacity: 1,
         transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
       }}
-      // onTap fires only on release WITHOUT crossing the drag
-      // threshold. A real swipe is captured by onDragEnd below and
-      // never accidentally fires tap-to-open.
-      onTap={onTap}
+      // onTap fires on release regardless of drag distance, so we
+      // gate it on the dragWasActive ref. A real swipe sets the flag
+      // in onDragStart and the tap handler short-circuits — only true
+      // taps (no drag in between) reach `onTap()`.
+      onPointerDown={() => {
+        dragWasActive.current = false;
+      }}
+      onDragStart={() => {
+        dragWasActive.current = true;
+      }}
+      onTap={() => {
+        if (dragWasActive.current) return;
+        onTap();
+      }}
       onDragEnd={(_, info) => {
         if (Math.abs(info.offset.x) > SWIPE_THRESHOLD) {
           const direction = info.offset.x > 0 ? 1 : -1;
