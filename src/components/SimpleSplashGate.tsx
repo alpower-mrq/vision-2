@@ -220,13 +220,19 @@ export function SimpleSplashGate() {
                   display: "block",
                   height: 48,
                   width: "auto",
-                  alignSelf: "flex-end",
-                  // Small positive offset under "All winnings"'s
-                  // baseline — gives the two lines a proper
-                  // bold-display line-height (~1.2): descender
-                  // and ascender separated by a hairline of
-                  // breathing space, not overlapping, not
-                  // pulled apart.
+                  // "paid in cash" is left-aligned with the
+                  // same baseline as "All winnings" but indented
+                  // so the "p" of "paid" lands roughly under
+                  // the "w" of "winnings" — matches the design
+                  // reference where the two lines stagger
+                  // diagonally instead of spanning the full
+                  // width on opposite edges.
+                  alignSelf: "flex-start",
+                  marginLeft: 64,
+                  // Small positive offset for a proper bold-
+                  // display line-height (~1.2): descender +
+                  // ascender separated by a hairline of breathing
+                  // space, not overlapping, not pulled apart.
                   marginTop: 8,
                 }}
               />
