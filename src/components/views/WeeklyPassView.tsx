@@ -214,6 +214,17 @@ export function WeeklyPassView() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  // Force the document scroll to the top whenever this view
+  // mounts. Without this the page would inherit whatever scroll
+  // position the previous route was sitting at, so opening the
+  // Weekly Pass from a scrolled-down lobby would dump the user
+  // straight at the bottom (price tiles + CTA) instead of the
+  // top (Weekly Pass header).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
   // Snap x to the active tier whenever the tier changes (tap on
   // a tier pill) or the panel width changes (resize). The drag
   // handler below also calls setTier, which triggers this effect
