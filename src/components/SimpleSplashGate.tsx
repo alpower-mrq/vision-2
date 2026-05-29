@@ -73,13 +73,12 @@ export function SimpleSplashGate() {
           style={{
             left: "var(--frame-right-offset)",
             right: "var(--frame-right-offset)",
-            // Subtle vertical gradient — slightly lighter brand-
-            // blue at the top tapering into the deeper brand-900
-            // at the bottom. Reads as a single brand-blue surface
-            // at a glance but gives the panel a bit of depth so
-            // it doesn't feel flat against the logo + headline.
+            // Very subtle vertical gradient — slightly lighter
+            // brand-blue at the top easing back to --mrq-blue at
+            // the bottom. Just enough to lift the surface off
+            // flat; doesn't darken the lower half of the splash.
             background:
-              "linear-gradient(180deg, #1532d3 0%, #0a2ecb 48%, #0c2287 100%)",
+              "linear-gradient(180deg, #1432d3 0%, #0a2ecb 100%)",
           }}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
@@ -204,7 +203,10 @@ export function SimpleSplashGate() {
                 }}
                 style={{
                   display: "block",
-                  height: 64,
+                  // 64 → 48 so the bottom block sits more
+                  // proportionally to the screen rather than
+                  // dominating the lower half.
+                  height: 48,
                   width: "auto",
                   alignSelf: "flex-start",
                 }}
@@ -222,7 +224,7 @@ export function SimpleSplashGate() {
                 }}
                 style={{
                   display: "block",
-                  height: 64,
+                  height: 48,
                   width: "auto",
                   alignSelf: "flex-end",
                 }}
