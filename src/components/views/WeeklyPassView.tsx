@@ -566,15 +566,17 @@ function PassesFooter({
       }}
     >
       {/* Soft gradient fade so content scrolling underneath doesn't
-          hit a hard edge against the footer. */}
+          hit a hard edge against the footer. Long enough now (72px)
+          to actually feather the content into the footer surface —
+          the previous 20px read as a hard step. */}
       <div
         aria-hidden
         className="absolute"
         style={{
-          top: -20,
+          top: -72,
           left: 0,
           right: 0,
-          height: 20,
+          height: 72,
           background: `linear-gradient(to top, ${PAGE_BG}, rgba(242, 243, 243, 0))`,
           pointerEvents: "none",
         }}
