@@ -390,20 +390,21 @@ function BenefitsCard({
         gap: 16,
       }}
     >
-      {/* Corner diamond — anchored to the card's top-right edge so
-          it tracks the card directly. Lifted 18px above the card
-          top so the gem peeks into the blue band, and pulled
-          slightly past the right edge (right: -2) so it nuzzles
-          the corner instead of floating inward. */}
+      {/* Corner diamond — anchored to the card's top-right edge.
+          Half the previous size (28px) and offset to match the
+          Figma 266:47154 placement: a small portion peeks above
+          the card top into the blue band; the rest sits on the
+          card with the right edge tucked just inside the card's
+          right corner. */}
       {showGem && (
         <div
           aria-hidden
           className="pointer-events-none absolute"
           style={{
-            top: -18,
-            right: -2,
-            width: 56,
-            height: 56,
+            top: -8,
+            right: 4,
+            width: 28,
+            height: 28,
             transform: "rotate(15deg)",
             zIndex: 5,
           }}
