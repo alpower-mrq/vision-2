@@ -28,26 +28,20 @@ import { useDraggableScroll } from "@/hooks/useDraggableScroll";
  *   touch-wobble flicker).
  */
 const CARDS: Array<{ key: string; src: string; alt: string }> = [
-  {
-    key: "big-weekender",
-    src: "/assets/hero/card-big-weekender.png",
-    alt: "Big Weekender is back again",
-  },
-  {
-    key: "get-spicy",
-    src: "/assets/hero/card-get-spicy.png",
-    alt: "Play Now — Get Spicy",
-  },
-  {
-    key: "big-weekender-2",
-    src: "/assets/hero/card-big-weekender.png",
-    alt: "Big Weekender is back again",
-  },
+  // The four landscape promo cards dropped into /public/assets/hero/.
+  // First entry is the natural snap target on page load — the carousel
+  // scales it up via ACTIVE_SCALE so it reads as the focused card.
+  { key: "car1", src: "/assets/hero/car1.png", alt: "Featured promo 1" },
+  { key: "car2", src: "/assets/hero/car2.png", alt: "Featured promo 2" },
+  { key: "car3", src: "/assets/hero/car3.png", alt: "Featured promo 3" },
+  { key: "car4", src: "/assets/hero/car4.png", alt: "Featured promo 4" },
 ];
 
-// Native Figma card aspect: 303 × 162 (≈ 1.87:1). Matching exactly
-// means `object-cover` doesn't crop anything off the exported PNGs.
-const CARD_ASPECT = 303 / 162;
+// Native source aspect: 228 × 336 (≈ 0.68:1 — portrait). Matches
+// the new car1–car4 promo artwork so `object-cover` doesn't crop
+// the top or bottom of the exported PNGs. (The earlier landscape
+// 303:162 cards have been retired.)
+const CARD_ASPECT = 228 / 336;
 
 // Active-card scale. Inactive cards stay at 1.0; whichever card is
 // closest to the centre of the rail scales up subtly so it reads as
@@ -143,11 +137,12 @@ export function HeroCarousel() {
               }}
               className="shrink-0 snap-start"
               style={{
-                // 82% of viewport so the active card's rightward
-                // scale-up + the 20px inter-card gap still leave
-                // a clean peek of the next card on the right
-                // (~14% of viewport visible).
-                width: "min(82%, calc(var(--mobile-width) - 60px))",
+                // Portrait cards are tall — narrower width keeps the
+                // resulting height manageable inside the home feed.
+                // 68% of viewport leaves a clean peek of the next
+                // card on the right plus the rightward scale-up
+                // headroom for the active card.
+                width: "min(68%, calc(var(--mobile-width) - 110px))",
                 aspectRatio: `${CARD_ASPECT}`,
                 transform: `scale(${isActive ? ACTIVE_SCALE : 1})`,
                 // Anchor the scale to the card's LEFT edge so the
