@@ -93,9 +93,26 @@ export function WeeklyPassView() {
   const [tier, setTier] = useState<Tier>("plus");
   const [plan, setPlan] = useState<Plan>("once");
 
+  const dismiss = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
   return (
-    <div
+    // Page reads as a sheet takeover — slides up from the bottom on
+    // mount. Wrapping the whole view in a transformed motion.div
+    // also makes any `position: fixed` descendants (the bottom CTA
+    // bar) resolve against this container instead of the viewport,
+    // so the footer rides up with the rest of the chrome during
+    // the entry animation.
+    <motion.div
       className="relative w-full"
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 240, damping: 32, mass: 0.9 }}
       style={{
         backgroundColor: PAGE_BG,
         // Reserve enough room at the bottom of the scroll area so the
@@ -106,14 +123,10 @@ export function WeeklyPassView() {
       }}
     >
       {/* ────────────────────────────────────────────────────────
-          Header band — matches the global BrandBar dimensions
-          exactly (same safe-area padding, same 14px bottom, same
-          20px rounded-bottom corners, same 48px inner row) so the
-          chrome rhythm is consistent with /casino, /search, etc.
-          Sticky-top so the back + tier tabs stay reachable while
-          the user scrolls through the benefits + comparison cards
-          underneath — same behaviour as the global BrandBar.
-          Houses the back arrow + 3 tier tabs.
+          Sheet chrome — brand-blue header band with a close (X)
+          button top-right and the tier tabs (Plus / Flex / Premium)
+          on a second row spanning the full width. Sticky to the
+          top so the chrome stays reachable during scroll.
           ──────────────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-30 w-full"
@@ -127,25 +140,13 @@ export function WeeklyPassView() {
           paddingRight: 16,
         }}
       >
-        <div
-          className="h-[48px] flex items-center"
-          style={{ gap: 8 }}
-        >
-          {/* Back to lobby — 40×40 glass pill, exact match of the
-              BrandBar's back arrow (Figma 177:35024). router.back()
-              if we have history; otherwise router.push("/") so the
-              user doesn't get stranded on a cold-open of /passes. */}
+        {/* Close row — single X pinned to the top-right corner. */}
+        <div className="flex items-center justify-end" style={{ height: 36 }}>
           <button
             type="button"
-            aria-label="Back"
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                router.back();
-              } else {
-                router.push("/");
-              }
-            }}
-            className="grid size-[40px] shrink-0 place-items-center rounded-full active:scale-[0.96] transition-transform"
+            aria-label="Close"
+            onClick={dismiss}
+            className="grid size-[36px] place-items-center rounded-full active:scale-[0.94] transition-transform"
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.18)",
               border: "1px solid rgba(255, 255, 255, 0.20)",
@@ -154,15 +155,14 @@ export function WeeklyPassView() {
               boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.24)",
             }}
           >
-            <ArrowLeftIcon className="size-[20px] text-white" />
+            <XIcon className="size-[18px] text-white" />
           </button>
+        </div>
 
-          {/* Tier pills as direct siblings of the back arrow, each
-              flex-grown so they share the remaining width equally —
-              the row reads as a single segmented control taking the
-              full width rather than three pills bunched on the
-              right. Active pill flips to white-90%; the rest stay at
-              white-40%. */}
+        {/* Tier tabs — three flex-1 pills filling the full row
+            below the close button. Active pill flips to white-90%;
+            the rest stay at white-40%. */}
+        <div className="flex items-center" style={{ gap: 8, marginTop: 10 }}>
           {TIERS.map((t) => {
             const active = t.id === tier;
             return (
@@ -193,29 +193,27 @@ export function WeeklyPassView() {
       </header>
 
       {/* ────────────────────────────────────────────────────────
-          Decorative gem — yellow diamond rotated 15deg, tucked into
-          the top-right corner of the content area just below the
-          header. Pulled fully out of the header band now (top sits
-          ~6px under the chrome's bottom edge) and shrunk to 60px so
-          it reads as a tidy corner sticker on the benefits card
-          rather than an oversized ornament bleeding off the page.
-          Pointer-events-none so taps fall through to the benefits
-          card behind it.
+          Decorative gem — yellow diamond rotated 15deg, sitting in
+          the top-right corner of the benefits card. Sized down to
+          44px and pulled in to right: 22px so it sits neatly within
+          the page gutter rather than bleeding off the edge.
+          Pointer-events-none so taps fall through to the card.
           ──────────────────────────────────────────────────────── */}
       <div
         className="pointer-events-none absolute"
         style={{
-          // Header bottom = safe-area + 72px. Drop the gem 6px
-          // below that so it nests against the corner of the
-          // benefits card without overlapping the sticky chrome.
-          top: "calc(env(safe-area-inset-top) + 78px)",
-          right: 12,
-          width: 60,
-          height: 60,
+          // Sheet chrome is now two rows tall: safe-area + 10 +
+          // 36 (close) + 10 + 34 (tabs) + 14 = safe-area + 104. We
+          // drop the gem 18px under that so it lands cleanly on
+          // the top-right corner of the benefits card below.
+          top: "calc(env(safe-area-inset-top) + 122px)",
+          right: 22,
+          width: 44,
+          height: 44,
           transform: "rotate(15deg)",
           // Sits at the same stacking level as the surrounding
-          // content — the gem no longer needs to fight the header
-          // for layering now that it lives below the chrome.
+          // content — the gem doesn't need to fight the header
+          // for layering since it lives entirely below it.
           zIndex: 5,
         }}
         aria-hidden
@@ -280,7 +278,7 @@ export function WeeklyPassView() {
           whole viewport.
           ──────────────────────────────────────────────────────── */}
       <PassesFooter plan={plan} setPlan={setPlan} />
-    </div>
+    </motion.div>
   );
 }
 
@@ -774,7 +772,7 @@ function CheckOutline() {
   );
 }
 
-function ArrowLeftIcon({ className }: { className?: string }) {
+function XIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -787,7 +785,7 @@ function ArrowLeftIcon({ className }: { className?: string }) {
       aria-hidden
       focusable={false}
     >
-      <path d="M15 6l-6 6 6 6" />
+      <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   );
 }
