@@ -40,6 +40,11 @@ const PICK_UP_GRID = [
   { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
   { src: "/assets/games/slot-13.png", name: "Big Bass Bonanza" },
   { src: "/assets/games/slot-07.png", name: "Mummy Mania" },
+  { src: "/assets/games/slot-11.png", name: "Maze Escape" },
+  { src: "/assets/games/slot-03.png", name: "Big Bass Splash" },
+  { src: "/assets/games/slot-12.png", name: "Western Gold" },
+  { src: "/assets/games/slot-09.png", name: "Golden Catch" },
+  { src: "/assets/games/slot-05.png", name: "Reactoonz" },
 ];
 
 const RECENT_WINS = [

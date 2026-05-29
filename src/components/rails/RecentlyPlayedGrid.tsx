@@ -2,27 +2,33 @@
 
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
+import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 import { getGameDetails } from "@/lib/games-catalogue";
 
 /**
- * "Recently played" — a single row of equal-width square game tiles.
+ * "Recently played" — a mini side-scrolling rail of square game tiles.
  *
- *   Recently Played Games                       Show all
- *   ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐
- *   │ ▢  │ │ ▢  │ │ ▢  │ │ ▢  │ │ ▢  │
- *   └────┘ └────┘ └────┘ └────┘ └────┘
+ *   Recently Played Games
+ *   ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ...→
+ *   │ ▢ │ │ ▢ │ │ ▢ │ │ ▢ │ │ ▢ │ │ ▢ │ │ ▢ │
+ *   └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘
  *
- * Earlier version was a 2×2 grid of white-card pills with the game
- * name printed next to each thumbnail. Per design feedback the row
- * now drops all the card chrome — just the game artwork, five
- * tiles wide, distributed evenly across the page gutter.
+ * Tiles are 72×72 — a half-step smaller than the standard GameRail's
+ * 109px so the rail reads as "mini". On a 375px mobile-frame you see
+ * roughly 4 tiles + a peek of the 5th before scrolling kicks in.
  *
- * Each tile uses `flex-1 aspect-square` so the row always fills the
- * width regardless of how many items are passed. Tapping a tile
- * launches the game (via the catalogue href when known, e.g.
- * Buffalo Bills → /play/buffalo-bills) or logs a stub when the
- * destination isn't wired yet.
+ * Per design feedback the rail dropped:
+ *   • the white-card chrome around each tile
+ *   • per-tile game name labels
+ *   • the "Show all" header link
+ *
+ * Tapping a tile launches the game via the catalogue href (Buffalo
+ * Bills → /play/buffalo-bills) or logs a stub for games that aren't
+ * built out yet.
  */
+
+const TILE_SIZE = 72;
+const TILE_GAP = 8;
 
 export type RecentlyPlayedGame = {
   src: string;
@@ -34,44 +40,43 @@ export type RecentlyPlayedGame = {
 export function RecentlyPlayedGrid({
   items,
   title = "Recently Played",
-  seeAllLabel = "Show All",
-  showSeeAll = true,
 }: {
   items: RecentlyPlayedGame[];
   title?: string;
+  /** Kept for back-compat with older callers. Currently the header
+   *  is always title-only. */
   seeAllLabel?: string;
   showSeeAll?: boolean;
 }) {
+  const railRef = useDraggableScroll<HTMLDivElement>();
   const reduce = useReducedMotion();
 
   return (
     <motion.section
       aria-label={title}
-      className="px-[16px] py-3"
+      className="py-3"
       initial={false}
       animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Header row — same typography as GameRail's so the page
-          rhythm stays consistent. */}
-      <div className="flex items-center justify-between pb-[10px]">
+      {/* Header — same typography as the other rails. Page gutter
+          (16px) lives on the header so the title aligns with the
+          rest of the feed. */}
+      <div className="px-[16px] pb-[10px]">
         <h2 className="text-[18px] font-extrabold text-[var(--mrq-blue)]">
           {title}
         </h2>
-        {showSeeAll && (
-          <button
-            type="button"
-            className="text-[14px] font-extrabold text-[var(--mrq-blue)]"
-          >
-            {seeAllLabel}
-          </button>
-        )}
       </div>
 
-      {/* Row of equal-width tiles — flex-1 + aspect-square so the
-          tile size adapts to whatever fits across the page minus
-          the 8px inter-tile gaps. */}
-      <div className="flex gap-[8px]">
+      {/* Tile rail — overflow-x-auto with a draggable-scroll hook
+          for mouse drag on desktop. Uses pl/pr 16px so the first
+          tile lines up on the page gutter; subsequent tiles
+          continue past the right edge for the side-scroll peek. */}
+      <div
+        ref={railRef}
+        className="no-scrollbar flex overflow-x-auto overflow-y-hidden pl-[16px] pr-[16px] pb-1"
+        style={{ gap: TILE_GAP, WebkitOverflowScrolling: "touch" }}
+      >
         {items.map((item, i) => (
           <RecentlyPlayedTile key={`${item.src}-${i}`} game={item} />
         ))}
@@ -100,8 +105,10 @@ function RecentlyPlayedTile({ game }: { game: RecentlyPlayedGame }) {
           console.log("[RecentlyPlayed] open game →", game.name);
         }
       }}
-      className="relative flex-1 aspect-square overflow-hidden rounded-[10px] active:scale-[0.98] transition-transform"
+      className="relative shrink-0 overflow-hidden rounded-[10px] active:scale-[0.97] transition-transform"
       style={{
+        width: TILE_SIZE,
+        height: TILE_SIZE,
         boxShadow: "0 4px 12px -4px rgba(10, 46, 203, 0.18)",
       }}
     >
