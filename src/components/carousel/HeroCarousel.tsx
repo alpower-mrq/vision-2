@@ -326,8 +326,10 @@ function PromoCard({
       type="button"
       aria-label={alt}
       onClick={onClick}
+      // No box-shadow — the source PNG artwork carries its own
+      // visual edge; the brand-blue glow under the card was double-
+      // chroming things and felt heavy.
       className="relative block h-full w-full overflow-hidden rounded-[16px] active:scale-[0.985] transition-transform"
-      style={{ boxShadow: "0 8px 24px -10px rgba(10, 46, 203, 0.35)" }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
