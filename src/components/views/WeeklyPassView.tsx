@@ -50,10 +50,25 @@ const TIERS: ReadonlyArray<{ id: Tier; label: string }> = [
   { id: "premium", label: "Premium" },
 ];
 
-// Plus benefits — copy lifted from Figma 266:47075. Each row gets a
-// title + body, with the trailing word "T&Cs" rendered as an
-// underlined link.
-const PLUS_BENEFITS: ReadonlyArray<{ title: string; body: string }> = [
+// Bullet styles. Plus and Premium use a filled brand-blue circle
+// with a white tick; Flex uses small radio buttons (selected or
+// unselected) so the user can pick which benefits to "claim" at
+// the £2 paywall (mock interaction).
+type Bullet = "tick" | "radio-on" | "radio-off";
+
+type Benefit = {
+  title: string;
+  body?: string;
+  /** Per-row pill (e.g. "£2 worth £10" on the Flex tier). */
+  pill?: string;
+  /** Renders the Netflix/Spotify/Disney+ icon row in place of body. */
+  subscriptions?: true;
+  /** Override the tier's default bullet style. */
+  bullet?: Bullet;
+};
+
+// Plus benefits — copy lifted from Figma 266:47075.
+const PLUS_BENEFITS: ReadonlyArray<Benefit> = [
   {
     title: "Q's cashback",
     body: "On real money loses, 5% up to £10.",
@@ -75,6 +90,88 @@ const PLUS_BENEFITS: ReadonlyArray<{ title: string; body: string }> = [
     body: "In any of the selected stores.",
   },
 ];
+
+// Flex benefits — Figma 271:61827. Each row carries a "£2 worth £10"
+// pill and a radio button (the first two pre-selected to model the
+// pay-per-benefit price). The 4th row swaps its body text for the
+// brand-icon row.
+const FLEX_BENEFITS: ReadonlyArray<Benefit> = [
+  {
+    title: "Q's cashback",
+    body: "Wager £20, get £1 back each week.",
+    pill: "£2 worth £10",
+    bullet: "radio-on",
+  },
+  {
+    title: "100 Spins or 100 Chips",
+    body: "On a game of your choice every Friday.",
+    pill: "£2 worth £10",
+    bullet: "radio-on",
+  },
+  {
+    title: "Prizepool",
+    body: "Get access to an exclusive weekly Prizepool.",
+    pill: "£2 worth £10",
+    bullet: "radio-off",
+  },
+  {
+    title: "Includes 3 subscriptions",
+    subscriptions: true,
+    bullet: "radio-off",
+  },
+  {
+    title: "Withdrawal guarantee",
+    body: "If we're not instant, you get £30.",
+    pill: "£2 worth £10",
+    bullet: "radio-off",
+  },
+];
+
+// Premium benefits — Figma 271:62102. All rows ticked; one of them
+// renders the brand-icon row in place of body text.
+const PREMIUM_BENEFITS: ReadonlyArray<Benefit> = [
+  {
+    title: "Prizepool",
+    body: "Get access to an exclusive weekly Prizepool.",
+  },
+  {
+    title: "100 Spins or 100 Chips",
+    body: "On a game of your choice every Friday.",
+  },
+  {
+    title: "Includes 3 subscriptions",
+    subscriptions: true,
+  },
+  {
+    title: "Access to exclusive games",
+    body: "Games you won't find anywhere else.",
+  },
+  {
+    title: "Q's cashback",
+    body: "Wager £20, get £1 back each week.",
+  },
+];
+
+// Per-tier prices for the sticky footer.
+const PRICING: Record<Tier, { once: string; monthly: string }> = {
+  plus: { once: "£10 / mo", monthly: "£100 / year" },
+  flex: { once: "£10 / mo", monthly: "£100 / year" },
+  premium: { once: "£50 / mo", monthly: "£500 / year" },
+};
+
+// Per-tier "Worth" badge (none for Flex — it's pay-as-you-go).
+const WORTH: Record<Tier, string | undefined> = {
+  plus: "Worth £50",
+  flex: undefined,
+  premium: "Worth £100",
+};
+
+// Per-tier gem PNG (Figma 266:47154 / 271:61796 / 271:61983).
+const GEMS: Record<Tier, string> = {
+  plus: "/assets/passes/plus-gem.png",
+  flex: "/assets/passes/flex-gem.png",
+  premium: "/assets/passes/premium-gem.png",
+};
 
 // "What you miss" comparison list — three monthly services at
 // roughly the same price as a Plus pass.
@@ -310,25 +407,37 @@ export function WeeklyPassView() {
             }
           }}
         >
-          {TIERS.map((t) => (
-            <div
-              key={t.id}
-              className="shrink-0 flex flex-col"
-              style={{
-                width: panelWidth || "100%",
-                paddingLeft: 16,
-                paddingRight: 16,
-                gap: 16,
-              }}
-            >
-              {t.id === "plus" ? (
-                <>
-                  <BenefitsCard
-                    title="Plus"
-                    worth="Worth £50"
-                    benefits={PLUS_BENEFITS}
-                    showGem
-                  />
+          {TIERS.map((t) => {
+            const benefits =
+              t.id === "plus"
+                ? PLUS_BENEFITS
+                : t.id === "flex"
+                  ? FLEX_BENEFITS
+                  : PREMIUM_BENEFITS;
+            const defaultBullet: Bullet =
+              t.id === "flex" ? "radio-off" : "tick";
+            return (
+              <div
+                key={t.id}
+                className="shrink-0 flex flex-col"
+                style={{
+                  width: panelWidth || "100%",
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  gap: 16,
+                }}
+              >
+                <BenefitsCard
+                  title={t.label}
+                  worth={WORTH[t.id]}
+                  benefits={benefits}
+                  defaultBullet={defaultBullet}
+                  gemSrc={GEMS[t.id]}
+                />
+                {/* "What you miss" comparison card — only the Plus
+                    tier carries the price-comparison story; Flex
+                    and Premium don't pitch it. */}
+                {t.id === "plus" && (
                   <section className="flex flex-col" style={{ gap: 8 }}>
                     <h2
                       className="text-[16px]"
@@ -344,12 +453,10 @@ export function WeeklyPassView() {
                     </h2>
                     <ComparablesCard />
                   </section>
-                </>
-              ) : (
-                <PlaceholderTierCard tier={t.id} />
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </motion.div>
       </div>
 
@@ -359,7 +466,7 @@ export function WeeklyPassView() {
           so on desktop it hugs the 375px column rather than the
           whole viewport.
           ──────────────────────────────────────────────────────── */}
-      <PassesFooter plan={plan} setPlan={setPlan} />
+      <PassesFooter plan={plan} setPlan={setPlan} tier={tier} />
     </motion.div>
   );
 }
@@ -371,13 +478,17 @@ function BenefitsCard({
   title,
   worth,
   benefits,
-  showGem = false,
+  defaultBullet,
+  gemSrc,
 }: {
   title: string;
-  worth: string;
-  benefits: ReadonlyArray<{ title: string; body: string }>;
-  /** Renders the corner diamond ornament (Plus tier only). */
-  showGem?: boolean;
+  /** Optional "Worth £50"-style pill next to the tier title. */
+  worth?: string;
+  benefits: ReadonlyArray<Benefit>;
+  /** Bullet style used when a benefit doesn't specify its own. */
+  defaultBullet: Bullet;
+  /** Path to the corner gem PNG (yellow / pink / blue). */
+  gemSrc: string;
 }) {
   return (
     <div
@@ -390,42 +501,42 @@ function BenefitsCard({
         gap: 16,
       }}
     >
-      {/* Corner diamond — anchored to the card's top-right edge.
-          Uses the real Figma 266:47154 PNG (detailed yellow gem
-          with sparkles). Kept fully inside the card horizontally
-          (right: 6) so the surrounding swipe rail's overflow-
-          hidden never clips the gem off-screen. Lifted ~38px
-          above the card top so a healthy peek lands in the blue
-          band; the bulk of the gem sits on the white card. */}
-      {showGem && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute"
+      {/* Corner diamond — same placement on every tier panel so
+          the ornament feels anchored to the chrome, not the
+          content. Sized at 124px, lifted 20px above the card top
+          (so most of the gem sits on the white card with a small
+          peek into the blue band), and pulled inside the card
+          (right: 4) so the rail's overflow-hidden never clips it.
+          The asset switches by tier — yellow / pink / blue. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          top: -20,
+          right: 4,
+          width: 124,
+          height: 124,
+          transform: "rotate(15deg)",
+          zIndex: 5,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={gemSrc}
+          alt=""
+          draggable={false}
           style={{
-            top: -38,
-            right: 6,
-            width: 96,
-            height: 96,
-            transform: "rotate(15deg)",
-            zIndex: 5,
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
           }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/passes/plus-gem.png"
-            alt=""
-            draggable={false}
-            style={{
-              display: "block",
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
-        </div>
-      )}
-      {/* Title row: tier name + "Worth £50" pill */}
-      <div className="flex items-center" style={{ gap: 8 }}>
+        />
+      </div>
+
+      {/* Title row: tier name + optional Worth pill. Right padded so
+          the tier name doesn't collide with the corner gem. */}
+      <div className="flex items-center" style={{ gap: 8, paddingRight: 96 }}>
         <h1
           style={{
             fontFamily: "'Gilroy', sans-serif",
@@ -439,75 +550,84 @@ function BenefitsCard({
         >
           {title}
         </h1>
-        <span
-          className="flex items-center justify-center"
-          style={{
-            paddingLeft: 6.316,
-            paddingRight: 6.316,
-            borderRadius: 6.316,
-            border: "1px solid rgba(12, 34, 135, 0.25)",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            color: TIER_TEXT,
-            fontFamily: "'Gilroy', sans-serif",
-            fontWeight: 800,
-            fontSize: 12.632,
-            letterSpacing: 0.21,
-            lineHeight: 1.6,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {worth}
-        </span>
+        {worth && <WorthPill>{worth}</WorthPill>}
       </div>
 
       {/* Benefit list */}
       <ul className="flex flex-col" style={{ gap: 16, margin: 0, padding: 0 }}>
-        {benefits.map((b) => (
-          <li
-            key={b.title}
-            className="flex items-start"
-            style={{ gap: 8, listStyle: "none" }}
-          >
-            <span className="shrink-0" style={{ width: 24, height: 24 }}>
-              <TickBadge />
-            </span>
-            <div className="flex flex-col" style={{ flex: "1 0 0" }}>
+        {benefits.map((b) => {
+          const bullet: Bullet = b.bullet ?? defaultBullet;
+          return (
+            <li
+              key={b.title}
+              className="flex items-start"
+              style={{ gap: 8, listStyle: "none" }}
+            >
               <span
-                style={{
-                  fontFamily: "'Gilroy', sans-serif",
-                  fontWeight: 800,
-                  fontSize: 16,
-                  lineHeight: 1.6,
-                  color: TIER_TEXT,
-                }}
+                className="shrink-0 flex items-center justify-center"
+                style={{ width: 24, height: 24, marginTop: 4 }}
               >
-                {b.title}
+                <BulletGlyph variant={bullet} />
               </span>
-              <span
-                style={{
-                  fontFamily: "'Gilroy', sans-serif",
-                  fontWeight: 500,
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  letterSpacing: 0.1,
-                  color: BODY_TEXT,
-                }}
-              >
-                {b.body}{" "}
-                <a
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  style={{
-                    textDecoration: "underline",
-                    color: BODY_TEXT,
-                  }}
+              <div className="flex flex-col" style={{ flex: "1 0 0" }}>
+                {/* Title + optional per-row pill. */}
+                <div
+                  className="flex items-center flex-wrap"
+                  style={{ gap: 8 }}
                 >
-                  T&amp;Cs
-                </a>
-              </span>
-            </div>
-          </li>
-        ))}
+                  <span
+                    style={{
+                      fontFamily: "'Gilroy', sans-serif",
+                      fontWeight: 800,
+                      fontSize: 16,
+                      lineHeight: 1.6,
+                      color: TIER_TEXT,
+                    }}
+                  >
+                    {b.title}
+                  </span>
+                  {b.pill && <WorthPill light>{b.pill}</WorthPill>}
+                </div>
+                {/* Body: either a short paragraph (most rows) or the
+                    Netflix/Spotify/Disney+ icon row (one row per
+                    Flex/Premium panel). */}
+                {b.subscriptions ? (
+                  <div
+                    className="flex items-center"
+                    style={{ gap: 4, marginTop: 4 }}
+                  >
+                    <SubscriptionIcon brand="netflix" />
+                    <SubscriptionIcon brand="spotify" />
+                    <SubscriptionIcon brand="disney" />
+                  </div>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: "'Gilroy', sans-serif",
+                      fontWeight: 500,
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      letterSpacing: 0.1,
+                      color: BODY_TEXT,
+                    }}
+                  >
+                    {b.body}{" "}
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      style={{
+                        textDecoration: "underline",
+                        color: BODY_TEXT,
+                      }}
+                    >
+                      T&amp;Cs
+                    </a>
+                  </span>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {/* Fine print under the list */}
@@ -613,47 +733,103 @@ function ComparablesCard() {
 /* ============================================================
    Placeholder card for Flex / Premium tabs (no content yet).
    ============================================================ */
-function PlaceholderTierCard({ tier }: { tier: Tier }) {
-  const label = tier === "flex" ? "Flex" : "Premium";
+/* ============================================================
+   Small pill used both for the tier "Worth £50" badge and the
+   per-row "£2 worth £10" pill on the Flex panel. `light` swaps
+   the border colour to the lighter brand stroke used in Flex.
+   ============================================================ */
+function WorthPill({
+  children,
+  light = false,
+}: {
+  children: React.ReactNode;
+  light?: boolean;
+}) {
   return (
-    <div
-      className="bg-white"
+    <span
+      className="flex items-center justify-center shrink-0"
       style={{
-        borderRadius: 16,
-        padding: 24,
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        alignItems: "flex-start",
+        paddingLeft: 6.316,
+        paddingRight: 6.316,
+        borderRadius: 6.316,
+        border: light
+          ? "1px solid #ced5f5"
+          : "1px solid rgba(12, 34, 135, 0.25)",
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+        color: TIER_TEXT,
+        fontFamily: "'Gilroy', sans-serif",
+        fontWeight: 800,
+        fontSize: 12.632,
+        letterSpacing: 0.21,
+        lineHeight: 1.6,
+        whiteSpace: "nowrap",
       }}
     >
-      <h1
-        style={{
-          fontFamily: "'Gilroy', sans-serif",
-          fontWeight: 700,
-          fontSize: 24,
-          color: TIER_TEXT,
-          lineHeight: 1.6,
-          margin: 0,
-        }}
-      >
-        {label}
-      </h1>
-      <p
-        style={{
-          fontFamily: "'Gilroy', sans-serif",
-          fontWeight: 500,
-          fontSize: 14,
-          lineHeight: 1.6,
-          letterSpacing: 0.1,
-          color: BODY_TEXT,
-          margin: 0,
-        }}
-      >
-        Details for the {label} pass are coming soon. Tap Plus above to see
-        the full benefits list.
-      </p>
-    </div>
+      {children}
+    </span>
+  );
+}
+
+/* ============================================================
+   Benefit row bullet — switches between the brand-blue tick
+   badge (Plus / Premium) and a radio button (Flex), where the
+   radio can be filled (selected) or empty.
+   ============================================================ */
+function BulletGlyph({ variant }: { variant: Bullet }) {
+  if (variant === "tick") return <TickBadge />;
+  // Radio variants — 24×24 circle, brand-blue when selected, grey
+  // when not. Selected has a filled brand-blue dot in the middle.
+  const selected = variant === "radio-on";
+  return (
+    <span
+      className="relative block rounded-full"
+      style={{
+        width: 24,
+        height: 24,
+        backgroundColor: "#f2f3f3",
+        border: selected ? `2px solid ${HEADER_BG}` : "2px solid #cccdd0",
+      }}
+    >
+      {selected && (
+        <span
+          className="absolute rounded-full"
+          style={{
+            top: 4,
+            left: 4,
+            width: 12,
+            height: 12,
+            backgroundColor: HEADER_BG,
+          }}
+        />
+      )}
+    </span>
+  );
+}
+
+/* ============================================================
+   "Includes 3 subscriptions" inline icon row — Netflix /
+   Spotify / Disney+ rendered side-by-side with a small overlap
+   so they read as a stacked group.
+   ============================================================ */
+function SubscriptionIcon({
+  brand,
+}: {
+  brand: "netflix" | "spotify" | "disney";
+}) {
+  return (
+    <span
+      className="block shrink-0"
+      style={{
+        width: 24,
+        height: 24,
+        // -10px overlap between consecutive icons. The CSS gap on
+        // the parent is 4, so each icon's effective horizontal
+        // contribution is 24 - 10 + 4 = 18px.
+        marginRight: -10,
+      }}
+    >
+      <BrandIcon brand={brand} />
+    </span>
   );
 }
 
@@ -665,10 +841,13 @@ function PlaceholderTierCard({ tier }: { tier: Tier }) {
 function PassesFooter({
   plan,
   setPlan,
+  tier,
 }: {
   plan: Plan;
   setPlan: (p: Plan) => void;
+  tier: Tier;
 }) {
+  const prices = PRICING[tier];
   return (
     <div
       className="fixed bottom-0 z-30"
@@ -716,13 +895,13 @@ function PassesFooter({
           selected={plan === "once"}
           onClick={() => setPlan("once")}
           label="One-time buy"
-          price="£10 / mo"
+          price={prices.once}
         />
         <PlanTile
           selected={plan === "monthly"}
           onClick={() => setPlan("monthly")}
           label="Monthly"
-          price="£100 / year"
+          price={prices.monthly}
           badge="Save 20%"
         />
       </div>
