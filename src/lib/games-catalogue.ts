@@ -191,5 +191,11 @@ export function getGameDetails(name: string, src: string): GameDetails {
     gameType: known?.gameType ?? DEFAULTS.gameType,
     provider: known?.provider ?? DEFAULTS.provider,
     href: known?.href,
+    // Forward the optional gameplay preview if the catalogue
+    // carries one. Was being silently dropped before because the
+    // return statement only listed the fields it knew about; the
+    // src-fallback match for "Buffalo Bills Hypercharged" hit the
+    // Buffalo Bills entry but the preview never made it through.
+    preview: known?.preview,
   };
 }
