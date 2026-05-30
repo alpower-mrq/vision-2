@@ -48,7 +48,13 @@ export default function RewardsPage() {
 
   return (
     <div
-      className="relative min-h-[100dvh] pt-[20px] pb-[32px]"
+      // No min-h-[100dvh] here: AppShell already paints the brand
+      // surface for /rewards as the main bg, so when the offers
+      // tab has only two sections we don't need to force-stretch
+      // the page wrapper to 100dvh — the parent's bg covers any
+      // residual space without the wrapper ballooning past the
+      // last card. pb tightened 32 → 8 for the same reason.
+      className="relative pt-[20px] pb-[8px]"
       style={{
         // Two surface treatments per tab:
         //   • My Rewards → solid #0a2ecb with an overlaid
@@ -397,8 +403,8 @@ function AvailableToCollect() {
     // section's own padding doing the work.
     <section style={{ paddingLeft: 16 }}>
       <h2
-        className="text-white font-extrabold text-[16px]"
-        style={{ paddingRight: 16, lineHeight: 1.6 }}
+        className="text-white font-extrabold text-[18px]"
+        style={{ paddingRight: 16, lineHeight: 1.55 }}
       >
         Available to collect
       </h2>
@@ -511,13 +517,13 @@ function AvailableCard({
             style={{ color: BRAND_DARK }}
           >
             <p
-              className="text-[14px] font-extrabold"
-              style={{ letterSpacing: 0.1, lineHeight: 1.4 }}
+              className="text-[15px] font-extrabold"
+              style={{ letterSpacing: 0.1, lineHeight: 1.35 }}
             >
               {title}
             </p>
             <p
-              className="text-[10px] font-medium"
+              className="text-[12px] font-medium"
               style={{ letterSpacing: 0.2, lineHeight: 1.4 }}
             >
               {subtitle}
@@ -546,7 +552,7 @@ function AvailableCard({
           light-blue inner card. */}
       <div className="px-[12px] pb-[10px] pt-[2px]">
         <p
-          className="text-[10px] font-medium opacity-70"
+          className="text-[11px] font-medium opacity-70"
           style={{
             color: "#0e1120",
             letterSpacing: 0.2,
@@ -578,8 +584,8 @@ function InProgress() {
   return (
     <section className="px-[16px]">
       <h2
-        className="text-white font-extrabold text-[16px]"
-        style={{ lineHeight: 1.6 }}
+        className="text-white font-extrabold text-[18px]"
+        style={{ lineHeight: 1.55 }}
       >
         In Progress
       </h2>
@@ -615,13 +621,13 @@ function InProgress() {
             style={{ color: BRAND_DARK }}
           >
             <p
-              className="text-[14px] font-bold"
-              style={{ lineHeight: 1.45 }}
+              className="text-[16px] font-extrabold"
+              style={{ lineHeight: 1.35 }}
             >
               May Megahaul Cash Bonus
             </p>
             <p
-              className="text-[10px] font-medium"
+              className="text-[12px] font-medium"
               style={{ letterSpacing: 0.2, lineHeight: 1.5 }}
             >
               Valid until 30th May
@@ -658,11 +664,11 @@ function InProgress() {
             />
           </div>
           <p
-            className="text-[12px] font-medium"
+            className="text-[14px] font-extrabold"
             style={{
               color: BRAND_DARK,
               letterSpacing: 0.2,
-              lineHeight: 1.6,
+              lineHeight: 1.5,
             }}
           >
             Wagered £14 of £20
@@ -687,11 +693,11 @@ function InProgress() {
 
         {/* T&Cs footer — small gray, with underlined Full T&Cs. */}
         <p
-          className="text-[10px] font-medium opacity-70"
+          className="text-[11px] font-medium opacity-70"
           style={{
             color: TEXT_SECONDARY,
             letterSpacing: 0.2,
-            lineHeight: 1.6,
+            lineHeight: 1.55,
           }}
         >
           Get a £20 cash reward when you&apos;ve wagered £20. Opt
@@ -720,8 +726,8 @@ function ThisWeeksOffers() {
   return (
     <section className="px-[16px]">
       <h2
-        className="text-white font-extrabold text-[16px]"
-        style={{ lineHeight: 1.6 }}
+        className="text-white font-extrabold text-[18px]"
+        style={{ lineHeight: 1.55 }}
       >
         This weeks offers
       </h2>
@@ -776,13 +782,13 @@ function WeekOfferCard({
       {/* Text + CTA block. */}
       <div className="flex flex-col gap-[6px] px-[12px] pb-[12px]">
         <p
-          className="font-extrabold text-[14px]"
-          style={{ color: BRAND_DARK, lineHeight: 1.4 }}
+          className="font-extrabold text-[15px]"
+          style={{ color: BRAND_DARK, lineHeight: 1.35 }}
         >
           {title}
         </p>
         <p
-          className="text-[11px] font-medium"
+          className="text-[12px] font-medium"
           style={{
             color: TEXT_SECONDARY,
             letterSpacing: 0.2,
@@ -793,7 +799,7 @@ function WeekOfferCard({
         </p>
         <button
           type="button"
-          className="mt-[6px] w-full h-[40px] rounded-[10px] font-extrabold text-[13px] text-white active:scale-[0.98] transition-transform"
+          className="mt-[6px] w-full h-[42px] rounded-[10px] font-extrabold text-[14px] text-white active:scale-[0.98] transition-transform"
           style={{ backgroundColor: BRAND_DARK, letterSpacing: 0.1 }}
         >
           View offer
@@ -807,8 +813,8 @@ function AllOffers() {
   return (
     <section className="px-[16px]">
       <h2
-        className="text-white font-extrabold text-[16px]"
-        style={{ lineHeight: 1.6 }}
+        className="text-white font-extrabold text-[18px]"
+        style={{ lineHeight: 1.55 }}
       >
         All offers
       </h2>
