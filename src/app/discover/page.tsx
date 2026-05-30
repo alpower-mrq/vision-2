@@ -82,10 +82,7 @@ const REELS: Reel[] = [
 
 // How many reels to render in the very first batch. Each loop is
 // a full pass of the source clips (4 clips), so 2 loops = 8
-// articles up front. Brings concurrent <video> count to ~8, but
-// only the active reel + next preload "auto" — the rest stay on
-// "metadata", which is just headers (~10 KB each) so the browser's
-// concurrent-media cap (~6) holds even with all 8 mounted.
+// articles up front.
 const INITIAL_LOOPS = 2;
 // When the active reel is within this many of the rendered end,
 // extend the feed by another loop. Two-ahead so the next loop's
@@ -94,6 +91,23 @@ const INITIAL_LOOPS = 2;
 // rendered feed lands on an article that hasn't decoded its
 // first frame yet, which reads as a black screen.
 const PREFETCH_AHEAD = 2;
+// Hard cap on the loop count. Was unbounded — every prefetch
+// trigger appended another 4 articles, so after a long scroll
+// session the DOM had 30+ <article> elements each with a <video>
+// child. iOS Safari starts dropping frames around 6-8 concurrent
+// videos and the feed visibly bogged down. 6 loops = 24 reels =
+// ~24 vertical screens, more than any one session realistically
+// burns through. Past that, the feed simply stops extending and
+// the user hits the natural end.
+const MAX_LOOPS = 6;
+// Only mount the actual <video> element for reels within this
+// distance of the active index. Reels outside the window render
+// as black-bg <article> placeholders so the snap-scroll geometry
+// is preserved, but no decoder is allocated for them. Keeps
+// concurrent <video> count to at most (BEFORE+1+AFTER) = 5 at any
+// time — well under Safari's cap.
+const VIDEO_WINDOW_BEFORE = 1;
+const VIDEO_WINDOW_AFTER = 3;
 
 export default function DiscoverPage() {
   // Each "loop" is a full pass of REELS (3 source clips). Bumping
@@ -134,10 +148,11 @@ export default function DiscoverPage() {
   }, [loops]);
 
   // Append another loop when the user gets close to the end of the
-  // currently rendered feed.
+  // currently rendered feed — capped at MAX_LOOPS so the DOM
+  // doesn't balloon. Beyond the cap the feed simply stops growing.
   useEffect(() => {
     if (activeIndex >= reels.length - PREFETCH_AHEAD) {
-      setLoops((n) => n + 1);
+      setLoops((n) => (n < MAX_LOOPS ? n + 1 : n));
     }
   }, [activeIndex, reels.length]);
 
@@ -156,7 +171,11 @@ export default function DiscoverPage() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {reels.map((reel, i) => (
+        {reels.map((reel, i) => {
+          const distance = i - activeIndex;
+          const mountVideo =
+            distance >= -VIDEO_WINDOW_BEFORE && distance <= VIDEO_WINDOW_AFTER;
+          return (
           <Fragment key={reel.key}>
             <ReelArticle
               reel={reel}
@@ -164,6 +183,7 @@ export default function DiscoverPage() {
               activeIndex={activeIndex}
               muted={muted}
               forcePause={suggestionActive}
+              mountVideo={mountVideo}
               onEnter={() => setActiveIndex(i)}
               onTapVideo={() => setMuted((m) => !m)}
             />
@@ -181,7 +201,8 @@ export default function DiscoverPage() {
               />
             )}
           </Fragment>
-        ))}
+          );
+        })}
       </div>
 
       {/* Fixed UI — title (bottom-left) + action stack (bottom-right).
@@ -212,6 +233,7 @@ function ReelArticle({
   activeIndex,
   muted,
   forcePause,
+  mountVideo,
   onEnter,
   onTapVideo,
 }: {
@@ -224,6 +246,13 @@ function ReelArticle({
    *  reel video's audio from leaking through underneath, and stops
    *  the playhead drifting while the slide is on screen. */
   forcePause?: boolean;
+  /** Only mount the actual <video> element when this article is
+   *  within the active window (parent computes via VIDEO_WINDOW_*).
+   *  Outside the window we render just the black <article> snap
+   *  target — no decoder, no buffer, no audio context. Keeps
+   *  concurrent <video> count down so iOS Safari doesn't choke
+   *  during long scroll sessions. */
+  mountVideo: boolean;
   onEnter: () => void;
   onTapVideo: () => void;
 }) {
@@ -315,13 +344,20 @@ function ReelArticle({
       ref={articleRef}
       className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black"
     >
-      {/* Just the video. No poster image overlay — we want the first
-          video frame on screen instantly, not a static placeholder
-          that crossfades out. The <video> element's own `poster`
-          attribute is also intentionally omitted: the browser shows
-          a black frame for the millisecond before decode catches up,
-          which reads as a clean "loading into video" instead of a
-          flash of a different game's still image. */}
+      {/* Video only mounts when this article is within the active
+          window (mountVideo prop, computed by the parent). When
+          outside, the <article> still acts as the snap target with
+          its black bg, but no decoder / buffer / audio is allocated
+          — keeps Safari happy during long scroll sessions.
+
+          No poster image overlay — we want the first video frame on
+          screen instantly, not a static placeholder that crossfades
+          out. The <video> element's own `poster` attribute is also
+          intentionally omitted: the browser shows a black frame for
+          the millisecond before decode catches up, which reads as a
+          clean "loading into video" instead of a flash of a
+          different game's still image. */}
+      {mountVideo && (
       <video
         ref={videoRef}
         src={reel.video}
@@ -345,6 +381,7 @@ function ReelArticle({
         // without re-rasterising the frames.
         style={{ transform: "translateZ(0)", willChange: "transform" }}
       />
+      )}
 
       {/* Tap-anywhere-on-the-reel sound toggle. Sits above the video
           and below the fixed chrome (title / action stack), so a tap
