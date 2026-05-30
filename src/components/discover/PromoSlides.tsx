@@ -56,10 +56,12 @@ function usePromoActive(onActiveChange?: (active: boolean) => void) {
 
 /**
  * Fixed brand-blue cover that masks the BottomNav's default black
- * /discover scrim while this promo slide is in view. Same shape +
- * z-stack as the one in SuggestionCard — the BottomNav renders
- * after our slide in AppShell so we have to outrank its z-30
- * scrim. Nav buttons (z-40) still float above.
+ * /discover scrim while this promo slide is in view. Sized to
+ * exactly match the BottomNav's own scrim band (90px) so it
+ * doesn't extend upward and start clipping the CTA pinned above
+ * it. Same z-stack as SuggestionCard's scrim — z-[35] sits above
+ * the nav's black scrim (z-30); nav buttons themselves (z-40)
+ * still float above.
  */
 function BottomScrimCover({ isActive }: { isActive: boolean }) {
   return (
@@ -69,9 +71,9 @@ function BottomScrimCover({ isActive }: { isActive: boolean }) {
       style={{
         left: "var(--frame-right-offset)",
         right: "var(--frame-right-offset)",
-        height: 100,
+        height: 90,
         background: "var(--mrq-blue, #0a2ecb)",
-        zIndex: 39,
+        zIndex: 35,
       }}
       animate={{ opacity: isActive ? 1 : 0 }}
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
@@ -196,54 +198,34 @@ export function ArenaPromoSlide({
             aria-hidden
             style={{ transformOrigin: "bottom left" }}
           >
-            {/* The exact cherries sticker from Figma (node 277:80557).
-                Figma renders this as TWO layered SVGs in a grid cell:
-                  • base (Group 5027)  at natural size
-                  • detail (Group 5028) at inset -5.95% / -6.29%
-                    (slightly oversize for the outline pass)
-                Stacking them here matches the canvas render. */}
-            <div className="relative" style={{ width: 84, height: 88 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/promo/cherries-base.svg"
-                alt=""
-                draggable={false}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  display: "block",
-                }}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/promo/cherries-detail.svg"
-                alt=""
-                draggable={false}
-                style={{
-                  position: "absolute",
-                  top: "-5.95%",
-                  bottom: "-5.95%",
-                  left: "-6.29%",
-                  right: "-6.29%",
-                  width: "112.58%",
-                  height: "111.9%",
-                  display: "block",
-                }}
-              />
-            </div>
+            {/* Cherries sticker — using cherry.png saved to the
+                main assets folder. Single PNG render, no SVG
+                layering needed. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/cherry.png"
+              alt=""
+              width={92}
+              height={92}
+              draggable={false}
+              style={{ display: "block" }}
+            />
           </motion.div>
 
           <motion.button
             {...fadeUp(0.15)}
             type="button"
             onClick={() => router.push("/arena")}
-            className="inline-flex items-center justify-center rounded-full px-[28px] h-[54px] text-[18px] font-extrabold active:scale-[0.97] transition-transform"
+            // Rounded-rect (16px), not a full pill — matches the
+            // Figma design. z-index 40 sits ABOVE the BottomScrimCover
+            // (z-35) so the bottom blue band doesn't clip into the
+            // CTA's lower edge.
+            className="relative inline-flex items-center justify-center rounded-[16px] px-[24px] h-[52px] text-[17px] font-extrabold active:scale-[0.97] transition-transform"
             style={{
               backgroundColor: "#ffffff",
               color: "var(--mrq-blue-dark, #0c2287)",
               boxShadow: "0 12px 28px -12px rgba(0, 0, 0, 0.4)",
+              zIndex: 40,
             }}
           >
             Join Arena
@@ -277,7 +259,7 @@ export function FreeSpinsPromoSlide({
       <BottomScrimCover isActive={isActive} />
 
       <div
-        className="absolute inset-0 flex flex-col items-center"
+        className="absolute inset-0 flex flex-col items-center justify-center"
         style={{
           paddingTop: TOP_PADDING,
           paddingBottom: BOTTOM_PADDING,
@@ -285,8 +267,9 @@ export function FreeSpinsPromoSlide({
           paddingRight: 24,
         }}
       >
-        <div className="flex-1" />
-
+        {/* Headline + CTA cluster, centered vertically. CTA now sits
+            directly below "TO CLAIM" with a small gap, rather than
+            being pinned full-width at the bottom of the slide. */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 22 }}
           animate={
@@ -336,8 +319,6 @@ export function FreeSpinsPromoSlide({
           </h2>
         </motion.div>
 
-        <div style={{ flex: 1.4 }} />
-
         <motion.button
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={
@@ -350,11 +331,16 @@ export function FreeSpinsPromoSlide({
           }}
           type="button"
           onClick={() => router.push("/rewards")}
-          className="self-stretch inline-flex items-center justify-center rounded-full h-[56px] text-[18px] font-extrabold active:scale-[0.97] transition-transform"
+          // Smaller, rounded-rect, inline-width — sits right below
+          // the "To claim" line rather than spanning the bottom.
+          // z-index 40 lifts the button above the BottomScrimCover
+          // (z-35) so the blue band can't clip its lower edge.
+          className="relative mt-[28px] inline-flex items-center justify-center rounded-[16px] px-[28px] h-[50px] text-[17px] font-extrabold active:scale-[0.97] transition-transform"
           style={{
             backgroundColor: "#ffffff",
             color: "var(--mrq-blue-dark, #0c2287)",
             boxShadow: "0 12px 28px -12px rgba(0, 0, 0, 0.4)",
+            zIndex: 40,
           }}
         >
           Open Rewards
