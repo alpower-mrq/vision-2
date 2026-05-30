@@ -221,19 +221,21 @@ export function SuggestionCard({
         aria-hidden
       />
 
-      {/* Blue scrim — fixed-positioned overlay that paints over the
-          BottomNav's default black-on-/discover scrim while this
-          slide is in view. Matches the BottomNav scrim's height +
-          shape so the bottom of the suggestion card visually
-          continues the mrq-blue surface right up to the nav row
-          instead of fading into the reels' black.
+      {/* Flat brand-blue cover — masks the BottomNav's default
+          black-on-/discover scrim while this slide is in view.
+
+          We render a SOLID mrq-blue block (no gradient) sized to
+          match the BottomNav scrim's footprint. The slide's page
+          surface is already mrq-blue, so the cover blends invisibly
+          and the user sees no gradient at all at the bottom of the
+          slide — the whole surface reads as one flat brand-blue
+          plane right up to the nav row.
 
           z-[35] sits ABOVE the BottomNav's own scrim (z-30) — the
           BottomNav renders after this component in AppShell, so
-          without the bump our scrim was painted underneath the
-          black one and the user still saw the dark gradient. The
-          nav buttons themselves are z-40, so they stay on top of
-          our blue scrim. */}
+          without the bump the black scrim painted on top of ours.
+          The nav buttons themselves are z-40, so they stay on top
+          of the cover. */}
       <motion.div
         aria-hidden
         className="fixed bottom-0 z-[35] pointer-events-none"
@@ -247,10 +249,7 @@ export function SuggestionCard({
       >
         <div
           className="absolute inset-x-0 bottom-0 h-[90px]"
-          style={{
-            background:
-              "linear-gradient(to top, var(--mrq-blue, #0a2ecb) 30%, rgba(10, 46, 203, 0) 100%)",
-          }}
+          style={{ background: "var(--mrq-blue, #0a2ecb)" }}
         />
       </motion.div>
 
