@@ -6,35 +6,37 @@ import {
   EMPTY_FILTERS,
   MAX_BET_OPTIONS,
   MIN_BET_OPTIONS,
-  RTP_BANDS,
+  RTP_RANGES,
   SORT_OPTIONS,
   VOLATILITY_OPTIONS,
   countActiveFilters,
   type GameFilters,
   type SortKey,
 } from "@/lib/game-filters";
+import { GAME_CATEGORIES } from "@/lib/searchable-games";
 
 /**
  * Inline filter bar for the search takeover.
  *
- * The whole search experience is already a full-page takeover, so there
- * is no bottom sheet — everything lives on one horizontally-scrollable
- * line of facet chips (Sort, Provider, RTP, Volatility, Min/Max wager).
+ * One horizontally-scrollable line of facet chips. Category is the
+ * primary narrower (Casino / Live Casino / Bingo / Arena); Provider,
+ * RTP (as a range), Volatility and Min/Max wager refine. Tapping a chip
+ * opens a floating dropdown anchored under the bar; picking a value
+ * filters LIVE. Single-value facets close on pick; multi-value ones
+ * (Category, Provider, Volatility) stay open so selections stack.
  *
- * Tapping a chip opens a floating dropdown card anchored under the bar.
- * Picking a value filters LIVE — the parent's result list updates
- * immediately, no apply step. Single-value facets close on pick;
- * multi-value facets (Provider, Volatility) stay open so you can stack
- * selections. Tapping the chip again, the backdrop, or a value closes it.
+ * Sort is a pure modifier and only appears once results exist (`canSort`)
+ * — it never reveals the catalogue on its own.
  */
 
 type FacetKey =
-  | "sort"
+  | "category"
   | "provider"
   | "rtp"
   | "volatility"
   | "minBet"
-  | "maxBet";
+  | "maxBet"
+  | "sort";
 
 type Row = { label: string; selected: boolean; onSelect: () => void };
 
@@ -44,25 +46,35 @@ export function FilterBar({
   sort,
   onSortChange,
   providers,
+  canSort,
 }: {
   filters: GameFilters;
   onChange: (next: GameFilters) => void;
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
   providers: string[];
+  /** Show the Sort chip only when there's a result set to reorder. */
+  canSort: boolean;
 }) {
   const [open, setOpen] = useState<FacetKey | null>(null);
   const toggle = (k: FacetKey) => setOpen((cur) => (cur === k ? null : k));
   const close = () => setOpen(null);
 
   const activeCount = countActiveFilters(filters);
-  const toggleIn = (list: string[], v: string) =>
+  const toggleIn = <T extends string>(list: T[], v: T): T[] =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
   // ----- chip labels reflect the current selection -----
+  const multiLabel = (list: string[], fallback: string) =>
+    list.length === 1 ? list[0] : list.length > 1 ? `${fallback} (${list.length})` : fallback;
+
   const rtpLabel =
-    RTP_BANDS.find((b) => b.value === filters.minRtp && b.value != null)
-      ?.label ?? "RTP";
+    RTP_RANGES.find(
+      (r) =>
+        r.min === filters.minRtp &&
+        r.max === filters.maxRtp &&
+        (r.min != null || r.max != null),
+    )?.label ?? "RTP";
   const minBetLabel =
     MIN_BET_OPTIONS.find(
       (o) => o.value === filters.minBetUpTo && o.value != null,
@@ -71,27 +83,17 @@ export function FilterBar({
     MAX_BET_OPTIONS.find(
       (o) => o.value === filters.maxBetAtLeast && o.value != null,
     )?.label ?? "Max wager";
-  const volLabel =
-    filters.volatility.length === 1
-      ? filters.volatility[0]
-      : filters.volatility.length > 1
-        ? `Volatility (${filters.volatility.length})`
-        : "Volatility";
-  const provLabel =
-    filters.providers.length === 1
-      ? filters.providers[0]
-      : filters.providers.length > 1
-        ? `Provider (${filters.providers.length})`
-        : "Provider";
 
   // ----- rows for whichever facet is open -----
   let rows: Row[] = [];
   let closeOnSelect = true;
-  if (open === "sort") {
-    rows = SORT_OPTIONS.map((o) => ({
-      label: o.label,
-      selected: sort === o.key,
-      onSelect: () => onSortChange(o.key),
+  if (open === "category") {
+    closeOnSelect = false;
+    rows = GAME_CATEGORIES.map((c) => ({
+      label: c,
+      selected: filters.categories.includes(c),
+      onSelect: () =>
+        onChange({ ...filters, categories: toggleIn(filters.categories, c) }),
     }));
   } else if (open === "provider") {
     closeOnSelect = false;
@@ -102,10 +104,10 @@ export function FilterBar({
         onChange({ ...filters, providers: toggleIn(filters.providers, p) }),
     }));
   } else if (open === "rtp") {
-    rows = RTP_BANDS.map((b) => ({
-      label: b.label,
-      selected: filters.minRtp === b.value,
-      onSelect: () => onChange({ ...filters, minRtp: b.value }),
+    rows = RTP_RANGES.map((r) => ({
+      label: r.label,
+      selected: filters.minRtp === r.min && filters.maxRtp === r.max,
+      onSelect: () => onChange({ ...filters, minRtp: r.min, maxRtp: r.max }),
     }));
   } else if (open === "volatility") {
     closeOnSelect = false;
@@ -127,6 +129,12 @@ export function FilterBar({
       selected: filters.maxBetAtLeast === o.value,
       onSelect: () => onChange({ ...filters, maxBetAtLeast: o.value }),
     }));
+  } else if (open === "sort") {
+    rows = SORT_OPTIONS.map((o) => ({
+      label: o.label,
+      selected: sort === o.key,
+      onSelect: () => onSortChange(o.key),
+    }));
   }
 
   return (
@@ -134,25 +142,25 @@ export function FilterBar({
       {/* One line — horizontally scrollable, never wraps. */}
       <div className="flex items-center gap-[8px] overflow-x-auto px-[16px] pb-[10px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <FacetChip
-          label={SORT_OPTIONS.find((s) => s.key === sort)?.label ?? "Sort"}
-          active={sort !== "relevance"}
-          isOpen={open === "sort"}
-          onClick={() => toggle("sort")}
+          label={multiLabel(filters.categories, "Category")}
+          active={filters.categories.length > 0}
+          isOpen={open === "category"}
+          onClick={() => toggle("category")}
         />
         <FacetChip
-          label={provLabel}
+          label={multiLabel(filters.providers, "Provider")}
           active={filters.providers.length > 0}
           isOpen={open === "provider"}
           onClick={() => toggle("provider")}
         />
         <FacetChip
           label={rtpLabel}
-          active={filters.minRtp != null}
+          active={filters.minRtp != null || filters.maxRtp != null}
           isOpen={open === "rtp"}
           onClick={() => toggle("rtp")}
         />
         <FacetChip
-          label={volLabel}
+          label={multiLabel(filters.volatility, "Volatility")}
           active={filters.volatility.length > 0}
           isOpen={open === "volatility"}
           onClick={() => toggle("volatility")}
@@ -169,6 +177,21 @@ export function FilterBar({
           isOpen={open === "maxBet"}
           onClick={() => toggle("maxBet")}
         />
+
+        {/* Sort — divider + chip, only once there's a set to reorder. */}
+        {canSort && (
+          <>
+            <span className="h-[20px] w-px shrink-0 bg-black/10" />
+            <FacetChip
+              label={SORT_OPTIONS.find((s) => s.key === sort)?.label ?? "Sort"}
+              active={sort !== "relevance"}
+              isOpen={open === "sort"}
+              onClick={() => toggle("sort")}
+              icon="sort"
+            />
+          </>
+        )}
+
         {activeCount > 0 && (
           <button
             type="button"
@@ -183,8 +206,8 @@ export function FilterBar({
         )}
       </div>
 
-      {/* Floating dropdown — overlays the results, so the list below
-          doesn't jump. Backdrop catches an outside tap to dismiss. */}
+      {/* Floating dropdown — overlays the results so the list doesn't
+          jump. Backdrop catches an outside tap to dismiss. */}
       <AnimatePresence>
         {open && (
           <>
@@ -200,7 +223,16 @@ export function FilterBar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute left-[16px] z-[50] mt-[2px] max-h-[280px] w-[230px] overflow-y-auto rounded-[16px] bg-white py-[6px] shadow-[0_12px_40px_rgba(3,34,172,0.22)] ring-1 ring-black/5"
+              // Explicit top: 100% anchors the dropdown to the
+              // FilterBar outer's bottom edge. Relying on Tailwind's
+              // mt-[2px] + the absolute element's static-position
+              // calculation worked in some engines but rendered at
+              // the parent's TOP in others (especially mobile Safari
+              // when the parent has no in-flow children other than
+              // the chip bar). Anchoring explicitly makes the
+              // dropdown appear consistently right under the chips.
+              style={{ top: "100%", marginTop: 4 }}
+              className="absolute left-[16px] z-[50] max-h-[300px] w-[240px] overflow-y-auto rounded-[16px] bg-white py-[6px] shadow-[0_12px_40px_rgba(3,34,172,0.22)] ring-1 ring-black/5"
               role="listbox"
             >
               {rows.map((r) => (
@@ -236,11 +268,13 @@ function FacetChip({
   active,
   isOpen,
   onClick,
+  icon,
 }: {
   label: string;
   active: boolean;
   isOpen: boolean;
   onClick: () => void;
+  icon?: "sort";
 }) {
   const filled = active || isOpen;
   return (
@@ -255,6 +289,7 @@ function FacetChip({
           : { backgroundColor: "#CED5F5", color: "var(--mrq-blue-dark)" }
       }
     >
+      {icon === "sort" && <SortIcon className="size-[14px]" />}
       {label}
       <Chevron open={isOpen} />
     </button>
@@ -276,6 +311,24 @@ function Chevron({ open }: { open: boolean }) {
       focusable={false}
     >
       <path d="m4 6 4 4 4-4" />
+    </svg>
+  );
+}
+
+function SortIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+      focusable={false}
+    >
+      <path d="M7 4v16M7 20l-3-3M7 4l3 3M17 20V4M17 4l-3 3M17 20l3-3" />
     </svg>
   );
 }
