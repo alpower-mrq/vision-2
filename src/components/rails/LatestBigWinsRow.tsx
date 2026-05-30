@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useDraggableScroll } from "@/hooks/useDraggableScroll";
-import { CountUpAmount } from "@/components/CountUpAmount";
 
 /**
  * "Latest big wins" — horizontal scroll of social-style win cards.
@@ -84,8 +83,20 @@ function WinEventCard({ win }: { win: WinEvent }) {
         <span className="text-[14px] font-extrabold leading-none text-[var(--mrq-blue)]">
           {win.username}
         </span>
+        {/* "just hit £X on Game" — the cash amount is highlighted
+            brand-blue + extrabold so it pops out of the social
+            sentence. No count-up animation here: this row is a
+            stream of OTHER people's wins, not the user's own
+            score, so a "ticking up" effect doesn't carry the
+            same scoreboard meaning as it does on the wallet pill
+            or My Recent Big Wins. Static cash amount reads as a
+            stated fact. */}
         <span className="text-[13px] font-bold leading-tight text-[var(--mrq-blue-dark)] opacity-80">
-          just hit <CountUpAmount value={win.amount} /> on {win.game}
+          just hit{" "}
+          <span className="font-extrabold text-[var(--mrq-blue)] opacity-100">
+            {win.amount}
+          </span>{" "}
+          on {win.game}
         </span>
       </span>
     </button>
