@@ -84,10 +84,18 @@ export function LiveGameRail({
   );
 }
 
-/* Single rich card. Fixed 180px width so multiple are predictable
-   per viewport, but the content height varies a touch with the
-   optional recentResults strip. */
-function LiveGameCard({ game }: { game: LiveGame }) {
+/* Single rich card. Exported so the /live/[category] grid view
+   (LiveCategoryView) can reuse the same chrome for its 2-col grid
+   layout — rail variant just wraps it in a horizontal scroller. */
+export function LiveGameCard({
+  game,
+  fixedWidth = 180,
+}: {
+  game: LiveGame;
+  /** Default fixed width (rail variant). Pass `null` to drop the
+   *  width constraint and let the parent grid size the card. */
+  fixedWidth?: number | null;
+}) {
   return (
     <button
       type="button"
@@ -95,12 +103,12 @@ function LiveGameCard({ game }: { game: LiveGame }) {
       onClick={() => {
         if (typeof window !== "undefined") {
           // eslint-disable-next-line no-console
-          console.log("[LiveGameRail] open game →", game.name);
+          console.log("[LiveGameCard] open game →", game.name);
         }
       }}
-      className="shrink-0 flex flex-col rounded-[14px] bg-white overflow-hidden text-left active:scale-[0.98] transition-transform"
+      className={`flex flex-col rounded-[14px] bg-white overflow-hidden text-left active:scale-[0.98] transition-transform ${fixedWidth != null ? "shrink-0" : "w-full"}`}
       style={{
-        width: 180,
+        ...(fixedWidth != null ? { width: fixedWidth } : null),
         boxShadow: "0 6px 18px -10px rgba(10, 46, 203, 0.22)",
       }}
     >

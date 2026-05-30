@@ -41,6 +41,7 @@ export function CategoriesSheet({
   onSelect,
   onClose,
   onHome,
+  homeLabel = "Back to Casino Home",
   title = "Casino Categories",
   hideAllGames = false,
 }: {
@@ -57,11 +58,15 @@ export function CategoriesSheet({
   categories: Category[];
   onSelect: (key: string | null) => void;
   onClose: () => void;
-  /** Optional — when provided, the sheet renders a "Back to Casino
-   *  Home" link at the top of the list that calls this handler.
-   *  Sub-routes (per-category, all-games) pass it; the casino
+  /** Optional — when provided, the sheet renders a "Back to <home>
+   *  Home" link at the bottom of the list that calls this handler.
+   *  Sub-routes (per-category, all-games) pass it; the vertical's
    *  homepage itself omits it since you're already there. */
   onHome?: () => void;
+  /** Label for the home row's link, defaulting to "Back to Casino
+   *  Home". Live Casino sub-pages pass "Back to Live Casino Home"
+   *  so the back link names the right vertical. */
+  homeLabel?: string;
   title?: string;
   /** Hide the default "All games" row. Used by verticals that don't
    *  have an "all games" landing yet (e.g. Live Casino, which only
@@ -200,6 +205,7 @@ export function CategoriesSheet({
                     style={{ backgroundColor: "rgba(10, 46, 203, 0.10)" }}
                   />
                   <HomeRow
+                    label={homeLabel}
                     onClick={() => {
                       onHome();
                       onClose();
@@ -215,7 +221,13 @@ export function CategoriesSheet({
   );
 }
 
-function HomeRow({ onClick }: { onClick: () => void }) {
+function HomeRow({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <li>
       <button
@@ -226,7 +238,7 @@ function HomeRow({ onClick }: { onClick: () => void }) {
         <span className="flex items-center gap-[10px]">
           <BackArrowIcon className="size-[16px] text-[var(--mrq-blue)]" />
           <span className="text-[16px] font-extrabold text-[var(--mrq-blue)]">
-            Back to Casino Home
+            {label}
           </span>
         </span>
       </button>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
 import { ChevronDownIcon } from "../CategoryChevron";
-import { LiveGameRail } from "@/components/rails/LiveGameRail";
+import { LiveGameCard } from "@/components/rails/LiveGameRail";
 import {
   LIVE_CATEGORIES,
   LIVE_GAMES_BY_CATEGORY,
@@ -14,12 +14,12 @@ import {
 /**
  * Per-category Live Casino page, e.g. `/live/roulette`.
  *
- * Same header pattern as CasinoCategoryView (title + pluralised CTA
- * pill + "Browse all X games" sub-line), but the body is a single
- * full-width LiveGameRail listing every game in the category. Cards
- * are too information-dense (player count, dealer, min-bet, spin
- * history) for a 3-col grid like /casino/[category] — they need a
- * proper rail to breathe.
+ * Same header pattern as CasinoCategoryView — title + pluralised CTA
+ * pill + "Browse all X games" sub-line — and a 2-column grid of the
+ * same rich LiveGameCard used in the rails on /live. Card stays
+ * info-dense (player count, dealer, optional spin history) but in a
+ * vertical grid rather than a horizontal scroller, so this page
+ * mirrors Casino's "real" browse layout per the design.
  */
 
 function labelFor(key: string): string {
@@ -68,23 +68,26 @@ export function LiveCategoryView({ category }: { category: string }) {
           <ChevronDownIcon size={14} />
         </button>
       </div>
-      <p className="px-[16px] pb-[6px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
+      <p className="px-[16px] pb-[12px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
         Browse all {label} games
       </p>
 
-      {/* Single full-width rail listing every game in this category.
-          Identical card style to the /live homepage rails so the
-          user reads the page as "the rail, but in full" rather than
-          a new grid type. */}
+      {/* 2-column grid of the rich Live cards — each grid cell sizes
+          the card to fill its column. Reuses LiveGameCard from the
+          rails so the chrome is identical to the homepage rails. */}
       <motion.div
         initial={reduce ? false : { opacity: 0, y: 6 }}
         animate={reduce ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        className="grid grid-cols-2 gap-[12px] px-[16px] pb-[24px]"
       >
-        <LiveGameRail
-          title={label === "Game Shows" ? "Live Gameshows" : label}
-          games={games}
-        />
+        {games.map((game, i) => (
+          <LiveGameCard
+            key={`${game.name}-${i}`}
+            game={game}
+            fixedWidth={null}
+          />
+        ))}
       </motion.div>
 
       <CategoriesSheet
@@ -94,6 +97,7 @@ export function LiveCategoryView({ category }: { category: string }) {
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
         onHome={() => router.push("/live")}
+        homeLabel="Back to Live Casino Home"
         title="Live Casino Categories"
       />
     </>

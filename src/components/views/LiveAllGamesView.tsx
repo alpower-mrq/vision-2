@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { CategoriesSheet } from "../CategoriesSheet";
 import { ChevronDownIcon } from "../CategoryChevron";
-import { LiveGameRail } from "@/components/rails/LiveGameRail";
+import { LiveGameCard } from "@/components/rails/LiveGameRail";
 import {
   LIVE_ALL_GAMES,
   LIVE_CATEGORIES,
@@ -14,10 +14,9 @@ import {
 /**
  * Live Casino "All games" landing — /live/games.
  *
- * Mirrors CasinoAllGamesView's pattern: same header / CTA pill as the
- * per-category page, but the pill highlights the "All" row in the sheet
- * (selected={null}). Body lists every game in the catalogue using the
- * standard LiveGameRail layout.
+ * Mirrors CasinoAllGamesView: same header / CTA pill as the per-
+ * category page, the pill highlights the All row in the sheet
+ * (selected={null}). Body is a 2-column grid of every live game.
  */
 
 export function LiveAllGamesView() {
@@ -26,7 +25,6 @@ export function LiveAllGamesView() {
   const reduce = useReducedMotion();
 
   const handleSelect = (key: string | null) => {
-    // null → stay (we're already on /live/games).
     if (key) router.push(`/live/${key}`);
   };
 
@@ -51,7 +49,7 @@ export function LiveAllGamesView() {
           <ChevronDownIcon size={14} />
         </button>
       </div>
-      <p className="px-[16px] pb-[6px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
+      <p className="px-[16px] pb-[12px] text-[14px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
         Browse every Live Casino game
       </p>
 
@@ -59,19 +57,25 @@ export function LiveAllGamesView() {
         initial={reduce ? false : { opacity: 0, y: 6 }}
         animate={reduce ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        className="grid grid-cols-2 gap-[12px] px-[16px] pb-[24px]"
       >
-        <LiveGameRail title="All Live Casino" games={LIVE_ALL_GAMES} />
+        {LIVE_ALL_GAMES.map((game, i) => (
+          <LiveGameCard
+            key={`${game.name}-${i}`}
+            game={game}
+            fixedWidth={null}
+          />
+        ))}
       </motion.div>
 
       <CategoriesSheet
         open={sheetOpen}
-        // `null` highlights the "All games" row in the sheet — same
-        // pattern CasinoAllGamesView uses.
         selected={null}
         categories={LIVE_CATEGORIES}
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
         onHome={() => router.push("/live")}
+        homeLabel="Back to Live Casino Home"
         title="Live Casino Categories"
       />
     </>

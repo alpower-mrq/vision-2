@@ -11,29 +11,23 @@ import { useEffect, useRef, useState } from "react";
  *   • ArenaPromoSlide       — Arena recruiter, sits after video 8
  *   • FreeSpinsPromoSlide   — Reward CTA, sits after video 10
  *
- * Layout strategy
- * ─────────────────
- * Each slide uses `position: absolute inset-0` with a flex column
- * inside. PaddingTop = brand-bar clearance (the snap container has
- * `-mt-[24px]` so the article's top sits 24px ABOVE the brand bar's
- * bottom; we add ~96px on top of safe-area to push the first row
- * cleanly below the bar). PaddingBottom = bottom-nav clearance so
- * the CTA never collides with the floating nav pill.
- *
- * Entrance motion gates on a 60% IntersectionObserver, same
- * threshold the reel feed uses. `onActiveChange` notifies the
- * parent so it can hide FixedReelChrome + force-pause adjacent
- * reels while the promo is in view.
+ * Both share:
+ *   • Brand-blue full-bleed surface
+ *   • Absolute inset-0 flex column with brand-bar + bottom-nav
+ *     padding so content always sits in the visible safe area
+ *   • A fixed blue scrim at z-[35] that masks the BottomNav's
+ *     default black /discover gradient (same trick SuggestionCard
+ *     uses — without it the bottom edge fades to black, which
+ *     reads as a video bleeding through)
+ *   • Responsive headline sizing via clamp() so the copy scales
+ *     gracefully from 360px-wide handsets up to a 430px Pro Max
+ *   • Entrance animations gated on a 60% IntersectionObserver
+ *     (matches the reel feed's own threshold)
+ *   • An onActiveChange callback the page wires to a promoActive
+ *     flag → force-pauses adjacent reels + hides FixedReelChrome
  */
 
-// Top clearance: the snap container's -mt-[24px] pulls the article
-// 24px ABOVE the brand-bar bottom; on top of that we need the
-// brand bar itself (~56px content + safe-area-top) to clear. 96px
-// gives that plus breathing room.
 const TOP_PADDING = "calc(env(safe-area-inset-top) + 96px)";
-// Bottom clearance so the CTA + decoration sit above the floating
-// BottomNav. var(--bottom-nav-h) covers the nav pill + the safe-
-// area below it; +24 is the visual breathing room.
 const BOTTOM_PADDING = "calc(var(--bottom-nav-h, 80px) + 24px)";
 
 function usePromoActive(onActiveChange?: (active: boolean) => void) {
@@ -60,6 +54,31 @@ function usePromoActive(onActiveChange?: (active: boolean) => void) {
   return { articleRef, isActive };
 }
 
+/**
+ * Fixed brand-blue cover that masks the BottomNav's default black
+ * /discover scrim while this promo slide is in view. Same shape +
+ * z-stack as the one in SuggestionCard — the BottomNav renders
+ * after our slide in AppShell so we have to outrank its z-30
+ * scrim. Nav buttons (z-40) still float above.
+ */
+function BottomScrimCover({ isActive }: { isActive: boolean }) {
+  return (
+    <motion.div
+      aria-hidden
+      className="fixed bottom-0 pointer-events-none"
+      style={{
+        left: "var(--frame-right-offset)",
+        right: "var(--frame-right-offset)",
+        height: 100,
+        background: "var(--mrq-blue, #0a2ecb)",
+        zIndex: 39,
+      }}
+      animate={{ opacity: isActive ? 1 : 0 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+    />
+  );
+}
+
 // ── Slide 1: Arena ─────────────────────────────────────────────
 
 export function ArenaPromoSlide({
@@ -71,9 +90,6 @@ export function ArenaPromoSlide({
   const reduce = useReducedMotion();
   const { articleRef, isActive } = usePromoActive(onActiveChange);
 
-  // Per-element variants so the headline rises into view first,
-  // then the cherries pop, then the CTA settles. All gated on
-  // isActive so the animation only fires once the slide snaps in.
   const fadeUp = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 20 },
     animate: isActive
@@ -95,6 +111,8 @@ export function ArenaPromoSlide({
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
       }}
     >
+      <BottomScrimCover isActive={isActive} />
+
       <div
         className="absolute inset-0 flex flex-col"
         style={{
@@ -104,11 +122,11 @@ export function ArenaPromoSlide({
           paddingRight: 24,
         }}
       >
-        {/* Top group — Live pill, then headline. */}
-        <motion.div {...fadeUp(0)} className="flex flex-col gap-[14px]">
+        {/* Top group — Live pill, then headline + subhead. */}
+        <motion.div {...fadeUp(0)} className="flex flex-col gap-[12px]">
           <span
             className="inline-flex items-center gap-[8px] self-start rounded-full pl-[12px] pr-[16px] py-[7px]"
-            style={{ backgroundColor: "rgba(255, 255, 255, 0.16)" }}
+            style={{ backgroundColor: "rgba(122, 246, 153, 0.2)" }}
           >
             <span
               aria-hidden
@@ -126,17 +144,27 @@ export function ArenaPromoSlide({
           </span>
 
           <h2
-            className="text-white text-[52px] font-extrabold uppercase"
-            style={{ lineHeight: 0.94, letterSpacing: -1.2 }}
+            className="text-white font-extrabold uppercase"
+            style={{
+              // Capped at 40px so "FANCY A BIT OF" fits one line in
+              // the narrowest mobile-frame (360px → 312px content
+              // after 24px gutters). Caps via min() against the
+              // frame width since `vw` reads off the desktop viewport
+              // on the dev preview and overshoots otherwise.
+              fontSize: "clamp(32px, 10vw, 40px)",
+              lineHeight: 0.95,
+              letterSpacing: -1.2,
+            }}
           >
             Fancy a bit of
             <br />
             chaos?
           </h2>
           <p
-            className="text-[40px] font-extrabold lowercase"
+            className="font-extrabold lowercase"
             style={{
               color: "#3B9DFF",
+              fontSize: "clamp(24px, 7.5vw, 30px)",
               lineHeight: 1,
               letterSpacing: -0.6,
               marginTop: 4,
@@ -148,12 +176,9 @@ export function ArenaPromoSlide({
           </p>
         </motion.div>
 
-        {/* Flex spacer to push the bottom row down. */}
         <div className="flex-1" />
 
-        {/* Bottom row — cherries on the left, "Join Arena" pill on
-            the right. Both align to the same baseline above the
-            BottomNav clearance line. */}
+        {/* Bottom row — cherries on the left, CTA on the right. */}
         <div className="flex items-end justify-between">
           <motion.div
             initial={reduce ? false : { opacity: 0, scale: 0.6, rotate: -10 }}
@@ -171,7 +196,43 @@ export function ArenaPromoSlide({
             aria-hidden
             style={{ transformOrigin: "bottom left" }}
           >
-            <CherriesSticker />
+            {/* The exact cherries sticker from Figma (node 277:80557).
+                Figma renders this as TWO layered SVGs in a grid cell:
+                  • base (Group 5027)  at natural size
+                  • detail (Group 5028) at inset -5.95% / -6.29%
+                    (slightly oversize for the outline pass)
+                Stacking them here matches the canvas render. */}
+            <div className="relative" style={{ width: 84, height: 88 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/promo/cherries-base.svg"
+                alt=""
+                draggable={false}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: "block",
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/promo/cherries-detail.svg"
+                alt=""
+                draggable={false}
+                style={{
+                  position: "absolute",
+                  top: "-5.95%",
+                  bottom: "-5.95%",
+                  left: "-6.29%",
+                  right: "-6.29%",
+                  width: "112.58%",
+                  height: "111.9%",
+                  display: "block",
+                }}
+              />
+            </div>
           </motion.div>
 
           <motion.button
@@ -213,6 +274,8 @@ export function FreeSpinsPromoSlide({
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
       }}
     >
+      <BottomScrimCover isActive={isActive} />
+
       <div
         className="absolute inset-0 flex flex-col items-center"
         style={{
@@ -222,11 +285,8 @@ export function FreeSpinsPromoSlide({
           paddingRight: 24,
         }}
       >
-        {/* Top spacer pushes the headline down to the visual centre. */}
         <div className="flex-1" />
 
-        {/* Centred headline stack — three rows, with "100 FREE / SPINS"
-            in yellow for emphasis. */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 22 }}
           animate={
@@ -240,15 +300,20 @@ export function FreeSpinsPromoSlide({
           className="text-center"
         >
           <h2
-            className="text-[60px] font-extrabold uppercase text-white"
-            style={{ lineHeight: 0.96, letterSpacing: -1.2 }}
+            className="font-extrabold uppercase text-white"
+            style={{
+              fontSize: "clamp(40px, 13vw, 52px)",
+              lineHeight: 0.96,
+              letterSpacing: -1.2,
+            }}
           >
             You have
           </h2>
           <h2
-            className="text-[60px] font-extrabold uppercase"
+            className="font-extrabold uppercase"
             style={{
               color: "#FFD400",
+              fontSize: "clamp(40px, 13vw, 52px)",
               lineHeight: 1,
               letterSpacing: -1.2,
               marginTop: 8,
@@ -259,18 +324,20 @@ export function FreeSpinsPromoSlide({
             spins
           </h2>
           <h2
-            className="text-[60px] font-extrabold uppercase text-white"
-            style={{ lineHeight: 0.96, letterSpacing: -1.2, marginTop: 8 }}
+            className="font-extrabold uppercase text-white"
+            style={{
+              fontSize: "clamp(40px, 13vw, 52px)",
+              lineHeight: 0.96,
+              letterSpacing: -1.2,
+              marginTop: 8,
+            }}
           >
             To claim
           </h2>
         </motion.div>
 
-        {/* Spacer between headline and CTA — bigger than the top
-            spacer so the headline reads slightly above middle. */}
         <div style={{ flex: 1.4 }} />
 
-        {/* CTA — full-width white pill. */}
         <motion.button
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={
@@ -294,58 +361,5 @@ export function FreeSpinsPromoSlide({
         </motion.button>
       </div>
     </article>
-  );
-}
-
-// ── Cherries decoration (inline SVG approximation) ──────────────
-
-function CherriesSticker() {
-  return (
-    <svg width="100" height="92" viewBox="0 0 100 92" fill="none" aria-hidden>
-      {/* Stems */}
-      <path
-        d="M32 60 C 38 38, 50 26, 56 16"
-        stroke="#0c2287"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M66 62 C 62 40, 58 30, 56 18"
-        stroke="#0c2287"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* Leaf */}
-      <path
-        d="M54 16 C 64 6, 84 4, 90 16 C 80 22, 64 24, 54 16 Z"
-        fill="#27AE60"
-        stroke="#0c2287"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      {/* Back cherry */}
-      <circle
-        cx="62"
-        cy="68"
-        r="20"
-        fill="#E535A8"
-        stroke="#0c2287"
-        strokeWidth="3.5"
-      />
-      {/* Front cherry */}
-      <circle
-        cx="32"
-        cy="72"
-        r="18"
-        fill="#FF60C4"
-        stroke="#0c2287"
-        strokeWidth="3.5"
-      />
-      {/* Highlights */}
-      <circle cx="26" cy="66" r="3.5" fill="#ffffff" opacity="0.85" />
-      <circle cx="56" cy="62" r="3" fill="#ffffff" opacity="0.85" />
-    </svg>
   );
 }
