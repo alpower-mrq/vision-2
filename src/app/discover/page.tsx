@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { SuggestionCard } from "@/components/discover/SuggestionCard";
 import {
   ArenaPromoSlide,
@@ -262,6 +263,40 @@ export default function DiscoverPage() {
           );
         })}
       </div>
+
+      {/* Brand-blue cover that masks the BottomNav's default black-
+          on-/discover scrim while any of the three blue interstitial
+          slides (SuggestionCard, ArenaPromoSlide, FreeSpinsPromoSlide)
+          is in view.
+
+          Lives at the page level — OUTSIDE the snap-scroll container
+          — for a critical iOS reason: Safari has a long-standing
+          quirk where `position: fixed` elements rendered inside a
+          `-webkit-overflow-scrolling: touch` ancestor get re-anchored
+          to the scroll container instead of the viewport. Earlier
+          versions of this cover lived inside each <article>, which
+          worked fine on desktop preview but ended up positioned off-
+          screen on iPhone — so the BottomNav's black gradient
+          stayed visible behind the blue promos. Rendering the cover
+          here (alongside FixedReelChrome, which already works
+          correctly on iOS) sidesteps the bug entirely.
+
+          z-35 sits ABOVE the BottomNav's own black scrim (z-30) and
+          BELOW the floating pill nav (z-40), so the cover masks the
+          gradient without obscuring the nav buttons. */}
+      <motion.div
+        aria-hidden
+        className="fixed bottom-0 pointer-events-none"
+        style={{
+          left: "var(--frame-right-offset)",
+          right: "var(--frame-right-offset)",
+          height: 100,
+          background: "var(--mrq-blue, #0a2ecb)",
+          zIndex: 35,
+        }}
+        animate={{ opacity: overlayActive ? 1 : 0 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      />
 
       {/* Fixed UI — title (bottom-left) + action stack (bottom-right).
           Sit OUTSIDE the per-reel <article> so they stay anchored on

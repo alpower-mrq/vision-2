@@ -235,61 +235,38 @@ export function SuggestionCard({
         aria-hidden
       />
 
-      {/* Flat brand-blue cover — masks the BottomNav's default
-          black-on-/discover scrim while this slide is in view.
+      {/* NOTE: the brand-blue cover that masks the BottomNav's
+          black-on-/discover scrim is rendered at the PAGE level
+          (DiscoverPage), not here. iOS Safari has a long-standing
+          quirk where `position: fixed` inside a `-webkit-overflow-
+          scrolling: touch` container (which the /discover snap
+          column is) gets re-anchored to the scroll ancestor
+          instead of the viewport, so an in-article fixed scrim
+          ended up off-screen on iPhone while rendering correctly
+          on desktop preview. Lifting it to the page level (where
+          FixedReelChrome already sits) sidesteps the bug. */}
 
-          Sized to EXACTLY the BottomNav scrim's visible gradient
-          footprint (100px from the viewport bottom — the nav's
-          inner gradient is 90px, +10px buffer). Anything taller
-          starts encroaching on the dots row sitting above the
-          nav, so the cover stops short and the dots stay clear.
-
-          zIndex 39 sits ABOVE the BottomNav's own scrim (z-30) and
-          BELOW the nav buttons (z-40). Inline zIndex to guarantee
-          the stacking order applies — a Tailwind arbitrary value
-          can be JIT-purged in production builds. */}
-      <motion.div
-        aria-hidden
-        className="fixed bottom-0 pointer-events-none"
-        style={{
-          left: "var(--frame-right-offset)",
-          right: "var(--frame-right-offset)",
-          height: 100,
-          background: "var(--mrq-blue, #0a2ecb)",
-          zIndex: 39,
-        }}
-        animate={{ opacity: isActive ? 1 : 0 }}
-        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-      />
-
-      {/* Layout: title + big card + dots, centred between the
-          brand bar (top) and the BottomNav (bottom).
-
-          Why absolute + manual bias: the /discover snap container
-          uses -mt-[24px] to slide UP behind the brand bar's rounded
-          corners. That means each article (this one included)
-          extends 24px + brand-bar-height BELOW the viewport. A
-          straight flex justify-center on the article would put the
-          content at the article's geometric centre — which is
-          visually BELOW the screen's centre because the article
-          overflows downward.
-
-          We absolute-position the content stack and offset it
-          UPWARD by ~36px so it lands in the visual middle of what
-          the user actually sees (between the brand bar and the
-          nav), with the dots always on-screen. */}
+      {/* Layout: title + big card + dots, anchored to the visible
+          area between the BrandBar bottom and the BottomNav top.
+          The article is `height: 100dvh` inside a snap column
+          offset `-mt-[24px]`, so the article's top 24px is hidden
+          behind the BrandBar and the article's bottom extends
+          ~(safe-area-top + 48px) BELOW the viewport.
+          Padding-based centering can't compensate for this
+          asymmetric overflow — we use absolute positioning hard-
+          anchored to the visible area instead so content lands in
+          the true visual centre on every device. See PromoSlides
+          for the geometry derivation. */}
       <div
-        className="absolute inset-0 flex flex-col items-center"
+        className="absolute flex flex-col items-center"
         style={{
-          // 96px clears the brand bar AND the snap container's
-          // -mt-[24px] offset that pulls the article above the
-          // bar's bottom edge. Previously 24px which let the
-          // title peek out from behind the BrandBar when the
-          // content stack got tall (e.g. the Bingo Rooms variant
-          // with the See All CTA inside the card).
-          paddingTop: "calc(env(safe-area-inset-top) + 96px)",
-          paddingBottom:
-            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 32px)",
+          top: "24px",
+          bottom:
+            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-top) + 48px)",
+          left: 0,
+          right: 0,
+          paddingTop: 16,
+          paddingBottom: 16,
           justifyContent: "center",
         }}
       >

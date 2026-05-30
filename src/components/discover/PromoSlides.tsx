@@ -41,16 +41,42 @@ import { useEffect, useRef, useState } from "react";
  * while two reels away.
  */
 
-const TOP_PADDING = "calc(env(safe-area-inset-top) + 96px)";
-// Mirror the SuggestionCard's vertical balance — include the
-// safe-area-inset-bottom term so the bottom padding grows by the
-// same magnitude that safe-area-inset-top grows TOP_PADDING on
-// devices with a notch / home indicator. Without it, iPhone's
-// 47px top inset shifts content visibly LOW because the bottom
-// padding had no equivalent growth term (looked correct in the
-// desktop preview where both insets are 0).
-const BOTTOM_PADDING =
-  "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 32px)";
+// Centering strategy — anchor to the visible area, NOT the article.
+// ──────────────────────────────────────────────────────────────────
+// Each promo article is `height: 100dvh` inside the snap-scroll
+// column which itself sits at `-mt-[24px]`. That means:
+//   • The article's TOP 24px is hidden behind the BrandBar (the
+//     bar is sticky-top with a rounded bottom; the column tucks
+//     under it for the corner-cover trick).
+//   • The article's BOTTOM extends BELOW the visible viewport by
+//     ~48px + safe-area-inset-top (because the column starts
+//     `safe-top + 48` from the viewport top, and the article is
+//     100dvh tall — so it overflows the bottom of the viewport
+//     by exactly that offset).
+//
+// Padding-based centering kept getting it wrong because the
+// "extra" off-screen area at top + bottom isn't symmetric: the
+// top is fixed at 24px, the bottom is (safe-top + 48). On a
+// notched iPhone safe-top = 47, so the bottom overflows by ~95px
+// while the top overflows by only 24px — content centered in the
+// article's geometric middle ends up visually ~36px LOW.
+//
+// Switching to `position: absolute` with hard top/bottom anchors
+// pinned to the BrandBar's bottom edge and the BottomNav's top
+// edge gives us a bounding box that's exactly the visible area.
+// Flex-center inside that, and content lands in the true visual
+// centre regardless of device.
+//
+// brand-bar-height          = safe-top + 72 (10 + 48 + 14)
+// article top in viewport-y = (safe-top + 72) - 24 = safe-top + 48
+// brand-bar-bottom in article-y = 24
+// bottom-nav-top in article-y   = 100dvh - bottom-nav-h - safe-top - 48
+//
+// → top: 24 (or with extra padding for breathing room)
+// → bottom: bottom-nav-h + safe-top + 48
+const ANCHOR_TOP = "24px";
+const ANCHOR_BOTTOM =
+  "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-top) + 48px)";
 
 function usePromoActive(onActiveChange?: (active: boolean) => void) {
   const articleRef = useRef<HTMLElement | null>(null);
@@ -76,30 +102,18 @@ function usePromoActive(onActiveChange?: (active: boolean) => void) {
   return { articleRef, isActive };
 }
 
-/**
- * Brand-blue cover that masks the BottomNav's default black scrim
- * while the promo is in view. z-[35] sits above the nav's own
- * scrim (z-30); nav buttons stay above at z-40. Sized to exactly
- * match the nav's 90px gradient band so it doesn't extend up into
- * the CTA region.
- */
-function BottomScrimCover({ isActive }: { isActive: boolean }) {
-  return (
-    <motion.div
-      aria-hidden
-      className="fixed bottom-0 pointer-events-none"
-      style={{
-        left: "var(--frame-right-offset)",
-        right: "var(--frame-right-offset)",
-        height: 90,
-        background: "var(--mrq-blue, #0a2ecb)",
-        zIndex: 35,
-      }}
-      animate={{ opacity: isActive ? 1 : 0 }}
-      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-    />
-  );
-}
+// NOTE: the brand-blue scrim cover that masks the BottomNav's
+// default black gradient lives at the page level (DiscoverPage),
+// NOT inside each article. Reason: iOS Safari has a long-standing
+// quirk where `position: fixed` elements inside a `-webkit-
+// overflow-scrolling: touch` container get re-anchored to the
+// scrollable ancestor instead of the viewport. The article sits
+// inside such a container, so a `fixed bottom-0` inside the
+// article rendered correctly on desktop preview but ended up off-
+// screen on iPhone — leaving the BottomNav's black gradient
+// visible underneath the blue promo. Lifting it to the page level
+// (alongside FixedReelChrome, which works fine on iOS) sidesteps
+// the bug entirely.
 
 // ── Shared motion tokens ───────────────────────────────────────
 
@@ -195,15 +209,17 @@ export function ArenaPromoSlide({
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
       }}
     >
-      <BottomScrimCover isActive={isActive} />
-
       <motion.div
-        className="absolute inset-0 flex flex-col"
+        className="absolute flex flex-col"
         style={{
-          paddingTop: TOP_PADDING,
-          paddingBottom: BOTTOM_PADDING,
+          top: ANCHOR_TOP,
+          bottom: ANCHOR_BOTTOM,
+          left: 0,
+          right: 0,
           paddingLeft: 24,
           paddingRight: 24,
+          paddingTop: 16,
+          paddingBottom: 16,
         }}
         variants={stage}
         initial="initial"
@@ -413,15 +429,17 @@ export function FreeSpinsPromoSlide({
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
       }}
     >
-      <BottomScrimCover isActive={isActive} />
-
       <motion.div
-        className="absolute inset-0 flex flex-col items-center justify-center"
+        className="absolute flex flex-col items-center justify-center"
         style={{
-          paddingTop: TOP_PADDING,
-          paddingBottom: BOTTOM_PADDING,
+          top: ANCHOR_TOP,
+          bottom: ANCHOR_BOTTOM,
+          left: 0,
+          right: 0,
           paddingLeft: 24,
           paddingRight: 24,
+          paddingTop: 16,
+          paddingBottom: 16,
         }}
         variants={stage}
         initial="initial"
