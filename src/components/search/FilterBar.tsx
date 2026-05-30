@@ -223,16 +223,17 @@ export function FilterBar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              // Explicit top: 100% anchors the dropdown to the
-              // FilterBar outer's bottom edge. Relying on Tailwind's
-              // mt-[2px] + the absolute element's static-position
-              // calculation worked in some engines but rendered at
-              // the parent's TOP in others (especially mobile Safari
-              // when the parent has no in-flow children other than
-              // the chip bar). Anchoring explicitly makes the
-              // dropdown appear consistently right under the chips.
-              style={{ top: "100%", marginTop: 4 }}
-              className="absolute left-[16px] z-[50] max-h-[300px] w-[240px] overflow-y-auto rounded-[16px] bg-white py-[6px] shadow-[0_12px_40px_rgba(3,34,172,0.22)] ring-1 ring-black/5"
+              // Dropdown panel spans the FILTERBAR's full width
+              // (matching the chip bar's 16px gutters on each side).
+              // Previously it was a narrow 240px panel left-anchored
+              // to the bar, which made it hard to predict where it
+              // would land relative to whichever chip was tapped.
+              // Full-width gives the user a consistent, generous
+              // surface right under the chip strip — no matter which
+              // facet they tapped, the same panel slides down in the
+              // same place.
+              style={{ top: "100%", left: 16, right: 16, marginTop: 4 }}
+              className="absolute z-[50] max-h-[300px] overflow-y-auto rounded-[16px] bg-white py-[6px] shadow-[0_12px_40px_rgba(3,34,172,0.22)] ring-1 ring-black/5"
               role="listbox"
             >
               {rows.map((r) => (
