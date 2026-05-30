@@ -281,9 +281,15 @@ export function SuggestionCard({
       <div
         className="absolute inset-0 flex flex-col items-center"
         style={{
-          paddingTop: "calc(env(safe-area-inset-top) + 24px)",
+          // 96px clears the brand bar AND the snap container's
+          // -mt-[24px] offset that pulls the article above the
+          // bar's bottom edge. Previously 24px which let the
+          // title peek out from behind the BrandBar when the
+          // content stack got tall (e.g. the Bingo Rooms variant
+          // with the See All CTA inside the card).
+          paddingTop: "calc(env(safe-area-inset-top) + 96px)",
           paddingBottom:
-            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 88px)",
+            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 32px)",
           justifyContent: "center",
         }}
       >

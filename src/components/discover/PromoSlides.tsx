@@ -1,6 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import {
+  motion,
+  useReducedMotion,
+  type Transition,
+  type Variants,
+} from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -8,23 +13,32 @@ import { useEffect, useRef, useState } from "react";
  * Promo slides inserted into the /discover (Top Picks) feed.
  *
  * Two variants, both 100dvh snap-targets sitting between reels:
- *   • ArenaPromoSlide       — Arena recruiter, sits after video 8
- *   • FreeSpinsPromoSlide   — Reward CTA, sits after video 10
+ *   • ArenaPromoSlide       — Arena recruiter, after the 8th video
+ *   • FreeSpinsPromoSlide   — Free spins reward, after the 12th
  *
- * Both share:
- *   • Brand-blue full-bleed surface
- *   • Absolute inset-0 flex column with brand-bar + bottom-nav
- *     padding so content always sits in the visible safe area
- *   • A fixed blue scrim at z-[35] that masks the BottomNav's
- *     default black /discover gradient (same trick SuggestionCard
- *     uses — without it the bottom edge fades to black, which
- *     reads as a video bleeding through)
- *   • Responsive headline sizing via clamp() so the copy scales
- *     gracefully from 360px-wide handsets up to a 430px Pro Max
- *   • Entrance animations gated on a 60% IntersectionObserver
- *     (matches the reel feed's own threshold)
- *   • An onActiveChange callback the page wires to a promoActive
- *     flag → force-pauses adjacent reels + hides FixedReelChrome
+ * Motion design
+ * ─────────────────
+ * Both slides build their entrance like a proper title sequence
+ * rather than a flat fade-in. The keys:
+ *
+ *   1. Stagger every element ~80–120 ms so the eye follows a
+ *      reading order: pill → headline → subhead → decoration
+ *      → CTA.
+ *   2. Spring physics on the high-energy beats (the headline
+ *      first appears, the cherries pop, the CTA settles) so
+ *      they have real weight, not just opacity tweens.
+ *   3. Headline "drops" — y starts at -24 with a touch of scale
+ *      (0.96) so the words feel like they're settling into
+ *      place under gravity.
+ *   4. Accent words on FreeSpins ("100 / FREE / SPINS") use a
+ *      separate stagger so the yellow lights up beat-by-beat
+ *      after the white "YOU HAVE" lands.
+ *   5. CTA is the final beat — slight overshoot via a stiff
+ *      spring so it lands assertively.
+ *
+ * All motion gates on `isActive` (60% IntersectionObserver) so
+ * it ONLY fires when the slide snaps into view, never invisibly
+ * while two reels away.
  */
 
 const TOP_PADDING = "calc(env(safe-area-inset-top) + 96px)";
@@ -55,13 +69,11 @@ function usePromoActive(onActiveChange?: (active: boolean) => void) {
 }
 
 /**
- * Fixed brand-blue cover that masks the BottomNav's default black
- * /discover scrim while this promo slide is in view. Sized to
- * exactly match the BottomNav's own scrim band (90px) so it
- * doesn't extend upward and start clipping the CTA pinned above
- * it. Same z-stack as SuggestionCard's scrim — z-[35] sits above
- * the nav's black scrim (z-30); nav buttons themselves (z-40)
- * still float above.
+ * Brand-blue cover that masks the BottomNav's default black scrim
+ * while the promo is in view. z-[35] sits above the nav's own
+ * scrim (z-30); nav buttons stay above at z-40. Sized to exactly
+ * match the nav's 90px gradient band so it doesn't extend up into
+ * the CTA region.
  */
 function BottomScrimCover({ isActive }: { isActive: boolean }) {
   return (
@@ -81,6 +93,62 @@ function BottomScrimCover({ isActive }: { isActive: boolean }) {
   );
 }
 
+// ── Shared motion tokens ───────────────────────────────────────
+
+const SOFT_SPRING: Transition = {
+  type: "spring",
+  stiffness: 180,
+  damping: 22,
+  mass: 0.9,
+};
+
+const POP_SPRING: Transition = {
+  type: "spring",
+  stiffness: 380,
+  damping: 18,
+  mass: 0.8,
+};
+
+const SETTLE_SPRING: Transition = {
+  type: "spring",
+  stiffness: 280,
+  damping: 26,
+  mass: 0.85,
+};
+
+// "Drop in" variant — used for headline lines that fall into
+// place. Slight upward overshoot at the resting state via the
+// soft spring's damping.
+const dropIn: Variants = {
+  initial: { opacity: 0, y: -24, scale: 0.96 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: SOFT_SPRING,
+  },
+};
+
+// "Lift in" variant — secondary copy that rises from below.
+const liftIn: Variants = {
+  initial: { opacity: 0, y: 20 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: SOFT_SPRING,
+  },
+};
+
+// "Pop in" — CTAs and stickers. Stiff overshoot.
+const popIn: Variants = {
+  initial: { opacity: 0, scale: 0.6 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: POP_SPRING,
+  },
+};
+
 // ── Slide 1: Arena ─────────────────────────────────────────────
 
 export function ArenaPromoSlide({
@@ -92,17 +160,23 @@ export function ArenaPromoSlide({
   const reduce = useReducedMotion();
   const { articleRef, isActive } = usePromoActive(onActiveChange);
 
-  const fadeUp = (delay: number) => ({
-    initial: reduce ? false : { opacity: 0, y: 20 },
-    animate: isActive
-      ? { opacity: 1, y: 0 }
-      : { opacity: 0, y: 20 },
-    transition: {
-      duration: 0.5,
-      delay,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+  // Top-level orchestrator — when isActive flips true we drive
+  // children to their `animate` variants in a 110 ms cascade.
+  const stage: Variants = {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: 0.11,
+        delayChildren: 0.05,
+      },
     },
-  });
+  };
+
+  const animateState = reduce
+    ? "animate" // skip the stagger entirely when reduced-motion is on
+    : isActive
+      ? "animate"
+      : "initial";
 
   return (
     <article
@@ -115,7 +189,7 @@ export function ArenaPromoSlide({
     >
       <BottomScrimCover isActive={isActive} />
 
-      <div
+      <motion.div
         className="absolute inset-0 flex flex-col"
         style={{
           paddingTop: TOP_PADDING,
@@ -123,46 +197,80 @@ export function ArenaPromoSlide({
           paddingLeft: 24,
           paddingRight: 24,
         }}
+        variants={stage}
+        initial="initial"
+        animate={animateState}
       >
-        {/* Top group — Live pill, then headline + subhead. */}
-        <motion.div {...fadeUp(0)} className="flex flex-col gap-[12px]">
-          <span
+        {/* Live now pill — first to drop in. */}
+        <motion.div className="flex flex-col gap-[12px]" variants={stage}>
+          <motion.span
+            variants={dropIn}
             className="inline-flex items-center gap-[8px] self-start rounded-full pl-[12px] pr-[16px] py-[7px]"
             style={{ backgroundColor: "rgba(122, 246, 153, 0.2)" }}
           >
-            <span
+            <motion.span
               aria-hidden
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: 999,
                 backgroundColor: "#10B981",
-                boxShadow: "0 0 0 3px rgba(16, 185, 129, 0.28)",
+              }}
+              // Continuous gentle pulse on the live dot — telegraphs
+              // "this is live" without being distracting.
+              animate={
+                isActive && !reduce
+                  ? {
+                      boxShadow: [
+                        "0 0 0 0px rgba(16, 185, 129, 0.55)",
+                        "0 0 0 8px rgba(16, 185, 129, 0)",
+                        "0 0 0 0px rgba(16, 185, 129, 0)",
+                      ],
+                    }
+                  : undefined
+              }
+              transition={{
+                duration: 1.6,
+                repeat: Infinity,
+                ease: "easeOut",
               }}
             />
             <span className="text-[14px] font-extrabold text-white">
               Live now
             </span>
-          </span>
+          </motion.span>
 
-          <h2
-            className="text-white font-extrabold uppercase"
-            style={{
-              // Capped at 40px so "FANCY A BIT OF" fits one line in
-              // the narrowest mobile-frame (360px → 312px content
-              // after 24px gutters). Caps via min() against the
-              // frame width since `vw` reads off the desktop viewport
-              // on the dev preview and overshoots otherwise.
-              fontSize: "clamp(32px, 10vw, 40px)",
-              lineHeight: 0.95,
-              letterSpacing: -1.2,
-            }}
-          >
-            Fancy a bit of
-            <br />
-            chaos?
-          </h2>
-          <p
+          {/* Headline drops down word-block by word-block. Splitting
+              "Fancy a bit of" from "chaos?" lets the second line
+              hit a beat later for that "and then... CHAOS" reveal. */}
+          <div>
+            <motion.h2
+              variants={dropIn}
+              className="text-white font-extrabold uppercase block"
+              style={{
+                fontSize: "clamp(32px, 10vw, 40px)",
+                lineHeight: 0.95,
+                letterSpacing: -1.2,
+              }}
+            >
+              Fancy a bit of
+            </motion.h2>
+            <motion.h2
+              variants={dropIn}
+              className="text-white font-extrabold uppercase block"
+              style={{
+                fontSize: "clamp(32px, 10vw, 40px)",
+                lineHeight: 0.95,
+                letterSpacing: -1.2,
+              }}
+            >
+              chaos?
+            </motion.h2>
+          </div>
+
+          {/* Sub copy — slides in from the left, slightly lagged. */}
+          <motion.p
+            variants={liftIn}
             className="font-extrabold lowercase"
             style={{
               color: "#3B9DFF",
@@ -175,32 +283,39 @@ export function ArenaPromoSlide({
             join +200K
             <br />
             brave souls
-          </p>
+          </motion.p>
         </motion.div>
 
         <div className="flex-1" />
 
-        {/* Bottom row — cherries on the left, CTA on the right. */}
         <div className="flex items-end justify-between">
+          {/* Cherries pop with a stiff rotational spring. */}
           <motion.div
-            initial={reduce ? false : { opacity: 0, scale: 0.6, rotate: -10 }}
-            animate={
-              isActive
-                ? { opacity: 1, scale: 1, rotate: 0 }
-                : { opacity: 0, scale: 0.6, rotate: -10 }
-            }
-            transition={{
-              type: "spring",
-              stiffness: 280,
-              damping: 16,
-              delay: 0.22,
-            }}
+            variants={popIn}
             aria-hidden
             style={{ transformOrigin: "bottom left" }}
+            // Once landed, give it a subtle idle sway so it feels
+            // alive rather than frozen.
+            animate={
+              isActive && !reduce
+                ? {
+                    opacity: 1,
+                    scale: 1,
+                    rotate: [-2, 2, -2],
+                    transition: {
+                      opacity: { duration: 0.4 },
+                      scale: POP_SPRING,
+                      rotate: {
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.8,
+                      },
+                    },
+                  }
+                : undefined
+            }
           >
-            {/* Cherries sticker — using cherry.png saved to the
-                main assets folder. Single PNG render, no SVG
-                layering needed. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/cherry.png"
@@ -212,14 +327,12 @@ export function ArenaPromoSlide({
             />
           </motion.div>
 
+          {/* CTA — the final beat. Spring overshoots slightly so it
+              lands assertively. */}
           <motion.button
-            {...fadeUp(0.15)}
+            variants={popIn}
             type="button"
             onClick={() => router.push("/arena")}
-            // Rounded-rect (16px), not a full pill — matches the
-            // Figma design. z-index 40 sits ABOVE the BottomScrimCover
-            // (z-35) so the bottom blue band doesn't clip into the
-            // CTA's lower edge.
             className="relative inline-flex items-center justify-center rounded-[16px] px-[24px] h-[52px] text-[17px] font-extrabold active:scale-[0.97] transition-transform"
             style={{
               backgroundColor: "#ffffff",
@@ -231,7 +344,7 @@ export function ArenaPromoSlide({
             Join Arena
           </motion.button>
         </div>
-      </div>
+      </motion.div>
     </article>
   );
 }
@@ -247,6 +360,42 @@ export function FreeSpinsPromoSlide({
   const reduce = useReducedMotion();
   const { articleRef, isActive } = usePromoActive(onActiveChange);
 
+  // Heavier stagger than Arena — each headline line carries
+  // narrative weight ("YOU HAVE → 100 → FREE / SPINS → TO CLAIM"),
+  // so we let the eye finish reading one before the next lands.
+  const stage: Variants = {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: 0.16,
+        delayChildren: 0.08,
+      },
+    },
+  };
+
+  // "100" is the wow moment — bigger scale overshoot than the
+  // surrounding lines.
+  const heroNumber: Variants = {
+    initial: { opacity: 0, scale: 0.4, rotate: -4 },
+    animate: {
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 320,
+        damping: 14,
+        mass: 0.9,
+      },
+    },
+  };
+
+  const animateState = reduce
+    ? "animate"
+    : isActive
+      ? "animate"
+      : "initial";
+
   return (
     <article
       ref={articleRef}
@@ -258,7 +407,7 @@ export function FreeSpinsPromoSlide({
     >
       <BottomScrimCover isActive={isActive} />
 
-      <div
+      <motion.div
         className="absolute inset-0 flex flex-col items-center justify-center"
         style={{
           paddingTop: TOP_PADDING,
@@ -266,23 +415,13 @@ export function FreeSpinsPromoSlide({
           paddingLeft: 24,
           paddingRight: 24,
         }}
+        variants={stage}
+        initial="initial"
+        animate={animateState}
       >
-        {/* Headline + CTA cluster, centered vertically. CTA now sits
-            directly below "TO CLAIM" with a small gap, rather than
-            being pinned full-width at the bottom of the slide. */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 22 }}
-          animate={
-            isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }
-          }
-          transition={{
-            duration: 0.55,
-            delay: 0.05,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="text-center"
-        >
-          <h2
+        <div className="text-center">
+          <motion.h2
+            variants={dropIn}
             className="font-extrabold uppercase text-white"
             style={{
               fontSize: "clamp(40px, 13vw, 52px)",
@@ -291,50 +430,74 @@ export function FreeSpinsPromoSlide({
             }}
           >
             You have
-          </h2>
-          <h2
-            className="font-extrabold uppercase"
-            style={{
-              color: "#FFD400",
-              fontSize: "clamp(40px, 13vw, 52px)",
-              lineHeight: 1,
-              letterSpacing: -1.2,
-              marginTop: 8,
-            }}
-          >
-            100 free
-            <br />
-            spins
-          </h2>
-          <h2
+          </motion.h2>
+
+          {/* "100 FREE SPINS" — the wow block. We split into three
+              motion children so they cascade beat by beat:
+                • 100   → pop with overshoot (the headline number)
+                • FREE  → drop down into place
+                • SPINS → drop down a hair later
+              All in yellow to mark them as the rewarded value. */}
+          <div style={{ marginTop: 8 }}>
+            <motion.h2
+              variants={heroNumber}
+              className="font-extrabold uppercase"
+              style={{
+                color: "#FFD400",
+                fontSize: "clamp(44px, 14vw, 60px)",
+                lineHeight: 1,
+                letterSpacing: -1.4,
+              }}
+            >
+              100
+            </motion.h2>
+            <motion.h2
+              variants={dropIn}
+              className="font-extrabold uppercase"
+              style={{
+                color: "#FFD400",
+                fontSize: "clamp(40px, 13vw, 52px)",
+                lineHeight: 1,
+                letterSpacing: -1.2,
+                marginTop: 4,
+              }}
+            >
+              Free
+            </motion.h2>
+            <motion.h2
+              variants={dropIn}
+              className="font-extrabold uppercase"
+              style={{
+                color: "#FFD400",
+                fontSize: "clamp(40px, 13vw, 52px)",
+                lineHeight: 1,
+                letterSpacing: -1.2,
+                marginTop: 4,
+              }}
+            >
+              Spins
+            </motion.h2>
+          </div>
+
+          <motion.h2
+            variants={liftIn}
             className="font-extrabold uppercase text-white"
             style={{
               fontSize: "clamp(40px, 13vw, 52px)",
               lineHeight: 0.96,
               letterSpacing: -1.2,
-              marginTop: 8,
+              marginTop: 12,
             }}
           >
             To claim
-          </h2>
-        </motion.div>
+          </motion.h2>
+        </div>
 
         <motion.button
-          initial={reduce ? false : { opacity: 0, y: 16 }}
-          animate={
-            isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }
-          }
-          transition={{
-            duration: 0.5,
-            delay: 0.18,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+          variants={popIn}
+          transition={SETTLE_SPRING}
           type="button"
           onClick={() => router.push("/rewards")}
-          // Smaller, rounded-rect, inline-width — sits right below
-          // the "To claim" line rather than spanning the bottom.
-          // z-index 40 lifts the button above the BottomScrimCover
-          // (z-35) so the blue band can't clip its lower edge.
           className="relative mt-[28px] inline-flex items-center justify-center rounded-[16px] px-[28px] h-[50px] text-[17px] font-extrabold active:scale-[0.97] transition-transform"
           style={{
             backgroundColor: "#ffffff",
@@ -345,7 +508,7 @@ export function FreeSpinsPromoSlide({
         >
           Open Rewards
         </motion.button>
-      </div>
+      </motion.div>
     </article>
   );
 }

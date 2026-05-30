@@ -218,21 +218,20 @@ export default function DiscoverPage() {
                 3rd screen in the feed so the user hits it early
                 in the scroll session. Rendered once per feed (not
                 per loop). */}
-            {i === 1 && (
+            {/* Three blue interstitial slides interleaved into the
+                feed at every-4th-video positions (after reels 4, 8,
+                12 → zero-indexed i === 3, 7, 11). Reads as a steady
+                rhythm rather than two bunched-up slides early on. */}
+            {i === 3 && (
               <SuggestionCard
                 muted={muted}
                 onActiveChange={setSuggestionActive}
               />
             )}
-            {/* Arena recruiter — slides in after the 8th reel
-                (zero-indexed: i === 7). One-off per feed: it only
-                appears here on the first loop, not on every wrap. */}
             {i === 7 && (
               <ArenaPromoSlide onActiveChange={setArenaPromoActive} />
             )}
-            {/* Free Spins reward — slides in after the 10th reel
-                (zero-indexed: i === 9). Same one-off treatment. */}
-            {i === 9 && (
+            {i === 11 && (
               <FreeSpinsPromoSlide
                 onActiveChange={setFreeSpinsPromoActive}
               />
