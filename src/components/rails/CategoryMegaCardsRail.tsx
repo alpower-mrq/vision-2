@@ -46,8 +46,8 @@ export function CategoryMegaCardsRail({
     <motion.section
       aria-label="Browse by category"
       className="pt-2 pb-3"
-      initial={false}
-      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <div

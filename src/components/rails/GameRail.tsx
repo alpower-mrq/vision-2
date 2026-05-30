@@ -45,8 +45,8 @@ export function GameRail({
       aria-label={title}
       // Compact vertical padding so adjacent rails stack tightly.
       className="pt-[8px] pb-[10px]"
-      initial={false}
-      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Header row */}

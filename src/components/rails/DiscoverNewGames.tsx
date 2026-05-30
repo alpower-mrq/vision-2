@@ -33,8 +33,8 @@ export function DiscoverNewGames({ tiles }: { tiles: DiscoverTile[] }) {
     <motion.section
       aria-label="Discover new games"
       className="pt-[8px] pb-[12px]"
-      initial={false}
-      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="pb-[10px] px-[16px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">

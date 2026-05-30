@@ -82,6 +82,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   // native scroll behaviour. We let it cut in cleanly.
   const isDiscoverSurface = pathname.startsWith("/discover");
 
+  // /search paints its own brand-blue band at the top of the
+  // page content (the sticky search input). The y:6→0 wrapper
+  // would briefly expose the main #f5f5f5 background between
+  // the BrandBar's rounded bottom and the search band on mount.
+  // Skip the wrapper so the page reads as one continuous
+  // brand-blue surface from the BrandBar straight into the
+  // search input.
+  const isSearchSurface = pathname.startsWith("/search");
+
   // Skip the cross-route fade-up wrapper on any surface that
   // owns its own entrance motion. Otherwise every BottomNav tap
   // / link cross-fades content over ~260ms using the same
@@ -89,7 +98,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   // route transition reads as part of the existing motion
   // system, not a new flavour layered on top.
   const skipPageTransition =
-    ownsChrome || isDiscoverSurface || reduce === true;
+    ownsChrome ||
+    isDiscoverSurface ||
+    isSearchSurface ||
+    reduce === true;
 
   return (
     <>

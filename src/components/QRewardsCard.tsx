@@ -67,8 +67,8 @@ export function QRewardsCard() {
     <motion.section
       aria-label="My Q Rewards"
       className="px-[16px] pt-[12px] pb-[16px]"
-      initial={false}
-      animate={reduce ? undefined : { opacity: [0, 1], y: [10, 0] }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
     >
       <div

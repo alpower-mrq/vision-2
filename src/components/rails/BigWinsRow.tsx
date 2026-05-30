@@ -41,8 +41,8 @@ export function BigWinsRow({
     <motion.section
       aria-label={title}
       className="pt-3 pb-[18px]"
-      initial={false}
-      animate={reduce ? undefined : { opacity: [0, 1], y: [6, 0] }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="px-[16px] pb-[10px] text-[18px] font-extrabold text-[var(--mrq-blue)]">
