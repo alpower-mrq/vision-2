@@ -42,6 +42,7 @@ export function CategoriesSheet({
   onClose,
   onHome,
   title = "Casino Categories",
+  hideAllGames = false,
 }: {
   open: boolean;
   /**
@@ -62,6 +63,10 @@ export function CategoriesSheet({
    *  homepage itself omits it since you're already there. */
   onHome?: () => void;
   title?: string;
+  /** Hide the default "All games" row. Used by verticals that don't
+   *  have an "all games" landing yet (e.g. Live Casino, which only
+   *  exposes per-category pages). */
+  hideAllGames?: boolean;
 }) {
   // Body scroll lock while the sheet is open so the page underneath
   // doesn't scroll when the user drags on the sheet.
@@ -158,14 +163,16 @@ export function CategoriesSheet({
                   "calc(env(safe-area-inset-bottom) + 24px)",
               }}
             >
-              <CategoryRow
-                label="All games"
-                active={selected === null}
-                onClick={() => {
-                  onSelect(null);
-                  onClose();
-                }}
-              />
+              {!hideAllGames && (
+                <CategoryRow
+                  label="All games"
+                  active={selected === null}
+                  onClick={() => {
+                    onSelect(null);
+                    onClose();
+                  }}
+                />
+              )}
               {categories.map((cat) => (
                 <CategoryRow
                   key={cat.key}

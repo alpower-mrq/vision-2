@@ -98,6 +98,7 @@ const BROWSE: TileSpec[] = [
   },
   {
     label: "Live Casino",
+    href: "/live",
     icon: "/assets/search/live.svg",
     iconW: ICON_W,
     iconH: ICON_H,
@@ -244,8 +245,8 @@ const MEGA_CATEGORIES: MegaCardCategory[] = [
     subtitle: "Hot Right Now",
     sticker: "/assets/mega/live.svg",
     tiles: TILES_LIVE_CASINO.slice(0, 6),
-    // No dedicated /live page yet — the See all button renders as
-    // inert (handled in CategoryMegaCardsRail).
+    // /live is now a real Live Casino lobby (mirrors /casino).
+    seeAllHref: "/live",
   },
   {
     key: "bingo",
