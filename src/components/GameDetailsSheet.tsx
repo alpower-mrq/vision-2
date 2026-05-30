@@ -317,10 +317,15 @@ export function GameDetailsSheet() {
                 aria-hidden
                 className="pointer-events-none absolute left-0 right-0"
                 style={{
-                  top: -56,
-                  height: 56,
+                  // Taller (72px) + no solid plateau + intermediate
+                  // stops that mimic an ease-out curve. The hard
+                  // line where the previous "30% solid" stopped and
+                  // the fade began is gone — content now ramps
+                  // smoothly into the chrome.
+                  top: -72,
+                  height: 72,
                   background:
-                    "linear-gradient(to top, rgba(255,255,255,1) 30%, rgba(255,255,255,0) 100%)",
+                    "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.88) 28%, rgba(255,255,255,0.55) 58%, rgba(255,255,255,0.2) 82%, rgba(255,255,255,0) 100%)",
                 }}
               />
               <button
