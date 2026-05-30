@@ -337,11 +337,28 @@ const LIVE_CASINO_CARDS: Theme[] = [
   { key: "mega-wheel", label: "Mega Wheel",  subtitle: "Live Casino", color: LIVE_CASINO_BLUE, thumbs: CATEGORY_THUMBS["mega-wheel"] },
 ];
 
-// Group 3 — closing verticals. Bingo (pink) + Arena (red).
-// Both Bingo and Arena now link to their dedicated lobby pages.
+// Group 3 — closing verticals. Bingo (violet) + Arena (amber).
+//
+// Previous bright pink (#DB2777) + bright red (#DC2626) jumped out
+// of the blue brand palette above them — they read as "this used
+// to be a different design" rather than "next vertical". The new
+// pair stays on-brand:
+//
+//   • Bingo  → #7C3AED  Violet 600 — purple is the natural sibling
+//                       of brand blue (analogous on the wheel),
+//                       reads playful + complements rather than
+//                       fights the brand-blue Casino cards above.
+//   • Arena  → #B45309  Amber 700 — warm complement to the cool
+//                       blue palette, ties back to the splash
+//                       gate's yellow brand accent (#ffd400). The
+//                       warmth signals "competition / prizes",
+//                       differentiating Arena from the cool
+//                       lobby browsing verticals.
+//
+// Both still link to their dedicated lobby pages.
 const VERTICAL_CARDS: Theme[] = [
-  { key: "bingo", label: "Bingo", color: "#DB2777", href: "/bingo", thumbs: CATEGORY_THUMBS.bingo },
-  { key: "arena", label: "Arena", color: "#DC2626", href: "/arena", thumbs: CATEGORY_THUMBS.arena },
+  { key: "bingo", label: "Bingo", color: "#7C3AED", href: "/bingo", thumbs: CATEGORY_THUMBS.bingo },
+  { key: "arena", label: "Arena", color: "#B45309", href: "/arena", thumbs: CATEGORY_THUMBS.arena },
 ];
 
 const BROWSE_CATEGORIES: Theme[] = [
