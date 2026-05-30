@@ -51,6 +51,14 @@ type Reel = {
   game: string;
   studio: string;
   video: string;
+  /** Square thumbnail for the title row chrome — sits to the left of
+   *  the game name so the user sees the actual game art alongside
+   *  the metadata. */
+  thumb: string;
+  /** Display RTP, e.g. "96.5%". Surfaced in the chrome's subtitle
+   *  slot (replaces the previous studio-name line, which was less
+   *  useful to a player choosing what to play next). */
+  rtp: string;
   /** Marks a brand/sponsorship slot. Ad reels render the video full-
    *  bleed with NO chrome — no studio/title meta, no action stack,
    *  no sound toggle button. The reel is the creative. */
@@ -63,36 +71,48 @@ const REELS: Reel[] = [
     game: "Buffalo Bills",
     studio: "Big Time Gaming",
     video: "/assets/videos/video1.mp4",
+    thumb: "/assets/games/slot-01.png",
+    rtp: "94%",
   },
   {
     id: "v2",
     game: "Tiki Tumble",
     studio: "Quickspin",
     video: "/assets/videos/video2.mp4",
+    thumb: "/assets/games/slot-08.png",
+    rtp: "96.55%",
   },
   {
     id: "v3",
     game: "Jewel Stepper",
     studio: "Microgaming",
     video: "/assets/videos/video3.mp4",
+    thumb: "/assets/games/slot-04.png",
+    rtp: "96.30%",
   },
   {
     id: "v4",
     game: "Maze Escape",
     studio: "Hacksaw Gaming",
     video: "/assets/videos/video4.mp4",
+    thumb: "/assets/games/slot-11.png",
+    rtp: "96.20%",
   },
   {
     id: "v5",
     game: "Snake Arena",
     studio: "Relax Gaming",
     video: "/assets/videos/video5.mp4",
+    thumb: "/assets/games/slot-13.png",
+    rtp: "95.80%",
   },
   {
     id: "v6",
     game: "Mummy Mania",
     studio: "Yggdrasil",
     video: "/assets/videos/video6.mp4",
+    thumb: "/assets/games/slot-07.png",
+    rtp: "96.10%",
   },
 ];
 
@@ -474,12 +494,15 @@ function FixedReelChrome({
 
   return (
     <>
-      {/* Bottom-left meta: studio + game title.
-          Anchored to var(--bottom-nav-h) so it sits the same visual
-          distance above the bottom nav across browser mode and PWA
-          standalone mode. */}
+      {/* Bottom-left meta: square game thumbnail + (game title +
+          RTP subtitle). Anchored to var(--bottom-nav-h) so it sits
+          the same visual distance above the bottom nav across
+          browser and PWA standalone modes.
+          Keyed on reel.id so React unmounts/remounts the whole row
+          when the active reel changes — gives the crossfade between
+          metadata sets for free. */}
       <div
-        className="fixed left-0 px-[18px] z-30 flex flex-col gap-[4px] text-white pointer-events-none"
+        className="fixed left-0 px-[18px] z-30 flex items-center gap-[12px] text-white pointer-events-none"
         style={{
           left: "var(--frame-right-offset)",
           right: "calc(var(--frame-right-offset) + 88px)",
@@ -488,12 +511,35 @@ function FixedReelChrome({
         }}
         key={reel.id}
       >
-        <p className="text-[12px] font-extrabold uppercase tracking-[0.1em] opacity-80">
-          {reel.studio}
-        </p>
-        <h2 className="text-[22px] font-extrabold leading-tight">
-          {reel.game}
-        </h2>
+        {/* Square 48px game thumbnail with rounded corners + soft
+            shadow so it pops off the video frame regardless of the
+            scene's lightness. */}
+        <span
+          className="block shrink-0 size-[48px] rounded-[10px] overflow-hidden"
+          style={{
+            boxShadow: "0 4px 14px -4px rgba(0, 0, 0, 0.55)",
+            border: "1px solid rgba(255, 255, 255, 0.16)",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={reel.thumb}
+            alt=""
+            draggable={false}
+            className="size-full object-cover"
+          />
+        </span>
+        <div className="flex min-w-0 flex-col">
+          <h2 className="text-[20px] font-extrabold leading-tight truncate">
+            {reel.game}
+          </h2>
+          <p
+            className="text-[13px] font-bold leading-tight opacity-90"
+            style={{ letterSpacing: 0.1 }}
+          >
+            RTP {reel.rtp}
+          </p>
+        </div>
       </div>
 
       {/* Right-edge action stack — Sound / Info / Play (primary).
