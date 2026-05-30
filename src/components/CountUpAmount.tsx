@@ -181,9 +181,38 @@ export function CountUpAmount({
   // Unparseable input → just render it verbatim.
   if (!parsed) return <span className={className}>{value}</span>;
 
+  // Width-locked layout: the pill (or whatever parent) should size
+  // itself to the FINAL value's width so it doesn't grow as the
+  // count-up adds digits ("£0" → "£10" → "£100" → "£1,000.00").
+  // Strategy: render the final value inside an inline-grid where
+  // both children share the same cell. The "spacer" child has the
+  // final value visually hidden but still taking up space — it
+  // pins the width. The "live" child is the animated number,
+  // overlaid on top. tabular-nums keeps each digit the same width
+  // so individual digit changes don't shift the layout either.
   return (
-    <span ref={ref} className={className}>
-      {display}
+    <span
+      className={className}
+      style={{
+        display: "inline-grid",
+        fontVariantNumeric: "tabular-nums",
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          gridArea: "1 / 1",
+          visibility: "hidden",
+          // pointerEvents off just in case — invisible spacer
+          // shouldn't catch taps the parent expects to receive.
+          pointerEvents: "none",
+        }}
+      >
+        {formatNumber(parsed.target, parsed)}
+      </span>
+      <span ref={ref} style={{ gridArea: "1 / 1" }}>
+        {display}
+      </span>
     </span>
   );
 }
