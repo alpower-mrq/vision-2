@@ -94,7 +94,7 @@ function Top10Item({ rank, tile }: { rank: number; tile: Top10Tile }) {
           console.log("[Top10] open game →", tile.alt);
         }
       }}
-      className="flex items-end shrink-0 active:scale-[0.99] transition-transform"
+      className="flex items-end shrink-0 active:scale-[0.98] transition-transform"
     >
       <RankNumeral rank={rank} />
       <span

@@ -115,7 +115,7 @@ function GameTile({
           console.log("[GameRail] open game →", alt);
         }
       }}
-      className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.99] transition-transform"
+      className="relative shrink-0 overflow-hidden rounded-[12px] active:scale-[0.98] transition-transform"
       style={{
         width: `${width}px`,
         height: `${height}px`,

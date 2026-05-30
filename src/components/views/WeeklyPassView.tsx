@@ -965,7 +965,7 @@ function PassesFooter({
       {/* Start free trial — full-width brand-blue button */}
       <button
         type="button"
-        className="w-full active:scale-[0.985] transition-transform"
+        className="w-full active:scale-[0.98] transition-transform"
         style={{
           backgroundColor: HEADER_BG,
           borderRadius: 12,
@@ -1010,7 +1010,7 @@ function PlanTile({
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start bg-white active:scale-[0.985] transition-transform"
+      className="flex flex-col items-start bg-white active:scale-[0.98] transition-transform"
       style={{
         flex: "1 1 0",
         borderRadius: 16,

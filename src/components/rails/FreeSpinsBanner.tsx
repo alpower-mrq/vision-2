@@ -26,7 +26,7 @@ export function FreeSpinsBanner({
     >
       <button
         type="button"
-        className="flex w-full items-center justify-center rounded-[14px] bg-white h-[78px] px-[20px] active:scale-[0.99] transition-transform"
+        className="flex w-full items-center justify-center rounded-[14px] bg-white h-[78px] px-[20px] active:scale-[0.98] transition-transform"
         style={{
           boxShadow: "0 4px 12px -6px rgba(10, 46, 203, 0.14)",
         }}

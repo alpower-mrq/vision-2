@@ -64,7 +64,7 @@ function WinEventCard({ win }: { win: WinEvent }) {
   return (
     <button
       type="button"
-      className="shrink-0 flex items-center gap-[12px] rounded-[14px] bg-white pl-[8px] pr-[16px] py-[8px] text-left active:scale-[0.99] transition-transform"
+      className="shrink-0 flex items-center gap-[12px] rounded-[14px] bg-white pl-[8px] pr-[16px] py-[8px] text-left active:scale-[0.98] transition-transform"
       style={{
         width: "min(86%, calc(var(--mobile-width) - 48px))",
         boxShadow: "0 4px 10px -6px rgba(10, 46, 203, 0.14)",

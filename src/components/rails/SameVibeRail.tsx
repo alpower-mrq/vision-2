@@ -53,7 +53,7 @@ function SameVibeCardTile({ card }: { card: SameVibeCard }) {
             console.log("[SameVibe] open game →", card.alt);
           }
         }}
-        className="block h-full w-full active:scale-[0.99] transition-transform"
+        className="block h-full w-full active:scale-[0.98] transition-transform"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

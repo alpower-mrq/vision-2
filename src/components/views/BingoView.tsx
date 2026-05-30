@@ -62,7 +62,7 @@ function RoomCard({ room }: { room: BingoRoom }) {
     <button
       type="button"
       aria-label={`Join ${room.name}`}
-      className="relative w-full overflow-hidden rounded-[18px] bg-white active:scale-[0.99] transition-transform text-left"
+      className="relative w-full overflow-hidden rounded-[18px] bg-white active:scale-[0.98] transition-transform text-left"
       style={{
         boxShadow:
           "0 8px 20px -10px rgba(10, 46, 203, 0.22), 0 2px 6px -2px rgba(10, 46, 203, 0.10)",

@@ -390,7 +390,7 @@ function PromoCard({
       // No box-shadow — the source PNG artwork carries its own
       // visual edge; the brand-blue glow under the card was double-
       // chroming things and felt heavy.
-      className="relative block h-full w-full overflow-hidden rounded-[16px] active:scale-[0.985] transition-transform"
+      className="relative block h-full w-full overflow-hidden rounded-[16px] active:scale-[0.98] transition-transform"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

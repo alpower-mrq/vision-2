@@ -105,7 +105,7 @@ function RecentlyPlayedTile({ game }: { game: RecentlyPlayedGame }) {
           console.log("[RecentlyPlayed] open game →", game.name);
         }
       }}
-      className="relative shrink-0 overflow-hidden rounded-[10px] active:scale-[0.97] transition-transform"
+      className="relative shrink-0 overflow-hidden rounded-[10px] active:scale-[0.98] transition-transform"
       style={{
         width: TILE_SIZE,
         height: TILE_SIZE,
