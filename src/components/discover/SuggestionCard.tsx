@@ -29,6 +29,12 @@ type Page = {
   label: string;
   /** Always 4 — the 2×2 grid is hard-coded. */
   tiles: [Tile, Tile, Tile, Tile];
+  /** Copy + destination for the "See all …" CTA pinned at the bottom
+   *  of the big card. Routes the user to the category's own page so
+   *  the suggestion slide can act as a launchpad into the full
+   *  catalogue. */
+  seeAllLabel: string;
+  seeAllHref: string;
 };
 
 // Page-by-page tile sets. Reuses existing artwork from the rails.
@@ -46,6 +52,8 @@ const PAGES: ReadonlyArray<Page> = [
       { name: "Snake Arena", src: "/assets/games/slot-13.png" },
       { name: "Jewel Stepper", src: "/assets/games/slot-04.png" },
     ],
+    seeAllLabel: "See All Casino Games",
+    seeAllHref: "/casino/games",
   },
   {
     id: "live",
@@ -56,6 +64,8 @@ const PAGES: ReadonlyArray<Page> = [
       { name: "Mega Wheel", src: "/assets/live/table-01.png" },
       { name: "Lightning Storm", src: "/assets/live/popular-03.png" },
     ],
+    seeAllLabel: "See All Live Casino",
+    seeAllHref: "/casino/live",
   },
   {
     id: "bingo",
@@ -82,6 +92,8 @@ const PAGES: ReadonlyArray<Page> = [
         href: "/bingo",
       },
     ],
+    seeAllLabel: "See All Bingo Rooms",
+    seeAllHref: "/bingo",
   },
   {
     id: "arena",
@@ -100,6 +112,8 @@ const PAGES: ReadonlyArray<Page> = [
       },
       { name: "Climb the Board", src: "/assets/arena/play-3.png", href: "/arena" },
     ],
+    seeAllLabel: "See All Arena Tournaments",
+    seeAllHref: "/arena",
   },
 ];
 
@@ -336,11 +350,11 @@ export function SuggestionCard({
                 style={{ width: pageWidth || "100%" }}
               >
                 {/* THE big card — single dark-blue frame around
-                    all four artworks. Reads as one cohesive object
-                    rather than four separate cards. Subtle drop
-                    shadow + an inset hairline highlight at the top
-                    edge give it a lifted, premium feel against
-                    the brand-blue surface. */}
+                    all four artworks + a "See all …" CTA. Reads as
+                    one cohesive object rather than four separate
+                    cards. Subtle drop shadow + an inset hairline
+                    highlight at the top edge give it a lifted,
+                    premium feel against the brand-blue surface. */}
                 <div
                   className="rounded-[22px] w-full"
                   style={{
@@ -377,6 +391,24 @@ export function SuggestionCard({
                       </button>
                     ))}
                   </div>
+
+                  {/* See all CTA — white pill at the bottom of the
+                      card, routes to the category's own page so the
+                      slide doubles as a launchpad. Sits inside the
+                      card (not below it) so it visually belongs to
+                      the same object as the artworks. */}
+                  <button
+                    type="button"
+                    onClick={() => router.push(page.seeAllHref)}
+                    className="mt-[10px] w-full h-[40px] rounded-[12px] text-[13px] font-extrabold active:scale-[0.98] transition-transform"
+                    style={{
+                      backgroundColor: "#ffffff",
+                      color: "var(--mrq-blue-dark, #0c2287)",
+                      letterSpacing: 0.2,
+                    }}
+                  >
+                    {page.seeAllLabel}
+                  </button>
                 </div>
               </div>
             ))}
