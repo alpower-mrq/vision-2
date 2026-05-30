@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { SuggestionCard } from "@/components/discover/SuggestionCard";
 
 /**
  * For You / Discover — vertical-snap reels feed (TikTok / Reels style).
@@ -151,15 +152,23 @@ export default function DiscoverPage() {
         }}
       >
         {reels.map((reel, i) => (
-          <ReelArticle
-            key={reel.key}
-            reel={reel}
-            index={i}
-            activeIndex={activeIndex}
-            muted={muted}
-            onEnter={() => setActiveIndex(i)}
-            onTapVideo={() => setMuted((m) => !m)}
-          />
+          <Fragment key={reel.key}>
+            <ReelArticle
+              reel={reel}
+              index={i}
+              activeIndex={activeIndex}
+              muted={muted}
+              onEnter={() => setActiveIndex(i)}
+              onTapVideo={() => setMuted((m) => !m)}
+            />
+            {/* After the 4th video (index 3) drop in a single
+                "More games" suggestion slide — full-height snap
+                target with a sideways-swipeable carousel of Casino
+                / Live / Bingo / Arena game tiles. Rendered once
+                per feed (not per loop) so the user encounters it
+                a single time as they scroll past reel 4. */}
+            {i === 3 && <SuggestionCard />}
+          </Fragment>
         ))}
       </div>
 
