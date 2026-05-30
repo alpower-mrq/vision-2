@@ -42,7 +42,15 @@ import { useEffect, useRef, useState } from "react";
  */
 
 const TOP_PADDING = "calc(env(safe-area-inset-top) + 96px)";
-const BOTTOM_PADDING = "calc(var(--bottom-nav-h, 80px) + 24px)";
+// Mirror the SuggestionCard's vertical balance — include the
+// safe-area-inset-bottom term so the bottom padding grows by the
+// same magnitude that safe-area-inset-top grows TOP_PADDING on
+// devices with a notch / home indicator. Without it, iPhone's
+// 47px top inset shifts content visibly LOW because the bottom
+// padding had no equivalent growth term (looked correct in the
+// desktop preview where both insets are 0).
+const BOTTOM_PADDING =
+  "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 32px)";
 
 function usePromoActive(onActiveChange?: (active: boolean) => void) {
   const articleRef = useRef<HTMLElement | null>(null);
