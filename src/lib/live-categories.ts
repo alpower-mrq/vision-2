@@ -8,22 +8,26 @@
  *   • the Categories+ bottom sheet on /live
  *   • the per-category rails on /live
  *   • the validated slugs for /live/[category]
- *   • the bigger grid on each /live/[category] page
  *
  * Lives outside any "use client" file so both the dynamic-route server
  * file and the client views can import from it.
+ *
+ * Categories + order match the real MrQ Live Casino navigation:
+ *   Home → New → Game Shows → Blackjack → Roulette → Baccarat → All
+ *
+ * (Home maps to /live itself, All maps to /live/games — neither is in
+ * the LIVE_CATEGORIES list because they aren't real sub-categories.)
  */
 
 import type { Category } from "@/components/CategoriesSheet";
 import type { LiveGame } from "@/components/rails/LiveGameRail";
 
 export const LIVE_CATEGORIES: Category[] = [
-  { key: "roulette", label: "Roulette" },
-  { key: "blackjack", label: "Blackjack" },
-  { key: "baccarat", label: "Baccarat" },
+  { key: "new", label: "New" },
   { key: "game-shows", label: "Game Shows" },
-  { key: "poker", label: "Poker" },
-  { key: "mega-wheel", label: "Mega Wheel" },
+  { key: "blackjack", label: "Blackjack" },
+  { key: "roulette", label: "Roulette" },
+  { key: "baccarat", label: "Baccarat" },
 ];
 
 export const LIVE_CATEGORY_KEYS: string[] = LIVE_CATEGORIES.map((c) => c.key);
@@ -189,49 +193,26 @@ const GAME_SHOWS: LiveGame[] = [
   },
 ];
 
-const POKER: LiveGame[] = [
+// "New" — curated newest-on-the-platform lineup. Mixes table types
+// so the New rail/page reads as a roundup rather than a duplicate of
+// any other category. Player counts skewed lower since the games are
+// fresh.
+const NEW: LiveGame[] = [
   {
-    name: "Casino Hold'em",
+    name: "Lightning Storm",
     provider: "Evolution",
-    src: "/assets/live/table-05.png",
-    minBet: "£1",
-    dealer: "Ekaterina",
-    players: 73,
-  },
-  {
-    name: "Three Card Poker",
-    provider: "Evolution",
-    src: "/assets/live/table-01.png",
-    minBet: "£1",
-    dealer: "Rina",
-    players: 56,
-  },
-  {
-    name: "Caribbean Stud",
-    provider: "Pragmatic Play",
-    src: "/assets/live/table-02.png",
-    minBet: "£1",
-    dealer: "Karl",
-    players: 31,
-  },
-];
-
-const MEGA_WHEEL: LiveGame[] = [
-  {
-    name: "Mega Wheel",
-    provider: "Pragmatic Play",
-    src: "/assets/live/table-01.png",
+    src: "/assets/live/popular-04.png",
     minBet: "10p",
-    dealer: "Adelita",
-    players: 1108,
+    dealer: "Aleksa",
+    players: 312,
   },
   {
-    name: "Dream Catcher",
+    name: "Ice Fishing",
     provider: "Evolution",
-    src: "/assets/live/popular-03.png",
+    src: "/assets/live/popular-04.png",
     minBet: "10p",
-    dealer: "Maja",
-    players: 487,
+    dealer: "Inga",
+    players: 642,
   },
   {
     name: "Boom City",
@@ -241,22 +222,37 @@ const MEGA_WHEEL: LiveGame[] = [
     dealer: "Petra",
     players: 311,
   },
+  {
+    name: "MrQ Roulette",
+    provider: "Pragmatic Play",
+    src: "/assets/live/popular-01.png",
+    minBet: "10p",
+    dealer: "Glennis",
+    players: 15,
+    recentResults: [7, 4, 10, 10, 3, 4, 27],
+  },
+  {
+    name: "MrQ Speed Baccarat",
+    provider: "Pragmatic Play",
+    src: "/assets/live/popular-03.png",
+    minBet: "20p",
+    dealer: "Herta",
+    players: 170,
+  },
 ];
 
-/** Per-category game lists. Used by both the rails on /live and the
- *  grid on /live/[category]. */
+/** Per-category game lists. Keyed by LIVE_CATEGORY_KEYS. */
 export const LIVE_GAMES_BY_CATEGORY: Record<string, LiveGame[]> = {
-  roulette: ROULETTE,
-  blackjack: BLACKJACK,
-  baccarat: BACCARAT,
+  new: NEW,
   "game-shows": GAME_SHOWS,
-  poker: POKER,
-  "mega-wheel": MEGA_WHEEL,
+  blackjack: BLACKJACK,
+  roulette: ROULETTE,
+  baccarat: BACCARAT,
 };
 
-/** "Popular Games" — the cross-category highlights for the top rail
- *  on /live. Curated picks (roulette + blackjack + baccarat) so the
- *  spin-history overlay shows up on the first card the user sees. */
+/** "Popular Games" — curated cross-category highlights for the top
+ *  rail on /live. Ordered so the first card is a Roulette table (the
+ *  spin-history overlay is visible at first glance). */
 export const LIVE_POPULAR: LiveGame[] = [
   ROULETTE[0],
   ROULETTE[1],
@@ -265,3 +261,22 @@ export const LIVE_POPULAR: LiveGame[] = [
   BLACKJACK[0],
   ROULETTE[3],
 ];
+
+/** "All games" — the full Live Casino catalogue, used by /live/games.
+ *  Deduplicated by name in case the curated category lists overlap
+ *  (some game-shows appear in the New roundup too, etc.). */
+export const LIVE_ALL_GAMES: LiveGame[] = (() => {
+  const all = [
+    ...ROULETTE,
+    ...BLACKJACK,
+    ...BACCARAT,
+    ...GAME_SHOWS,
+    ...NEW,
+  ];
+  const seen = new Set<string>();
+  return all.filter((g) => {
+    if (seen.has(g.name)) return false;
+    seen.add(g.name);
+    return true;
+  });
+})();

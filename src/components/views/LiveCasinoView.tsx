@@ -91,9 +91,10 @@ export function LiveCasinoView() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // Sheet selection — both branches navigate, no local filter state.
+  // null = the "All" row → routes to the full /live/games catalogue.
   const handleSelect = (key: string | null) => {
     setSheetOpen(false);
-    if (key) router.push(`/live/${key}`);
+    router.push(key === null ? "/live/games" : `/live/${key}`);
   };
 
   return (
@@ -151,7 +152,6 @@ export function LiveCasinoView() {
         onSelect={handleSelect}
         onClose={() => setSheetOpen(false)}
         title="Live Casino Categories"
-        hideAllGames
       />
     </>
   );
