@@ -78,10 +78,22 @@ const REELS: Reel[] = [
     studio: "Hacksaw Gaming",
     video: "/assets/videos/video4.mp4",
   },
+  {
+    id: "v5",
+    game: "Snake Arena",
+    studio: "Relax Gaming",
+    video: "/assets/videos/video5.mp4",
+  },
+  {
+    id: "v6",
+    game: "Mummy Mania",
+    studio: "Yggdrasil",
+    video: "/assets/videos/video6.mp4",
+  },
 ];
 
 // How many reels to render in the very first batch. Each loop is
-// a full pass of the source clips (4 clips), so 2 loops = 8
+// a full pass of the source clips (6 clips), so 2 loops = 12
 // articles up front.
 const INITIAL_LOOPS = 2;
 // When the active reel is within this many of the rendered end,
@@ -110,10 +122,10 @@ const VIDEO_WINDOW_BEFORE = 1;
 const VIDEO_WINDOW_AFTER = 3;
 
 export default function DiscoverPage() {
-  // Each "loop" is a full pass of REELS (3 source clips). Bumping
+  // Each "loop" is a full pass of REELS (6 source clips). Bumping
   // `loops` appends another full pass to the rendered feed, giving
-  // the user an effectively infinite scroll — REELS[0] → REELS[2]
-  // → REELS[0] → REELS[2] → ... — without ever ending.
+  // the user an effectively infinite scroll — REELS[0] → REELS[5]
+  // → REELS[0] → REELS[5] → ... — until MAX_LOOPS is hit.
   const [loops, setLoops] = useState(INITIAL_LOOPS);
   const [activeIndex, setActiveIndex] = useState(0);
   // Music ON by default. Browser autoplay policy will block this
