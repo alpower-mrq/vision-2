@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useShell } from "@/lib/filter-context";
-import { CountUpAmount } from "@/components/CountUpAmount";
 
 // Tappable wallet pill = a flex row that's NOT a button, with the
 // cash text on the left acting as its own button (opens deposit
@@ -62,7 +61,7 @@ function backHrefFor(pathname: string): string {
 }
 
 export function BrandBar() {
-  const { openSideNav, openDeposit, bootDone } = useShell();
+  const { openSideNav, openDeposit } = useShell();
   const pathname = usePathname();
   const backArrow = showsBackArrow(pathname);
   const backHref = backHrefFor(pathname);
@@ -189,23 +188,12 @@ export function BrandBar() {
             aria-label="Make a deposit"
             className="text-white text-[16px] leading-none font-extrabold pt-[1px] active:scale-[0.95] transition-transform"
           >
-            {/* `gate={bootDone}` holds the count-up animation until
-                the SimpleSplashGate dismisses — otherwise the IO
-                fires while the BrandBar is rendered behind the z-65
-                splash overlay and the count-up plays invisibly.
-
-                No sessionKey: the count-up runs on every fresh load
-                so users actually see it. The earlier once-per-
-                session gate made the animation invisible to anyone
-                who'd already loaded the app once in the current tab,
-                which was confusing in practice — the chip is so
-                small that one count-up doesn't earn a "stop showing
-                it" budget yet. */}
-            <CountUpAmount
-              value="£4,287.50"
-              gate={bootDone}
-              durationMs={1500}
-            />
+            {/* Static — the wallet balance is a fixed value that
+                shouldn't appear to "change" on every app open. The
+                count-up animation read as the balance recalculating
+                each load, which broke the user's mental model that
+                the cash on hand is a stable number. Plain text. */}
+            £4,287.50
           </button>
           <span
             className="h-[20px] w-px"

@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { getGameDetails } from "@/lib/games-catalogue";
-import { CountUpAmount } from "@/components/CountUpAmount";
-import { useShell } from "@/lib/filter-context";
 
 /**
  * "Your recent big wins" — horizontal scroll of game tiles with a
@@ -64,11 +62,6 @@ export function BigWinsRow({
 
 function WinTile({ win }: { win: Win }) {
   const router = useRouter();
-  // Hold every prize count-up until the splash dismisses — without
-  // the gate the IntersectionObserver fires while the row sits
-  // behind the z-65 SimpleSplashGate and the count-ups all animate
-  // invisibly before the user sees the first frame.
-  const { bootDone } = useShell();
   // Catalogue lookup, with the win's explicit href winning over the
   // catalogue's if both are set.
   const baseDetails = getGameDetails(win.alt, win.src);
@@ -111,15 +104,13 @@ function WinTile({ win }: { win: Win }) {
         className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-white px-[10px] py-[3px] whitespace-nowrap pointer-events-none"
         style={{ boxShadow: "0 4px 10px -4px rgba(10, 46, 203, 0.18)" }}
       >
-        <CountUpAmount
-          value={win.prize}
-          gate={bootDone}
-          // Slower than the 900ms default — at £400–£1,800 numbers
-          // the eye needs more travel time to register the digits
-          // ticking rather than just snapping in.
-          durationMs={1400}
-          className="text-[13px] font-extrabold text-[var(--mrq-blue)]"
-        />
+        {/* Static — prize values are fixed historical wins. The
+            count-up read as the prize being recalculated on every
+            scroll, which broke the "this is a screenshot of what
+            happened" feel of a Recent Wins rail. */}
+        <span className="text-[13px] font-extrabold text-[var(--mrq-blue)]">
+          {win.prize}
+        </span>
       </div>
     </div>
   );
