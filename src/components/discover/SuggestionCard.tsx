@@ -238,38 +238,29 @@ export function SuggestionCard({
       {/* Flat brand-blue cover — masks the BottomNav's default
           black-on-/discover scrim while this slide is in view.
 
-          Solid mrq-blue block (no gradient) sized to OVERSHOOT the
-          BottomNav scrim's footprint. The slide's page surface is
-          already mrq-blue so the cover blends invisibly and the
-          user sees no gradient at all at the bottom — the surface
-          reads as one flat plane right up to the nav row.
+          Sized to EXACTLY the BottomNav scrim's visible gradient
+          footprint (100px from the viewport bottom — the nav's
+          inner gradient is 90px, +10px buffer). Anything taller
+          starts encroaching on the dots row sitting above the
+          nav, so the cover stops short and the dots stay clear.
 
           zIndex 39 sits ABOVE the BottomNav's own scrim (z-30) and
-          BELOW the nav buttons themselves (z-40). Using inline
-          zIndex instead of a Tailwind arbitrary value to guarantee
-          the stacking order applies. Cover is also taller than the
-          nav scrim's gradient region (180px vs 90px) to swallow any
-          sliver that might poke above. */}
+          BELOW the nav buttons (z-40). Inline zIndex to guarantee
+          the stacking order applies — a Tailwind arbitrary value
+          can be JIT-purged in production builds. */}
       <motion.div
         aria-hidden
         className="fixed bottom-0 pointer-events-none"
         style={{
           left: "var(--frame-right-offset)",
           right: "var(--frame-right-offset)",
-          height: "calc(var(--bottom-nav-h, 80px) + 100px)",
+          height: 100,
+          background: "var(--mrq-blue, #0a2ecb)",
           zIndex: 39,
         }}
         animate={{ opacity: isActive ? 1 : 0 }}
         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div
-          className="absolute inset-x-0 bottom-0"
-          style={{
-            height: "100%",
-            background: "var(--mrq-blue, #0a2ecb)",
-          }}
-        />
-      </motion.div>
+      />
 
       {/* Layout: title + big card + dots, centred between the
           brand bar (top) and the BottomNav (bottom).
