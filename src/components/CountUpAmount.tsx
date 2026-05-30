@@ -33,13 +33,15 @@ function parseAmount(value: string): Parsed | null {
   return { prefix, suffix, target, decimals };
 }
 
-// Quartic ease-out (1 − (1−t)^4) — bigger initial ramp than cubic
-// (so the digits feel like they're flying upward at first), then a
-// more pronounced settle at the end (so the last 10–15% of the
-// value crawls in, like a scoreboard locking onto its final
-// reading). Reads as a clearer "slowing down" curve than the
-// gentler cubic.
-const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
+// Exponential ease-out (1 − 2^(−10t)) — the most pronounced
+// end-settle of the standard easing curves. The digits FLY upward
+// in the first ~300ms (covering ~85% of the value), then the last
+// 15% crawls in over the remainder. Reads as a scoreboard locking
+// onto its final reading after the initial spin.
+//
+// At t=0.1 → 50% of value; t=0.3 → 87.5%; t=0.5 → 96.9%; t=1 → 100%.
+const easeOutExpo = (t: number) =>
+  t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
 // sessionStorage helpers — guarded (private mode can throw).
 function seenThisSession(key: string): boolean {
@@ -136,7 +138,7 @@ export function CountUpAmount({
       const start = performance.now();
       const tick = (now: number) => {
         const t = Math.min(1, (now - start) / durationMs);
-        const current = parsed.target * easeOutQuart(t);
+        const current = parsed.target * easeOutExpo(t);
         setDisplay(formatNumber(current, parsed));
         if (t < 1) raf = requestAnimationFrame(tick);
       };

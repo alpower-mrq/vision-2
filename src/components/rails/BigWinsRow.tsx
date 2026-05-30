@@ -130,7 +130,7 @@ function WinTile({ win }: { win: Win }) {
         <CountUpAmount
           value={win.prize}
           gate={bootDone}
-          durationMs={1400}
+          durationMs={2200}
           rootMargin="0px 0px -120px 0px"
           threshold={0.6}
           className="text-[13px] font-extrabold text-[var(--mrq-blue)]"
