@@ -97,10 +97,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   // curve the rails use (cubic-bezier(0.22, 1, 0.36, 1)) so the
   // route transition reads as part of the existing motion
   // system, not a new flavour layered on top.
+  //
+  // /rewards and /arena are added here for the same reason as
+  // /search: the page paints its own brand-blue/dark surface at
+  // the top, and the y:6→0 wrapper would briefly expose the
+  // darker BRAND_BOTTOM_BG sitting underneath as a hairline
+  // strip on mount.
   const skipPageTransition =
     ownsChrome ||
     isDiscoverSurface ||
     isSearchSurface ||
+    isBrandSurface ||
     reduce === true;
 
   return (

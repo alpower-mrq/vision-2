@@ -28,6 +28,11 @@ export type GameDetails = {
    *  Play button routes there; when unset, the button closes the
    *  sheet and logs a stub (the game isn't built out yet). */
   href?: string;
+  /** Optional gameplay screenshot rendered inside the details sheet
+   *  so the user can see what the game actually looks like before
+   *  tapping Play. Optional per-game — games without a preview just
+   *  skip the image block, no placeholder. */
+  preview?: string;
 };
 
 type CatalogueEntry = Partial<Omit<GameDetails, "name">> & {
@@ -45,6 +50,7 @@ const CATALOGUE: CatalogueEntry[] = [
     gameType: "Slot",
     provider: "Goosicorn",
     href: "/play/buffalo-bills",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Tiki Tumble",
@@ -55,6 +61,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.20–£250",
     gameType: "Slot",
     provider: "Quickspin",
+    preview: "/assets/games/game_demo2.jpeg",
   },
   {
     name: "Jewel Stepper",

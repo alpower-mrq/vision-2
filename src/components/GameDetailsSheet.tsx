@@ -156,6 +156,44 @@ export function GameDetailsSheet() {
                 </div>
               </div>
 
+              {/* Gameplay preview — optional per game. When the
+                  catalogue carries a `preview` image, show it as a
+                  landscape card right under the title so the user
+                  sees what the game looks like before reading the
+                  data. Subtle "Preview" chip in the corner sets the
+                  context (static image, not a tappable trailer). */}
+              {gameDetails.preview && (
+                <div className="px-[16px] pb-[6px]">
+                  <div
+                    className="relative w-full overflow-hidden rounded-[14px]"
+                    style={{
+                      aspectRatio: "16 / 10",
+                      boxShadow:
+                        "0 6px 18px -8px rgba(10, 46, 203, 0.20)",
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={gameDetails.preview}
+                      alt={`${gameDetails.name} gameplay preview`}
+                      draggable={false}
+                      className="absolute inset-0 size-full object-cover"
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute bottom-[10px] left-[10px] px-[8px] py-[3px] rounded-[6px] text-[10px] font-extrabold uppercase tracking-[0.4px] text-white"
+                      style={{
+                        backgroundColor: "rgba(8, 16, 50, 0.55)",
+                        backdropFilter: "blur(10px) saturate(140%)",
+                        WebkitBackdropFilter: "blur(10px) saturate(140%)",
+                      }}
+                    >
+                      Preview
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Stats pill — pale brand-blue surface (instead of
                   brown rgba like the game screen) so the sheet
                   reads white & clean. */}
