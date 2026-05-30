@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CategoryMegaCardsRail,
   type MegaCardCategory,
@@ -11,6 +11,19 @@ import { GameRail } from "@/components/rails/GameRail";
 import { ThemesGrid, type Theme } from "@/components/rails/ThemesGrid";
 import { CATEGORIES as CASINO_SUBCATEGORIES } from "@/lib/casino-categories";
 import { BINGO_TILES } from "@/lib/bingo-rooms";
+import {
+  getAllGames,
+  getProviders,
+  type GameDetails,
+} from "@/lib/games-catalogue";
+import {
+  applyFilters,
+  countActiveFilters,
+  EMPTY_FILTERS,
+  type GameFilters,
+  type SortKey,
+} from "@/lib/game-filters";
+import { FilterBar } from "@/components/search/FilterBar";
 
 /**
  * Search page — full route.
@@ -348,35 +361,33 @@ const RECENTLY_SEARCHED: Array<{ src: string; name: string; href?: string }> = [
   { src: "/assets/games/slot-07.png", name: "Golden Catch" },
 ];
 
-// Searchable catalogue — every game the prototype knows about, with
-// title + thumbnail + optional destination. Drives the search modal's
-// type-to-filter behaviour: as the user types, the list narrows to
-// titles whose name (case-insensitive) contains the query. Empty
-// query falls back to the Recently Searched stub above.
-const ALL_GAMES: Array<{ src: string; name: string; href?: string }> = [
-  { src: "/assets/games/slot-01.png", name: "Buffalo Bills", href: "/play/buffalo-bills" },
-  { src: "/assets/games/slot-02.png", name: "Goldilocks" },
-  { src: "/assets/games/slot-03.png", name: "Big Bass Splash" },
-  { src: "/assets/games/slot-04.png", name: "Jewel Stepper" },
-  { src: "/assets/games/slot-05.png", name: "Western Gold" },
-  { src: "/assets/games/slot-06.png", name: "Reactoonz" },
-  { src: "/assets/games/slot-07.png", name: "Mummy Mania" },
-  { src: "/assets/games/slot-08.png", name: "Tiki Tumble" },
-  { src: "/assets/games/slot-09.png", name: "Golden Catch" },
-  { src: "/assets/games/slot-10.png", name: "Money Train" },
-  { src: "/assets/games/slot-11.png", name: "Maze Escape" },
-  { src: "/assets/games/slot-12.png", name: "Wild Heist" },
-  { src: "/assets/games/slot-13.png", name: "Snake Arena" },
-  { src: "/assets/games/birds-on-a-wire.png", name: "Birds on a Wire" },
-  { src: "/assets/games/fruit-warp.png", name: "Fruit Warp" },
-  { src: "/assets/games/south-park.png", name: "South Park" },
-  { src: "/assets/games/wild-swarm.png", name: "Wild Swarm" },
-];
+// The searchable catalogue now lives in `games-catalogue.ts` as full
+// GameDetails records (name, src, rtp, volatility, provider, numeric
+// rtpValue/minBet/maxBet, …). The page reads it via `getAllGames()` so
+// the search modal can filter & sort on those facets — see SearchPage.
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // ----- Filtering state -----
+  const [filters, setFilters] = useState<GameFilters>(EMPTY_FILTERS);
+  const [sort, setSort] = useState<SortKey>("relevance");
+
+  // Static catalogue-derived data (stable across renders).
+  const allGames = useMemo<GameDetails[]>(() => getAllGames(), []);
+  const providers = useMemo(() => getProviders(), []);
+
+  const hasQueryOrFilters =
+    query.trim().length > 0 || countActiveFilters(filters) > 0;
+
+  // The composed result set: text query + facets + sort. Updates live
+  // as the user taps a chip — no apply step.
+  const results = useMemo(
+    () => applyFilters(allGames, query, filters, sort),
+    [allGames, query, filters, sort],
+  );
 
   // Note: no auto-focus on mount. The user should LAND on the
   // default state — the 4 Start Browsing cards + Recent big wins +
@@ -411,6 +422,8 @@ export default function SearchPage() {
   const closeModal = () => {
     setQuery("");
     setFocused(false);
+    setFilters(EMPTY_FILTERS);
+    setSort("relevance");
     inputRef.current?.blur();
   };
 
@@ -558,12 +571,22 @@ export default function SearchPage() {
               </button>
             </div>
 
+            {/* Inline facet bar — one scrollable line of filter chips.
+                Tapping a chip expands its options just below; picking a
+                value filters the list live (no sheet, no apply step). */}
+            <FilterBar
+              filters={filters}
+              onChange={setFilters}
+              sort={sort}
+              onSortChange={setSort}
+              providers={providers}
+            />
+
             <div className="flex-1 overflow-y-auto">
-              {/* Empty query → Recently Searched (history fallback).
-                  Non-empty query → live-filtered game results from
-                  ALL_GAMES. Filter is case-insensitive substring
-                  match against the game title. */}
-              {query.trim().length === 0 ? (
+              {/* No query AND no filters → Recently Searched history
+                  fallback. Otherwise show the composed (filtered +
+                  sorted) results list — updates live as chips change. */}
+              {!hasQueryOrFilters ? (
                 <RecentlySearched
                   items={RECENTLY_SEARCHED}
                   onRemove={(name) => {
@@ -576,7 +599,7 @@ export default function SearchPage() {
               ) : (
                 <SearchResults
                   query={query}
-                  games={ALL_GAMES}
+                  results={results}
                   onSelect={closeModal}
                 />
               )}
@@ -623,47 +646,51 @@ function RecentlySearched({
   );
 }
 
-/* Type-to-filter results list. Renders titles whose name matches
-   the (case-insensitive) substring query. Cards with an `href` route
+/* Composed results list — receives the already filtered + sorted
+   games from the page. Each row shows the thumb, name, and a metadata
+   line (RTP · volatility · provider) so the filter facets the user
+   picked are reflected back in the result. Cards with an `href` route
    when tapped; cards without one fire a console stub. */
 function SearchResults({
   query,
-  games,
+  results,
   onSelect,
 }: {
   query: string;
-  games: typeof ALL_GAMES;
+  results: GameDetails[];
   onSelect?: () => void;
 }) {
-  const q = query.trim().toLowerCase();
-  const matches = games.filter((g) => g.name.toLowerCase().includes(q));
+  const trimmed = query.trim();
 
   return (
     <section className="pt-[16px] pb-[6px]">
       <h2 className="px-[16px] pb-[12px] text-[16px] font-extrabold text-[var(--mrq-blue-dark)]">
-        {matches.length} {matches.length === 1 ? "result" : "results"}
-        <span
-          className="ml-[6px] font-medium opacity-70"
-          style={{ fontWeight: 500 }}
-        >
-          for &ldquo;{query}&rdquo;
-        </span>
+        {results.length} {results.length === 1 ? "result" : "results"}
+        {trimmed.length > 0 && (
+          <span
+            className="ml-[6px] font-medium opacity-70"
+            style={{ fontWeight: 500 }}
+          >
+            for &ldquo;{trimmed}&rdquo;
+          </span>
+        )}
       </h2>
 
-      {matches.length === 0 ? (
+      {results.length === 0 ? (
         <p className="px-[16px] text-[14px] text-[var(--mrq-blue-dark)] opacity-60">
-          Nothing matches that — try a different spelling or browse
-          the categories instead.
+          Nothing matches that — try loosening a filter or a different
+          spelling.
         </p>
       ) : (
         <ul className="flex flex-col gap-[10px] px-[16px]">
-          {matches.map((game, i) => (
+          {results.map((game, i) => (
             <li key={`${game.name}-${i}`}>
-              <div className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[45px]">
+              <div className="flex w-full items-center gap-[14px] rounded-[8px] bg-white pl-[6px] pr-[10px] h-[52px]">
                 <ResultBody
                   src={game.src}
                   name={game.name}
                   href={game.href}
+                  meta={`${game.rtp} RTP · ${game.volatility} · ${game.provider}`}
                   onClick={onSelect}
                 />
               </div>
@@ -681,11 +708,14 @@ function ResultBody({
   src,
   name,
   href,
+  meta,
   onClick,
 }: {
   src: string;
   name: string;
   href?: string;
+  /** Optional secondary line (e.g. "96% RTP · Medium · Pragmatic Play"). */
+  meta?: string;
   onClick?: () => void;
 }) {
   const inner = (
@@ -699,8 +729,15 @@ function ResultBody({
           className="absolute inset-0 h-full w-full object-cover pointer-events-none"
         />
       </span>
-      <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-[#0e1120]">
-        {name}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="min-w-0 truncate text-[13px] font-extrabold text-[#0e1120]">
+          {name}
+        </span>
+        {meta && (
+          <span className="min-w-0 truncate text-[11px] font-medium text-black/45">
+            {meta}
+          </span>
+        )}
       </span>
     </>
   );
@@ -836,3 +873,4 @@ function CloseIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
