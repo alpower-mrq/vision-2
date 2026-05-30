@@ -238,52 +238,64 @@ export function SuggestionCard({
       {/* Flat brand-blue cover — masks the BottomNav's default
           black-on-/discover scrim while this slide is in view.
 
-          We render a SOLID mrq-blue block (no gradient) sized to
-          match the BottomNav scrim's footprint. The slide's page
-          surface is already mrq-blue, so the cover blends invisibly
-          and the user sees no gradient at all at the bottom of the
-          slide — the whole surface reads as one flat brand-blue
-          plane right up to the nav row.
+          Solid mrq-blue block (no gradient) sized to OVERSHOOT the
+          BottomNav scrim's footprint. The slide's page surface is
+          already mrq-blue so the cover blends invisibly and the
+          user sees no gradient at all at the bottom — the surface
+          reads as one flat plane right up to the nav row.
 
-          z-[35] sits ABOVE the BottomNav's own scrim (z-30) — the
-          BottomNav renders after this component in AppShell, so
-          without the bump the black scrim painted on top of ours.
-          The nav buttons themselves are z-40, so they stay on top
-          of the cover. */}
+          zIndex 39 sits ABOVE the BottomNav's own scrim (z-30) and
+          BELOW the nav buttons themselves (z-40). Using inline
+          zIndex instead of a Tailwind arbitrary value to guarantee
+          the stacking order applies. Cover is also taller than the
+          nav scrim's gradient region (180px vs 90px) to swallow any
+          sliver that might poke above. */}
       <motion.div
         aria-hidden
-        className="fixed bottom-0 z-[35] pointer-events-none"
+        className="fixed bottom-0 pointer-events-none"
         style={{
           left: "var(--frame-right-offset)",
           right: "var(--frame-right-offset)",
-          height: "calc(var(--bottom-nav-h, 80px) + 80px)",
+          height: "calc(var(--bottom-nav-h, 80px) + 100px)",
+          zIndex: 39,
         }}
         animate={{ opacity: isActive ? 1 : 0 }}
         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       >
         <div
-          className="absolute inset-x-0 bottom-0 h-[90px]"
-          style={{ background: "var(--mrq-blue, #0a2ecb)" }}
+          className="absolute inset-x-0 bottom-0"
+          style={{
+            height: "100%",
+            background: "var(--mrq-blue, #0a2ecb)",
+          }}
         />
       </motion.div>
 
-      {/* Layout: title + big card + dots, all centred as one
-          compact block in the vertical middle of the slide. The
-          flex-1 spacers on top + bottom soak up the extra height,
-          so on any screen size the content stays visually centred
-          and the dots are always on-screen + within easy thumb
-          reach. */}
+      {/* Layout: title + big card + dots, centred between the
+          brand bar (top) and the BottomNav (bottom).
+
+          Why absolute + manual bias: the /discover snap container
+          uses -mt-[24px] to slide UP behind the brand bar's rounded
+          corners. That means each article (this one included)
+          extends 24px + brand-bar-height BELOW the viewport. A
+          straight flex justify-center on the article would put the
+          content at the article's geometric centre — which is
+          visually BELOW the screen's centre because the article
+          overflows downward.
+
+          We absolute-position the content stack and offset it
+          UPWARD by ~36px so it lands in the visual middle of what
+          the user actually sees (between the brand bar and the
+          nav), with the dots always on-screen. */}
       <div
-        className="flex flex-col h-full"
+        className="absolute inset-0 flex flex-col items-center"
         style={{
-          paddingTop: "calc(env(safe-area-inset-top) + 56px)",
+          paddingTop: "calc(env(safe-area-inset-top) + 24px)",
           paddingBottom:
-            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 16px)",
+            "calc(var(--bottom-nav-h, 80px) + env(safe-area-inset-bottom) + 88px)",
+          justifyContent: "center",
         }}
       >
-        {/* Top spacer — pushes the content block down to the
-            vertical centre. */}
-        <div className="flex-1" aria-hidden />
 
         {/* Title — big, centred, single line. Drives the slide's
             visual hierarchy. */}
@@ -446,9 +458,6 @@ export function SuggestionCard({
           })}
         </div>
 
-        {/* Bottom spacer — mirrors the top one to keep the block
-            visually centred. */}
-        <div className="flex-1" aria-hidden />
       </div>
     </article>
   );
