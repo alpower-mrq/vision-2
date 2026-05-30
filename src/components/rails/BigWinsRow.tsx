@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { getGameDetails } from "@/lib/games-catalogue";
 import { CountUpAmount } from "@/components/CountUpAmount";
+import { useShell } from "@/lib/filter-context";
 
 /**
  * "Your recent big wins" — horizontal scroll of game tiles with a
@@ -63,6 +64,11 @@ export function BigWinsRow({
 
 function WinTile({ win }: { win: Win }) {
   const router = useRouter();
+  // Hold every prize count-up until the splash dismisses — without
+  // the gate the IntersectionObserver fires while the row sits
+  // behind the z-65 SimpleSplashGate and the count-ups all animate
+  // invisibly before the user sees the first frame.
+  const { bootDone } = useShell();
   // Catalogue lookup, with the win's explicit href winning over the
   // catalogue's if both are set.
   const baseDetails = getGameDetails(win.alt, win.src);
@@ -107,6 +113,7 @@ function WinTile({ win }: { win: Win }) {
       >
         <CountUpAmount
           value={win.prize}
+          gate={bootDone}
           className="text-[13px] font-extrabold text-[var(--mrq-blue)]"
         />
       </div>

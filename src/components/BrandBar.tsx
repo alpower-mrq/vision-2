@@ -190,17 +190,18 @@ export function BrandBar() {
             className="text-white text-[16px] leading-none font-extrabold pt-[1px] active:scale-[0.95] transition-transform"
           >
             {/* `gate={bootDone}` holds the count-up animation until
-                the SimpleSplashGate dismisses — otherwise the
-                IntersectionObserver fires the moment the BrandBar
-                renders into the DOM (behind the z-65 splash overlay)
-                and the count-up plays invisibly. With the gate, the
-                animation starts on the next IO tick AFTER bootDone
-                flips, so the user actually sees it count from £0. */}
-            <CountUpAmount
-              value="£113.59"
-              sessionKey="mrq-wallet-balance"
-              gate={bootDone}
-            />
+                the SimpleSplashGate dismisses — otherwise the IO
+                fires while the BrandBar is rendered behind the z-65
+                splash overlay and the count-up plays invisibly.
+
+                No sessionKey: the count-up runs on every fresh load
+                so users actually see it. The earlier once-per-
+                session gate made the animation invisible to anyone
+                who'd already loaded the app once in the current tab,
+                which was confusing in practice — the chip is so
+                small that one count-up doesn't earn a "stop showing
+                it" budget yet. */}
+            <CountUpAmount value="£113.59" gate={bootDone} />
           </button>
           <span
             className="h-[20px] w-px"
