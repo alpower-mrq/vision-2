@@ -106,17 +106,23 @@ const PAGES: ReadonlyArray<Page> = [
 const TILE_BG = "#0C2287"; // Brand/900 — the "dark blue for game tiles" spec.
 
 export function SuggestionCard({
+  muted = false,
   onActiveChange,
 }: {
+  /** Page-level mute state from the discover feed. When true the
+   *  bg music stays silent even on the active slide. */
+  muted?: boolean;
   /** Fires whenever this slide enters / leaves the viewport at ≥60%
    *  intersection. Used by the parent (DiscoverPage) to hide the
    *  reel-feed's FixedReelChrome (mute / actions / title) while
-   *  the suggestion card is in view. */
+   *  the suggestion card is in view, and to pause all reel videos
+   *  so their audio doesn't leak under this slide's own music. */
   onActiveChange?: (active: boolean) => void;
 }) {
   const router = useRouter();
   const articleRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [pageWidth, setPageWidth] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
@@ -169,6 +175,32 @@ export function SuggestionCard({
     });
   }, [pageIndex, pageWidth, x]);
 
+  // Bg music — play gametile_videobgmusic.mp3 in a loop while this
+  // slide is active. Pauses immediately when the user scrolls away
+  // (resets to 0 so each visit replays from the top) and honours
+  // the page-level muted flag so the reel feed's speaker toggle
+  // controls this too. Browser autoplay policy will block the
+  // first cold play() if the user hasn't tapped yet — we swallow
+  // the rejected promise so it doesn't crash, and the music will
+  // start on the next active flip (when the user has interacted).
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    el.muted = muted;
+    if (isActive && !muted) {
+      el.currentTime = 0;
+      const p = el.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    } else {
+      el.pause();
+      try {
+        el.currentTime = 0;
+      } catch {
+        /* not seekable yet — ignore */
+      }
+    }
+  }, [isActive, muted]);
+
   const currentPage = PAGES[pageIndex];
 
   return (
@@ -180,6 +212,15 @@ export function SuggestionCard({
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
       }}
     >
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio
+        ref={audioRef}
+        src="/assets/gametile_videobgmusic.mp3"
+        loop
+        preload="auto"
+        aria-hidden
+      />
+
       {/* Blue scrim — fixed-positioned overlay that paints over the
           BottomNav's default black-on-/discover scrim while this
           slide is in view. Matches the BottomNav scrim's height +
@@ -281,7 +322,7 @@ export function SuggestionCard({
             {PAGES.map((page) => (
               <div
                 key={page.id}
-                className="shrink-0 px-[16px]"
+                className="shrink-0 px-[24px]"
                 style={{
                   width: pageWidth || "100%",
                   display: "flex",
@@ -290,7 +331,7 @@ export function SuggestionCard({
               >
                 <div
                   className="grid grid-cols-2 w-full"
-                  style={{ gap: 12 }}
+                  style={{ gap: 14 }}
                 >
                   {page.tiles.map((tile, i) => (
                     <SuggestionTile
@@ -338,8 +379,11 @@ export function SuggestionCard({
 }
 
 /* ============================================================
-   Single game tile inside the 2×2 grid. Dark-blue surface, game
-   artwork at the top, name + Play button stacked below.
+   Single game tile inside the 2×2 grid. Dark-blue card surface
+   with an 8px inset around the artwork — same chrome treatment
+   as the rewards-page "This week's offers" cards (so the surface
+   reads as a card frame around the image, not as a flush
+   background). Name + Play CTA stacked below the artwork.
    ============================================================ */
 function SuggestionTile({
   tile,
@@ -350,28 +394,34 @@ function SuggestionTile({
 }) {
   return (
     <div
-      className="flex flex-col rounded-[14px] overflow-hidden"
+      className="flex flex-col rounded-[16px]"
       style={{
         backgroundColor: TILE_BG,
-        border: "1px solid rgba(255,255,255,0.06)",
         boxShadow: "0 10px 24px -12px rgba(0, 0, 0, 0.35)",
       }}
     >
-      {/* Artwork */}
-      <div className="relative aspect-square overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={tile.src}
-          alt={tile.name}
-          draggable={false}
-          className="absolute inset-0 size-full object-cover"
-        />
+      {/* 8px dark-blue padding box around the image — the card
+          frame the user sees around the artwork on the rewards
+          cards. */}
+      <div className="p-[8px]">
+        <div className="relative aspect-square overflow-hidden rounded-[12px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={tile.src}
+            alt={tile.name}
+            draggable={false}
+            className="absolute inset-0 size-full object-cover"
+          />
+        </div>
       </div>
 
       {/* Name + Play CTA */}
-      <div className="px-[12px] pt-[10px] pb-[12px] flex flex-col" style={{ gap: 10 }}>
+      <div
+        className="px-[12px] pb-[12px] flex flex-col"
+        style={{ gap: 8 }}
+      >
         <p
-          className="text-white text-[14px] font-extrabold leading-tight truncate"
+          className="text-white text-[13px] font-extrabold leading-tight truncate"
           style={{ letterSpacing: 0.05 }}
         >
           {tile.name}
@@ -379,7 +429,7 @@ function SuggestionTile({
         <button
           type="button"
           onClick={onPlay}
-          className="w-full h-[30px] rounded-[8px] text-[12px] font-extrabold active:scale-[0.98] transition-transform"
+          className="w-full h-[28px] rounded-[8px] text-[12px] font-extrabold active:scale-[0.98] transition-transform"
           style={{
             backgroundColor: "rgba(255,255,255,0.95)",
             color: "var(--mrq-blue-dark, #0c2287)",

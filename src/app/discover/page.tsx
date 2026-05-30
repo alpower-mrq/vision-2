@@ -163,17 +163,22 @@ export default function DiscoverPage() {
               index={i}
               activeIndex={activeIndex}
               muted={muted}
+              forcePause={suggestionActive}
               onEnter={() => setActiveIndex(i)}
               onTapVideo={() => setMuted((m) => !m)}
             />
-            {/* After the 4th video (index 3) drop in a single
+            {/* After the 2nd reel (index 1) drop in a single
                 "More games" suggestion slide — full-height snap
                 target with a sideways-swipeable carousel of Casino
-                / Live / Bingo / Arena game tiles. Rendered once
-                per feed (not per loop) so the user encounters it
-                a single time as they scroll past reel 4. */}
-            {i === 3 && (
-              <SuggestionCard onActiveChange={setSuggestionActive} />
+                / Live / Bingo / Arena game tiles. Lands as the
+                3rd screen in the feed so the user hits it early
+                in the scroll session. Rendered once per feed (not
+                per loop). */}
+            {i === 1 && (
+              <SuggestionCard
+                muted={muted}
+                onActiveChange={setSuggestionActive}
+              />
             )}
           </Fragment>
         ))}
@@ -206,6 +211,7 @@ function ReelArticle({
   index,
   activeIndex,
   muted,
+  forcePause,
   onEnter,
   onTapVideo,
 }: {
@@ -213,6 +219,11 @@ function ReelArticle({
   index: number;
   activeIndex: number;
   muted: boolean;
+  /** When the SuggestionCard is in view it owns the audio channel
+   *  (plays its own bg music). Force-pausing the reel here keeps the
+   *  reel video's audio from leaking through underneath, and stops
+   *  the playhead drifting while the slide is on screen. */
+  forcePause?: boolean;
   onEnter: () => void;
   onTapVideo: () => void;
 }) {
@@ -267,7 +278,7 @@ function ReelArticle({
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (isActive) {
+    if (isActive && !forcePause) {
       const p = v.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     } else {
@@ -278,7 +289,7 @@ function ReelArticle({
         /* not seekable yet */
       }
     }
-  }, [isActive, reel.video]);
+  }, [isActive, forcePause, reel.video]);
 
   // Reflect the page-level `muted` flag onto the actual <video>
   // element imperatively. React's `muted` prop only writes the
@@ -293,11 +304,11 @@ function ReelArticle({
     const v = videoRef.current;
     if (!v) return;
     v.muted = muted;
-    if (isActive && !muted) {
+    if (isActive && !muted && !forcePause) {
       const p = v.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     }
-  }, [muted, isActive]);
+  }, [muted, isActive, forcePause]);
 
   return (
     <article
