@@ -116,6 +116,15 @@ export function ResumePlayingBar() {
             left: "var(--frame-right-offset)",
             right: "var(--frame-right-offset)",
             bottom: "calc(var(--bottom-nav-h) + 16px)",
+            // Clip the inner card's horizontal drag at the
+            // mobile-frame's edges so it doesn't bleed into the
+            // desktop side gutters on swipe-to-dismiss. `clip`
+            // (not `hidden`) avoids creating a scroll container,
+            // and leaving overflow-y as default visible lets the
+            // drop-shadow continue to extend down into the
+            // BottomNav region (where z-index handles its own
+            // clipping at the nav's top edge).
+            overflowX: "clip",
           }}
           // Entry: y-only slide. The bar starts at y=140 (well
           // below the nav's footprint, hidden behind it at z-30)
