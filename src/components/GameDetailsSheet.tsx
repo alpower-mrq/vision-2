@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useShell } from "@/lib/filter-context";
 
@@ -46,6 +46,31 @@ export function GameDetailsSheet() {
   useEffect(() => {
     if (!open) setHowToPlayExpanded(false);
   }, [open, gameDetails?.name]);
+
+  // Track whether the user has scrolled to the end of the content.
+  // When they have, fade out the white gradient above the pinned
+  // CTA — otherwise it sits on top of the preview and hides its
+  // bottom edge. While mid-scroll the gradient stays visible as a
+  // "more content below" cue.
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+  const updateFade = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // 6px tolerance so the fade flips off cleanly when the bounce-
+    // scroll on iOS settles a pixel or two short of the true bottom.
+    setHasMoreBelow(
+      el.scrollTop + el.clientHeight < el.scrollHeight - 6,
+    );
+  };
+  // Re-check on every open + on tier copy change (the layout
+  // changes height when "See more" expands the how-to-play copy).
+  useEffect(() => {
+    if (!open) return;
+    // Defer one frame so the DOM has its post-mount measurements.
+    const id = requestAnimationFrame(updateFade);
+    return () => cancelAnimationFrame(id);
+  }, [open, gameDetails?.name, howToPlayExpanded]);
 
   // Body scroll lock while open.
   useEffect(() => {
@@ -132,6 +157,8 @@ export function GameDetailsSheet() {
             </div>
 
             <div
+              ref={scrollRef}
+              onScroll={updateFade}
               className="flex-1 min-h-0 overflow-y-auto"
               style={{
                 // Trailing scroll padding so the last detail row +
@@ -313,19 +340,26 @@ export function GameDetailsSheet() {
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
               }}
             >
-              <div
+              <motion.div
                 aria-hidden
                 className="pointer-events-none absolute left-0 right-0"
                 style={{
-                  // Taller (72px) + no solid plateau + intermediate
-                  // stops that mimic an ease-out curve. The hard
-                  // line where the previous "30% solid" stopped and
-                  // the fade began is gone — content now ramps
-                  // smoothly into the chrome.
+                  // Softer gradient overall (peak 0.7 instead of 1.0)
+                  // so even at the densest point content is still
+                  // partially visible underneath. Plus scroll-gated
+                  // (animate.opacity below) — when the user reaches
+                  // the bottom of the scroll, the gradient fades
+                  // out entirely so the preview's bottom edge isn't
+                  // obscured by the chrome haze.
                   top: -72,
                   height: 72,
                   background:
-                    "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.88) 28%, rgba(255,255,255,0.55) 58%, rgba(255,255,255,0.2) 82%, rgba(255,255,255,0) 100%)",
+                    "linear-gradient(to top, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.42) 35%, rgba(255,255,255,0.15) 70%, rgba(255,255,255,0) 100%)",
+                }}
+                animate={{ opacity: hasMoreBelow ? 1 : 0 }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
               />
               <button
