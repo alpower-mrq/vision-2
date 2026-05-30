@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { BrandBar } from "./BrandBar";
@@ -34,6 +35,7 @@ import { WelcomeGate } from "./WelcomeGate";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   // Rewards uses a two-tone surface: brand-blue #0a2ecb at the
   // top of the page (matching the BrandBar), transitioning to
   // a darker #181f43 below the hero's ellipse. The rewards
@@ -74,6 +76,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Surfaces that own their entire chrome (no global BrandBar /
   // BottomNav / ResumePlayingBar).
   const ownsChrome = isGameSurface || isPassesSurface;
+
+  // /discover is the Top Picks reels feed — scroll-snap based,
+  // touching its mount with an opacity/y tween would fight the
+  // native scroll behaviour. We let it cut in cleanly.
+  const isDiscoverSurface = pathname.startsWith("/discover");
+
+  // Skip the cross-route fade-up wrapper on any surface that
+  // owns its own entrance motion. Otherwise every BottomNav tap
+  // / link cross-fades content over ~260ms using the same
+  // curve the rails use (cubic-bezier(0.22, 1, 0.36, 1)) so the
+  // route transition reads as part of the existing motion
+  // system, not a new flavour layered on top.
+  const skipPageTransition =
+    ownsChrome || isDiscoverSurface || reduce === true;
 
   return (
     <>
@@ -116,7 +132,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 : undefined
           }
         >
-          {children}
+          {/* Route content. On surfaces that don't own their own
+              entrance motion, we wrap in a motion.div keyed on
+              pathname so each route fades + drifts up on mount.
+              On /play/*, /passes/* and /discover (or when reduced
+              motion is requested), we render the children as-is
+              so their own motion isn't fought over. */}
+          {skipPageTransition ? (
+            children
+          ) : (
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {children}
+            </motion.div>
+          )}
           {!ownsChrome && (
             <div
               style={{
