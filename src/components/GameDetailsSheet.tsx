@@ -130,39 +130,45 @@ export function GameDetailsSheet() {
                 paddingBottom: 12,
               }}
             >
-              {/* Title block. When a `preview` is present, the
-                  small artwork thumbnail is hidden — the preview
-                  below already shows what the game looks like, and
-                  freeing up the horizontal space here lets long
-                  titles ("Buffalo Bills Hypercharged") render in
-                  full instead of being truncated. When no preview
-                  is available, the thumbnail stays so the sheet
-                  always has a visual anchor. */}
-              <div className="flex items-center gap-[14px] px-[20px] pt-[10px] pb-[14px]">
-                {!gameDetails.preview && (
-                  <span
-                    className="relative shrink-0 overflow-hidden rounded-[14px]"
+              {/* Title block — small artwork thumbnail (56×56,
+                  was 92) alongside the title. Compact enough that
+                  it doesn't compete with the preview below, but
+                  keeps the game's tile-art recognisable as an
+                  identity anchor. Title row gets enough remaining
+                  width that long names ("Buffalo Bills
+                  Hypercharged") fit on two lines instead of being
+                  truncated. */}
+              <div className="flex items-center gap-[12px] px-[20px] pt-[10px] pb-[14px]">
+                <span
+                  className="relative shrink-0 overflow-hidden rounded-[12px]"
+                  style={{
+                    width: 56,
+                    height: 56,
+                    boxShadow: "0 4px 12px -6px rgba(10, 46, 203, 0.22)",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={gameDetails.src}
+                    alt=""
+                    draggable={false}
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <h2
+                    className="text-[20px] font-extrabold leading-tight text-[var(--mrq-blue-dark)]"
                     style={{
-                      width: 92,
-                      height: 92,
-                      boxShadow: "0 6px 16px -8px rgba(10, 46, 203, 0.25)",
+                      // Wrap long names instead of truncating —
+                      // there's no thumbnail-sized space crunch
+                      // anymore now that the artwork is 56px.
+                      overflowWrap: "anywhere",
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={gameDetails.src}
-                      alt=""
-                      draggable={false}
-                      className="absolute inset-0 size-full object-cover"
-                    />
-                  </span>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-[22px] font-extrabold leading-tight text-[var(--mrq-blue-dark)]">
                     {gameDetails.name}
                   </h2>
                   <p
-                    className="text-[14px] font-medium leading-tight mt-[4px]"
+                    className="text-[13px] font-medium leading-tight mt-[3px]"
                     style={{ color: "rgba(10, 46, 203, 0.6)" }}
                   >
                     {gameDetails.gameType} · {gameDetails.provider}
@@ -259,10 +265,13 @@ export function GameDetailsSheet() {
 
             {/* Pinned Play CTA — lives OUTSIDE the scrollable area
                 so the primary action stays visible no matter how
-                much content sits above it. Soft fading divider on
-                top (a 12px linear gradient) so the scroll area
-                feathers into the pinned region instead of hitting
-                it at a hard edge. */}
+                much content sits above it. A 56px white-to-
+                transparent gradient sits above the chrome (not a
+                12px hairline like before) so content visibly
+                fades into the pinned region. That feathering is
+                the visual cue that there's more below — users
+                see the "How to play" copy bleeding under the CTA
+                area rather than ending at a flat edge. */}
             <div
               className="shrink-0 relative bg-white"
               style={{
@@ -276,10 +285,10 @@ export function GameDetailsSheet() {
                 aria-hidden
                 className="pointer-events-none absolute left-0 right-0"
                 style={{
-                  top: -12,
-                  height: 12,
+                  top: -56,
+                  height: 56,
                   background:
-                    "linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))",
+                    "linear-gradient(to top, rgba(255,255,255,1) 30%, rgba(255,255,255,0) 100%)",
                 }}
               />
               <button
