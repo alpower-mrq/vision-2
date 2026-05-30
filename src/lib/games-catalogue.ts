@@ -72,6 +72,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Microgaming",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Snake Arena",
@@ -82,6 +83,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Relax Gaming",
+    preview: "/assets/games/game_demo2.jpeg",
   },
   {
     name: "Maze Escape",
@@ -92,6 +94,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Hacksaw Gaming",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Mummy Mania",
@@ -102,6 +105,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Yggdrasil",
+    preview: "/assets/games/game_demo2.jpeg",
   },
   {
     name: "Western Gold",
@@ -112,6 +116,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Pragmatic Play",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Golden Catch",
@@ -122,6 +127,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Yggdrasil",
+    preview: "/assets/games/game_demo2.jpeg",
   },
   {
     name: "Big Bass Splash",
@@ -132,6 +138,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Pragmatic Play",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Birds on a Wire",
@@ -142,6 +149,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Thunderkick",
+    preview: "/assets/games/game_demo2.jpeg",
   },
   {
     name: "Fruit Warp",
@@ -152,6 +160,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Thunderkick",
+    preview: "/assets/games/game_demo.webp",
   },
   {
     name: "Wild Swarm",
@@ -162,6 +171,7 @@ const CATALOGUE: CatalogueEntry[] = [
     betRange: "£0.10–£100",
     gameType: "Slot",
     provider: "Push Gaming",
+    preview: "/assets/games/game_demo2.jpeg",
   },
 ];
 
