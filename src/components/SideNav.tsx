@@ -418,40 +418,40 @@ function PlayStreakCard() {
         })}
       </div>
 
-      {/* Divider — hairline matching the card's outer border so
-          the stats section reads as the same surface continuing
-          downward rather than a stacked separate card. The
-          parent flex gap-[8px] gives 8px breathing room above
-          and below without needing extra margins. */}
-      <div
-        className="h-px"
-        style={{ backgroundColor: "#e6e6e7" }}
-        aria-hidden
-      />
-
-      {/* Weekly activity subsection. The "This Week" tag frames
-          the stats below as time-bounded ('how my week is
-          going') rather than a generic player profile dump.
-          Title-cased font-semibold at 11px / 50% opacity is
-          clearly lighter than the streak hero above, so the
-          reading order stays streak-first.
-          Rows below: labels quiet (50% opacity), values loud
-          (16px extrabold) — values are the primary element on
-          each row. Stats inner gap drops to 6 so the three
-          rows read as one tight block rather than three
-          drifting lines. */}
-      <div>
+      {/* "Your Week" inline-text divider. The hairline now CARRIES
+          the section label inside it rather than being a plain
+          rule with a separate heading below — the stats read as
+          a continuation of the streak instead of a bolted-on
+          block. Side spans are hairlines that flex-1 either side
+          of the centred text, so the lines stretch / shrink with
+          the card width while the label stays perfectly centred. */}
+      <div className="flex items-center gap-[10px]">
         <span
-          className="block text-[11px] font-semibold text-[var(--mrq-blue-dark)]"
-          style={{ opacity: 0.5, marginBottom: 6 }}
+          aria-hidden
+          className="h-px flex-1"
+          style={{ backgroundColor: "#e6e6e7" }}
+        />
+        <span
+          className="text-[11px] font-semibold text-[var(--mrq-blue-dark)]"
+          style={{ opacity: 0.5 }}
         >
-          This Week
+          Your Week
         </span>
-        <div className="flex flex-col gap-[6px]">
-          <StatRow label="Games Played" value="27" />
-          <StatRow label="Biggest Win" value="£487" />
-          <StatRow label="Favourite Game" value="Buffalo Bills" />
-        </div>
+        <span
+          aria-hidden
+          className="h-px flex-1"
+          style={{ backgroundColor: "#e6e6e7" }}
+        />
+      </div>
+
+      {/* Weekly summary rows. Labels quiet (50% opacity), values
+          loud (16px extrabold) — values are the primary element
+          on each row. 6-px inner gap so the three rows read as
+          one tight block rather than three drifting lines. */}
+      <div className="flex flex-col gap-[6px]">
+        <StatRow label="Games Played" value="27" />
+        <StatRow label="Biggest Win" value="£487" />
+        <StatRow label="Favourite Game" value="Buffalo Bills" />
       </div>
     </section>
   );
