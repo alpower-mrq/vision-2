@@ -415,7 +415,99 @@ function PlayStreakCard() {
           );
         })}
       </div>
+
+      {/* Divider — hairline matching the card's outer border so
+          the stats section reads as the same surface continuing
+          downward rather than a stacked separate card. The
+          parent flex gap-[10px] gives 10px breathing room above
+          and below without needing extra margins. */}
+      <div
+        className="h-px"
+        style={{ backgroundColor: "#e6e6e7" }}
+        aria-hidden
+      />
+
+      {/* Player stats — 3 equal columns sharing the same surface
+          as the streak above. Each column: icon (40-px bounding
+          box, brand-illustration PNG) → value (extrabold brand
+          navy) → label (smaller, low-opacity navy). Values share
+          a 36-px min-height slot so single-line numbers and the
+          two-line "Buffalo Bills" wrap leave the labels on a
+          common baseline. min-w-0 on each column lets long
+          values wrap inside the column instead of expanding it. */}
+      <div className="grid grid-cols-3 gap-[8px]">
+        <StatColumn
+          icon="/assets/gamesplayed.png"
+          value="27"
+          label="Games Tried"
+        />
+        <StatColumn
+          icon="/assets/trophy.png"
+          value="£487"
+          label="Biggest Win"
+        />
+        <StatColumn
+          icon="/assets/favgame.png"
+          value="Buffalo Bills"
+          label="Favourite Game"
+        />
+      </div>
     </section>
+  );
+}
+
+function StatColumn({
+  icon,
+  value,
+  label,
+}: {
+  icon: string;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-[4px] min-w-0">
+      {/* Brand-illustration icon. object-contain keeps each
+          icon's intrinsic aspect ratio inside the same 40×40
+          bounding box so the trophy (taller than wide), the
+          controller (wider than tall), and the heart (roughly
+          square) all read at the same visual scale across the
+          row. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={icon}
+        alt=""
+        draggable={false}
+        style={{
+          display: "block",
+          width: 40,
+          height: 40,
+          objectFit: "contain",
+        }}
+      />
+      {/* Value slot — fixed 36-px min-height equals two lines at
+          the 14-px font's 1.25 leading. Single-line values like
+          "27" and "£487" centre vertically in the slot; the two-
+          line "Buffalo Bills" wrap fills the slot exactly. Net:
+          all three columns land their label tier on the same
+          baseline regardless of word count. */}
+      <div
+        className="flex w-full items-center justify-center"
+        style={{ minHeight: 36 }}
+      >
+        <span
+          className="text-center text-[14px] font-extrabold leading-[1.25] text-[var(--mrq-blue-dark)] break-words"
+        >
+          {value}
+        </span>
+      </div>
+      <span
+        className="text-center text-[11px] font-bold text-[var(--mrq-blue-dark)]"
+        style={{ opacity: 0.55 }}
+      >
+        {label}
+      </span>
+    </div>
   );
 }
 
