@@ -429,25 +429,25 @@ function PlayStreakCard() {
         aria-hidden
       />
 
-      {/* Player stats — secondary subsection inside the same
-          card. The "YOUR STATS" tag whispers the section's role
-          (uppercase 10px at 45% opacity, letter-spaced) so the
-          eye still parses the streak above as the hero. Rows
-          below carry the data: labels quiet (50% opacity), values
-          loud (16px extrabold) so the value is the primary
-          element on each row. */}
+      {/* Weekly activity subsection. The "This Week" tag frames
+          the stats below as time-bounded ('how my week is
+          going') rather than a generic player profile dump.
+          Title-cased font-semibold at 11px / 50% opacity is
+          clearly lighter than the streak hero above, so the
+          reading order stays streak-first.
+          Rows below: labels quiet (50% opacity), values loud
+          (16px extrabold) — values are the primary element on
+          each row. Stats inner gap drops to 6 so the three
+          rows read as one tight block rather than three
+          drifting lines. */}
       <div>
         <span
-          className="block text-[10px] font-extrabold uppercase text-[var(--mrq-blue-dark)]"
-          style={{
-            opacity: 0.45,
-            letterSpacing: 0.6,
-            marginBottom: 8,
-          }}
+          className="block text-[11px] font-semibold text-[var(--mrq-blue-dark)]"
+          style={{ opacity: 0.5, marginBottom: 6 }}
         >
-          Your Stats
+          This Week
         </span>
-        <div className="flex flex-col gap-[8px]">
+        <div className="flex flex-col gap-[6px]">
           <StatRow label="Games Played" value="27" />
           <StatRow label="Biggest Win" value="£487" />
           <StatRow label="Favourite Game" value="Buffalo Bills" />
