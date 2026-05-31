@@ -362,12 +362,23 @@ function PlayStreakCard() {
       className="rounded-[14px] bg-white px-[14px] py-[12px] flex flex-col gap-[10px]"
       style={{ border: "1px solid #e6e6e7" }}
     >
-      {/* Header — single-line label. The hero fire illustration
-          used to sit here but felt too heavy for a side-drawer
-          card; the day pips below are the real visual story, so
-          the header demotes to a tight one-line title. */}
-      <p className="text-[15px] font-extrabold leading-tight text-[var(--mrq-blue-dark)]">
-        4 day Play Streak
+      {/* Header — single-line two-tier label. The streak count is
+          the headline number, sized + weighted to catch the eye
+          on drawer open; the "day Play Streak" tail sits in a
+          softer brand-navy-at-low-opacity grey so the reading
+          weight is squarely on the count.
+          flex items-baseline keeps both tiers on the same
+          baseline despite the size step. */}
+      <p className="flex items-baseline gap-[6px] leading-tight">
+        <span className="text-[22px] font-extrabold text-[var(--mrq-blue-dark)]">
+          4
+        </span>
+        <span
+          className="text-[13px] font-bold text-[var(--mrq-blue-dark)]"
+          style={{ opacity: 0.55 }}
+        >
+          day Play Streak
+        </span>
       </p>
 
       {/* Day pips — 7 columns, justified across the card width.
