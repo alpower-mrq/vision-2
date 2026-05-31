@@ -354,17 +354,27 @@ function PlayStreakCard() {
       className="rounded-[14px] bg-white p-[16px] flex flex-col gap-[14px]"
       style={{ border: "1px solid #e6e6e7" }}
     >
-      {/* Header — flame + count + label. Flame is large enough to
-          read as a hero element; the count uses the same brand-
-          navy weight as the rest of the drawer so the orange
-          accent stays singular. */}
-      <div className="flex items-center gap-[12px]">
-        <FlameIcon
-          className="size-[36px] shrink-0"
-          style={{ color: STREAK_ACCENT }}
+      {/* Header — fire illustration + count + label. Uses the
+          full-colour /assets/fire.svg (yellow outer flame, pink
+          inner core, brand-navy stroke) as the hero element so
+          the card has real character instead of a flat
+          single-colour glyph. SVG's intrinsic aspect ratio is
+          ~0.78:1, so a 44px width gives ~57px tall — substantial
+          but not so large it pushes the day pips off the visible
+          drawer. */}
+      <div className="flex items-center gap-[14px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/fire.svg"
+          alt=""
+          width={44}
+          height={57}
+          draggable={false}
+          className="shrink-0"
+          style={{ display: "block" }}
         />
         <div className="flex min-w-0 flex-col leading-tight">
-          <span className="text-[24px] font-extrabold text-[var(--mrq-blue-dark)]">
+          <span className="text-[28px] font-extrabold text-[var(--mrq-blue-dark)]">
             4
           </span>
           <span className="text-[13px] font-bold text-[var(--mrq-blue-dark)] opacity-70">
