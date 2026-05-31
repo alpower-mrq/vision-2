@@ -378,32 +378,69 @@ function PlayStreakCard() {
       </div>
 
       {/* Day pips — 7 columns, justified across the card width.
-          Hit days carry a filled orange circle with a mini white
-          flame inside; miss days are hollow with a hairline border.
-          Today's pip carries an extra ring so the user can tell
-          "today's already been hit" vs "earlier in the week". */}
+          Hit days render the fire.svg illustration; miss days are
+          a small hollow hairline circle. Today is marked by the
+          day label sitting at full opacity (others at 55%).
+
+          On open, each fire pops in with a staggered spring so
+          the streak builds in front of the user one day at a time
+          (Mon → Tue → Wed → Thu). Static elements — labels and
+          miss circles — render immediately so the row is laid out
+          from frame 0 and the fires drop INTO existing slots
+          instead of pushing things around. delayChildren waits
+          ~350ms for the drawer's slide-in (spring stiffness 360
+          damping 38) to settle before the first pop. */}
       <div className="flex justify-between">
-        {STREAK_DAYS.map((day, i) => (
-          <DayPip
-            key={`${day.label}-${i}`}
-            label={day.label}
-            hit={day.hit}
-            isToday={day.isToday}
-          />
-        ))}
+        {STREAK_DAYS.map((day, i) => {
+          // Count hits BEFORE this position so the animation
+          // order follows chronological reading (Mon's fire pops
+          // first, Tue's second, …) regardless of how the array
+          // is laid out. Miss days get -1 so their pip skips the
+          // animation path entirely.
+          const hitIndex = day.hit
+            ? STREAK_DAYS.slice(0, i).filter((d) => d.hit).length
+            : -1;
+          return (
+            <DayPip
+              key={`${day.label}-${i}`}
+              label={day.label}
+              hit={day.hit}
+              isToday={day.isToday}
+              hitIndex={hitIndex}
+            />
+          );
+        })}
       </div>
     </section>
   );
 }
 
+// Stagger / delay tokens for the day-pip pop-in. Pulled out as
+// named constants so the comment up in PlayStreakCard can refer
+// to them without drifting.
+//   • DRAWER_SETTLE_MS — drawer's spring (stiffness 360 damping
+//     38) finishes its slide-in around 350 ms; the fires hold
+//     until then so they don't compete with the drawer entrance.
+//   • FIRE_STAGGER_MS  — gap between successive fire pops. 120 ms
+//     is fast enough to feel snappy across a 4-day streak (~480
+//     ms total) but slow enough that each pop reads individually.
+const DRAWER_SETTLE_MS = 350;
+const FIRE_STAGGER_MS = 120;
+
 function DayPip({
   label,
   hit,
   isToday,
+  hitIndex,
 }: {
   label: string;
   hit: boolean;
   isToday: boolean;
+  /** Chronological position of this hit day in the streak (0 =
+   *  first hit of the week, 1 = second, …). Drives the fire's
+   *  per-pip animation delay. -1 for miss days; the fire isn't
+   *  rendered for those so the value is ignored. */
+  hitIndex: number;
 }) {
   // Fixed height for the content row so the day initials stay
   // baseline-aligned across hit / miss columns even though the
@@ -435,14 +472,28 @@ function DayPip({
         style={{ height: ROW_H }}
       >
         {hit ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // Stiff spring with low damping = a satisfying "pop"
+          // with a slight overshoot. Origin set to bottom-centre
+          // so the flame appears to spring UP out of the row
+          // (matches the visual metaphor of a fire kindling) and
+          // the day label stays anchored above.
+          <motion.img
             src="/assets/fire.svg"
             alt=""
             width={FIRE_W}
             height={FIRE_H}
             draggable={false}
-            style={{ display: "block" }}
+            style={{ display: "block", transformOrigin: "bottom center" }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              delay:
+                (DRAWER_SETTLE_MS + hitIndex * FIRE_STAGGER_MS) / 1000,
+              type: "spring",
+              stiffness: 420,
+              damping: 16,
+              mass: 0.7,
+            }}
           />
         ) : (
           <span
