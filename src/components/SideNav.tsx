@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { useFilter } from "@/lib/filter-context";
@@ -12,6 +13,7 @@ import { useFilter } from "@/lib/filter-context";
  * Contents:
  *   • Top: avatar + name + Withdraw / Deposit buttons
  *   • Group 1: Profile / Wallet / Transaction history / Safer gambling
+ *   • Q+ CTA: standalone solid-blue tile routing to /passes
  *   • Group 2: Get 50 free spins! (promo) / Privacy Policy / Terms & conditions
  *     / Help & FAQs
  *   • Footer: Log out
@@ -108,6 +110,16 @@ export function SideNav() {
 }
 
 function DrawerContent({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+
+  // Tap the Q+ tile → navigate to /passes (where the weekly-pass
+  // landing lives, already wired from the home hero carousel) and
+  // close the drawer so the new page lands flush.
+  const goToQPlus = () => {
+    router.push("/passes");
+    onClose();
+  };
+
   return (
     <div className="flex flex-col gap-[16px] px-[16px] py-[16px]">
       {/* Header: avatar + name */}
@@ -144,6 +156,24 @@ function DrawerContent({ onClose }: { onClose: () => void }) {
         <MenuItem icon={<HistoryIcon />} label="Transaction History" onClick={onClose} />
         <MenuItem icon={<HeartIcon />} label="Safer Gambling" onClick={onClose} />
       </MenuGroup>
+
+      {/* Q+ — standalone solid-blue CTA sitting between the two
+          MenuGroup blocks. Marks the weekly-pass upsell as a paid-
+          tier promotion distinct from the regular account links;
+          same height + padding as a MenuItem so it slots into the
+          rhythm of the menu without breaking the column. */}
+      <button
+        type="button"
+        onClick={goToQPlus}
+        className="flex w-full items-center gap-[14px] px-[14px] py-[14px] rounded-[14px] bg-mrq-blue text-white text-left active:scale-[0.99] transition-transform"
+      >
+        <span className="shrink-0 size-[20px] grid place-items-center">
+          <DiamondIcon />
+        </span>
+        <span className="text-[14px] font-extrabold">
+          Get more with Q+ every week
+        </span>
+      </button>
 
       {/* Group 2 */}
       <MenuGroup>
@@ -266,6 +296,29 @@ function HeartIcon() {
 }
 function GiftIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><rect x="2.5" y="6" width="15" height="3.5" rx="0.5" /><path d="M4 9.5V17a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9.5" /><path d="M10 6v12" /><path d="M10 6c-1.25-1.6-4.6-1.6-4.6 0 0 .85.85 1.3 2.1 1.3 1.25 0 2.5-.45 2.5-1.3Z" /><path d="M10 6c1.25-1.6 4.6-1.6 4.6 0 0 .85-.85 1.3-2.1 1.3-1.25 0-2.5-.45-2.5-1.3Z" /></svg>;
+}
+function DiamondIcon() {
+  // Gem/diamond outline — trapezoidal top + V bottom + a horizontal
+  // top-facet line and two short diagonals from the upper corners
+  // down to the gem's centre point, so it reads as a multi-facet
+  // gem rather than a flat rhombus. Matches the rest of the menu's
+  // 1.8-weight stroked-icon set.
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-full"
+      aria-hidden
+    >
+      <path d="M5 2.5h10l3.5 5L10 17.5 1.5 7.5Z" />
+      <path d="M1.5 7.5h17" />
+      <path d="M5 2.5 10 7.5l5-5" />
+    </svg>
+  );
 }
 function LockIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><rect x="4" y="9" width="12" height="8" rx="2" /><path d="M7 9V7a3 3 0 0 1 6 0v2" /></svg>;
