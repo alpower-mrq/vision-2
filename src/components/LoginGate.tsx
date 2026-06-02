@@ -153,27 +153,23 @@ export function LoginGate() {
           >
             {/* Logo + welcome heading */}
             <div className="flex flex-col items-center gap-[12px] w-full">
-              {/* MrQ wordmark — rendered via mask-image so we can
-                  recolour it (Figma SVG ships fill="white" baked in)
-                  AND control the box size precisely. Aspect ratio
-                  83:32 (Figma viewBox) → 132×~51px target; mask-size
-                  contain keeps it crisp. */}
-              <span
-                role="img"
-                aria-label="MrQ"
+              {/* Mr Q character head — circular brand-blue badge
+                  with the Mr Q personality inside (top hat, yellow
+                  shirt, pointing). Replaces the previous flat
+                  wordmark so the gate feels personal rather than
+                  utilitarian. PNG is roughly square; 200-px width
+                  anchors the top of the screen without crowding
+                  the welcome heading below. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/logo_head.png"
+                alt="Mr Q"
+                draggable={false}
                 style={{
                   display: "block",
-                  width: 132,
-                  height: 51, // 132 × 32/83 ≈ 51 — matches Figma viewBox
-                  backgroundColor: "var(--mrq-blue)",
-                  WebkitMaskImage: "url(/assets/logo-mrq.svg)",
-                  maskImage: "url(/assets/logo-mrq.svg)",
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
+                  width: 200,
+                  height: "auto",
+                  objectFit: "contain",
                 }}
               />
               <div className="flex flex-col items-center gap-[4px] w-full">
