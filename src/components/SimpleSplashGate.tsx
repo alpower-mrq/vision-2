@@ -193,12 +193,11 @@ export function SimpleSplashGate() {
                 }}
                 style={{
                   display: "block",
-                  width: "100%",
-                  // Cap on very wide preview surrounds so the
-                  // character doesn't blow up beyond the mobile
-                  // frame; on actual mobile it fills the column
-                  // edge-to-edge.
-                  maxWidth: 480,
+                  // ~72% of the mobile-frame column so the
+                  // character sits comfortably anchored at the
+                  // bottom without dominating the splash.
+                  width: "72%",
+                  maxWidth: 320,
                   height: "auto",
                 }}
               />
