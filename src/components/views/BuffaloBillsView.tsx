@@ -73,7 +73,17 @@ const SIMILAR_GAMES = [
   { src: "/assets/games/slot-12.png", alt: "Western Gold" },
 ];
 
-export function BuffaloBillsView() {
+export function BuffaloBillsView({
+  entranceDelaySec = 0.25,
+}: {
+  /** Delay (in seconds, from page mount) before the game-info
+   *  peek-up animation fires. Defaults to 0.25 so direct route
+   *  loads still get the original brief 'there's more here' tease.
+   *  The /play/buffalo-bills wrapper overrides this to ~2.2 so
+   *  the peek doesn't waste itself behind the brand-blue loading
+   *  splash that covers the page for the first ~2 s. */
+  entranceDelaySec?: number;
+} = {}) {
   const reduce = useReducedMotion();
 
   return (
@@ -124,7 +134,7 @@ export function BuffaloBillsView() {
                 // read the cards before they leave the viewport.
                 // Total path: 2.4s, peak at 22% in.
                 duration: 2.4,
-                delay: 0.25,
+                delay: entranceDelaySec,
                 times: [0, 0.22, 1],
                 ease: "easeInOut",
               }

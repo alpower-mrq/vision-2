@@ -30,6 +30,12 @@ import { GameLoadingScreen } from "@/components/play/GameLoadingScreen";
 // the game appears.
 const LOADING_HOLD_MS = 2200;
 
+// Sync point: when the BuffaloBillsView's "peek-up" animation
+// should fire. We want it to begin as the splash starts fading,
+// so its peak (at 22% in = 0.53 s) lands just after the splash is
+// gone (splash fade is 0.45 s). LOADING_HOLD_MS / 1000 = 2.2 s.
+const GAME_ENTRANCE_DELAY_SEC = LOADING_HOLD_MS / 1000;
+
 export default function BuffaloBillsPage() {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -43,8 +49,10 @@ export default function BuffaloBillsPage() {
       {/* Mount the game underneath the splash immediately so its
           assets pre-load while the splash is on screen — when the
           splash fades, the game is already painted behind it and
-          there's no flash to a half-loaded state. */}
-      <BuffaloBillsView />
+          there's no flash to a half-loaded state. The view's own
+          peek-up animation is delayed to GAME_ENTRANCE_DELAY_SEC
+          so it doesn't run uselessly behind the splash. */}
+      <BuffaloBillsView entranceDelaySec={GAME_ENTRANCE_DELAY_SEC} />
 
       <AnimatePresence>
         {showSplash && (

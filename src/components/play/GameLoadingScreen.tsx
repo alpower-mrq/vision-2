@@ -75,29 +75,26 @@ export function GameLoadingScreen({
 
   return (
     <div
-      className="fixed top-0 bottom-0 z-[60] flex flex-col items-center pointer-events-auto"
+      className="fixed top-0 bottom-0 z-[60] flex flex-col items-center justify-center pointer-events-auto"
       style={{
         left: "var(--frame-right-offset)",
         right: "var(--frame-right-offset)",
         // Brand blue — matches /assets/q_approved_loading.png's
         // stamp background and the rest of the brand surfaces.
         backgroundColor: "var(--mrq-blue, #0a2ecb)",
-        // Top padding sized so the Q badge's top edge sits at
-        // ~20% from the viewport top, matching Figma 317:93585
-        // (Q badge y=376 / frame=1920 → 19.6% from top). On
-        // iPhone with a 47-px safe-area-inset-top, 47+100=147
-        // lands ~17% on iPhone 14's 844-tall viewport; close
-        // enough that the badge feels suspended in the upper
-        // third rather than hugging the top edge.
-        paddingTop: "calc(env(safe-area-inset-top) + 100px)",
+        // justify-center vertically centres the whole cluster
+        // and the safe-area paddings keep it clear of the
+        // notch / home indicator on iPhone. Cluster gaps use
+        // fixed margin-tops so the elements stay close to each
+        // other regardless of viewport height instead of the
+        // previous flex-1 spacer that spread them edge to edge.
+        paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
         paddingLeft: 24,
         paddingRight: 24,
       }}
     >
-      {/* Q Approved badge — first beat. Sized to 130 px so it
-          matches the Figma ratio of 30% of frame width on a
-          375-px mobile column. */}
+      {/* Q Approved badge — first beat. */}
       <motion.img
         src="/assets/q_approved_loading.png"
         alt=""
@@ -115,10 +112,8 @@ export function GameLoadingScreen({
 
       {/* Sticker — second beat. Lands with a tiny tilt-settle
           so it feels stamped onto the surface, not faded in.
-          maxWidth 300 keeps it at ~80% of mobile-frame width
-          per the Figma (sticker is 880/1080 ≈ 81% in the
-          design). marginTop 56 gives the Q→sticker gap room to
-          breathe — Figma has ~10% of viewport between them. */}
+          32-px gap from the Q badge pulls them into the same
+          visual cluster rather than separated tiers. */}
       <motion.img
         src="/assets/thisgame_loading.png"
         alt="This game was picked by our casino nerds"
@@ -130,18 +125,15 @@ export function GameLoadingScreen({
           width: "100%",
           maxWidth: 300,
           height: "auto",
-          marginTop: 56,
+          marginTop: 32,
           display: "block",
         }}
       />
 
-      {/* Spacer — push the game-logo + RTP block to the lower
-          half of the visible area without using flex-1 (would
-          stretch responsive widths in awkward ways on short
-          phones). */}
-      <div style={{ flex: "1 1 0", minHeight: 24 }} />
-
-      {/* Game logo — third beat, slide-up like a card landing. */}
+      {/* Game logo — third beat, slide-up like a card landing.
+          56-px gap from the sticker is the largest gap in the
+          stack — still tight, but enough air to mark the
+          'identity → game' shift. */}
       <motion.img
         src={gameLogo}
         alt=""
@@ -155,17 +147,20 @@ export function GameLoadingScreen({
           height: "auto",
           objectFit: "contain",
           display: "block",
+          marginTop: 56,
         }}
       />
 
       {/* RTP — fourth beat, subtle fade-up. Smaller motion
-          because it's supporting data, not character. */}
+          because it's supporting data, not character. 20-px
+          gap so it sits visually attached to the game logo
+          above it. */}
       <motion.div
         className="text-center"
         initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={transition(1.15, false)}
-        style={{ marginTop: 28 }}
+        style={{ marginTop: 20 }}
       >
         <p
           className="text-[14px] font-bold text-white"
@@ -180,10 +175,6 @@ export function GameLoadingScreen({
           {rtp}
         </p>
       </motion.div>
-
-      {/* Bottom breathing room so RTP doesn't kiss the home
-          indicator on iPhone. */}
-      <div style={{ height: 48 }} />
     </div>
   );
 }
