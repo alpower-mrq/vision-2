@@ -157,9 +157,9 @@ export function LoginGate() {
                   with the Mr Q personality inside (top hat, yellow
                   shirt, pointing). Replaces the previous flat
                   wordmark so the gate feels personal rather than
-                  utilitarian. PNG is roughly square; 200-px width
-                  anchors the top of the screen without crowding
-                  the welcome heading below. */}
+                  utilitarian. 170-px width anchors the top of the
+                  screen without dominating the welcome heading
+                  below. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/logo_head.png"
@@ -167,7 +167,7 @@ export function LoginGate() {
                 draggable={false}
                 style={{
                   display: "block",
-                  width: 200,
+                  width: 170,
                   height: "auto",
                   objectFit: "contain",
                 }}
