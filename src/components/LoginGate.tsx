@@ -310,32 +310,9 @@ export function LoginGate() {
                   Log in
                 </button>
 
-                {/* Divider with "or" */}
-                <div className="flex items-center justify-center w-full gap-[10px]">
-                  <span
-                    className="flex-1 h-px"
-                    style={{ backgroundColor: "#cccdd0" }}
-                    aria-hidden
-                  />
-                  <span
-                    className="text-center text-black"
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      lineHeight: 1.6,
-                      letterSpacing: 0.1,
-                    }}
-                  >
-                    or
-                  </span>
-                  <span
-                    className="flex-1 h-px"
-                    style={{ backgroundColor: "#cccdd0" }}
-                    aria-hidden
-                  />
-                </div>
-
-                {/* Social login */}
+                {/* Social login — sits directly under the
+                    primary 'Log in' CTA with the parent flex
+                    gap as the only separator, no 'or' divider. */}
                 <button
                   type="button"
                   onClick={dismiss}
