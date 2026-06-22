@@ -133,19 +133,19 @@ export function BrandBar() {
 
         {/* Right side: pass pill + wallet pill. */}
         <div className="flex items-center gap-[8px]">
-          {/* Season Pass entry — pink diamond inside the same glass
-              pill family as the balance/avatar. Routes to /passes
-              (Weekly Pass landing, Figma 266:47065). Visible on every
-              route that renders the BrandBar; AppShell already hides
-              the BrandBar entirely on /passes/* and /play/* so the
-              pill doesn't appear where it shouldn't. */}
+          {/* Qoins entry — the loyalty-currency coin inside the same
+              glass pill family as the balance/avatar. Routes to /qoins
+              (Qoins Rewards). Replaced the old Season Pass diamond;
+              Season Pass is still reachable from the SideNav Q+ tile.
+              AppShell hides the BrandBar entirely on /qoins/*, /passes/*
+              and /play/* so the pill doesn't appear where it shouldn't. */}
           <Link
-            href="/passes"
-            aria-label="Open Season Pass"
-            className="grid h-[48px] place-items-center rounded-full active:scale-[0.95] transition-transform"
+            href="/qoins"
+            aria-label="Open Qoins Rewards"
+            className="flex items-center gap-[6px] h-[48px] rounded-full active:scale-[0.95] transition-transform"
             style={{
-              paddingLeft: 18,
-              paddingRight: 18,
+              paddingLeft: 14,
+              paddingRight: 16,
               backgroundColor: "rgba(157, 171, 234, 0.32)",
               backdropFilter: "blur(20px) saturate(140%)",
               WebkitBackdropFilter: "blur(20px) saturate(140%)",
@@ -155,15 +155,18 @@ export function BrandBar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/assets/nav-icons/diamond.svg"
+              src="/assets/qoins-coin.svg"
               alt=""
-              // Source SVG is 23×19 (≈1.21 ratio) — explicit width
-              // + auto height preserves the aspect so the gem
-              // doesn't squash. Sized to ~24px tall to sit
-              // proportionally inside the 48px pill.
-              style={{ width: 26, height: "auto", display: "block" }}
+              // Square coin — sized to ~26px to sit proportionally
+              // inside the 48px pill, matching the old diamond.
+              style={{ width: 26, height: 26, display: "block" }}
               draggable={false}
             />
+            {/* Qoins balance — same white extrabold treatment as the
+                wallet cash text so the two pills read as a set. */}
+            <span className="text-white text-[16px] leading-none font-extrabold pt-[1px]">
+              87
+            </span>
           </Link>
 
           {/* Wallet pill — two tappable halves inside one rounded
