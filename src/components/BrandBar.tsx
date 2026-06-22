@@ -127,12 +127,12 @@ export function BrandBar() {
             className="shrink-0 active:scale-[0.96] transition-transform"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/logo-mrq.svg" alt="MrQ" className="h-[32px] w-[83px]" />
+            <img src="/assets/logo-mrq.svg" alt="MrQ" className="h-[28px] w-[73px]" />
           </Link>
         )}
 
         {/* Right side: pass pill + wallet pill. */}
-        <div className="flex items-center gap-[8px]">
+        <div className="flex items-center gap-[6px]">
           {/* Qoins entry — the loyalty-currency coin inside the same
               glass pill family as the balance/avatar. Routes to /qoins
               (Qoins Rewards). Replaced the old Season Pass diamond;
@@ -142,24 +142,22 @@ export function BrandBar() {
           <Link
             href="/qoins"
             aria-label="Open Qoins Rewards"
-            className="flex items-center gap-[6px] h-[48px] rounded-full active:scale-[0.95] transition-transform"
+            className="flex items-center gap-[5px] h-[44px] rounded-full active:scale-[0.95] transition-transform"
             style={{
-              paddingLeft: 14,
-              paddingRight: 16,
+              paddingLeft: 12,
+              paddingRight: 14,
               backgroundColor: "rgba(157, 171, 234, 0.32)",
               backdropFilter: "blur(20px) saturate(140%)",
               WebkitBackdropFilter: "blur(20px) saturate(140%)",
-              border: "1px solid rgba(255, 255, 255, 0.18)",
-              boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.22)",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/qoins-coin.svg"
               alt=""
-              // Square coin — sized to ~26px to sit proportionally
-              // inside the 48px pill, matching the old diamond.
-              style={{ width: 26, height: 26, display: "block" }}
+              // Square coin — sized to ~24px to sit proportionally
+              // inside the 44px pill.
+              style={{ width: 24, height: 24, display: "block" }}
               draggable={false}
             />
             {/* Qoins balance — same white extrabold treatment as the
@@ -177,13 +175,11 @@ export function BrandBar() {
               a button, so each half captures its own taps without
               one stealing from the other. */}
           <div
-            className="flex items-center gap-[12px] h-[48px] pl-[22px] pr-[5px] rounded-full"
+            className="flex items-center gap-[10px] h-[44px] pl-[16px] pr-[4px] rounded-full"
             style={{
               backgroundColor: "rgba(157, 171, 234, 0.32)",
               backdropFilter: "blur(20px) saturate(140%)",
               WebkitBackdropFilter: "blur(20px) saturate(140%)",
-              border: "1px solid rgba(255, 255, 255, 0.18)",
-              boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.22)",
             }}
           >
           <button
@@ -225,7 +221,7 @@ export function BrandBar() {
             type="button"
             onClick={openSideNav}
             aria-label="Open account menu"
-            className="relative size-[38px] rounded-full overflow-hidden bg-white shrink-0 active:scale-[0.95] transition-transform"
+            className="relative size-[36px] rounded-full overflow-hidden bg-white shrink-0 active:scale-[0.95] transition-transform"
             style={{
               border: "2px solid rgba(8, 24, 100, 0.65)",
             }}
@@ -234,7 +230,7 @@ export function BrandBar() {
               src="/assets/avatar.png"
               alt=""
               fill
-              sizes="38px"
+              sizes="36px"
               className="object-cover"
               priority
             />

@@ -57,42 +57,38 @@
   margin-top:0;
 }
 #qoins-screen .iconbtn{
-  width:40px;height:40px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.20);
+  width:40px;height:40px;border-radius:999px;border:0;
   background:rgba(255,255,255,.18);
   -webkit-backdrop-filter:blur(20px) saturate(140%);backdrop-filter:blur(20px) saturate(140%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.24);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;color:#fff;flex:none;
   transition:background .18s ease,transform .12s ease;
 }
 #qoins-screen .iconbtn:active{transform:scale(.96);}
-#qoins-screen .nav-right{display:flex;align-items:center;gap:8px;}
-/* shared glass pill (coin + wallet) */
+#qoins-screen .nav-right{display:flex;align-items:center;gap:6px;}
+/* shared glass pill (coin + wallet) — slim: no border/inset highlight */
 #qoins-screen .qoins-pill,
 #qoins-screen .balance-pill{
   background:rgba(157,171,234,.32);
   -webkit-backdrop-filter:blur(20px) saturate(140%);backdrop-filter:blur(20px) saturate(140%);
-  border:1px solid rgba(255,255,255,.18);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
   border-radius:999px;
 }
 #qoins-screen .qoins-pill{
-  display:flex;align-items:center;gap:6px;
-  height:48px;padding:0 16px 0 14px;
+  display:flex;align-items:center;gap:5px;
+  height:44px;padding:0 14px 0 12px;
 }
 #qoins-screen .pill-glow{animation:pillglow .7s ease;}
-@keyframes pillglow{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 0 rgba(255,223,0,0);}40%{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 5px rgba(255,223,0,.5);}}
-#qoins-screen .qoins-pill .coin{width:26px;height:26px;}
+@keyframes pillglow{0%,100%{box-shadow:0 0 0 0 rgba(255,223,0,0);}40%{box-shadow:0 0 0 5px rgba(255,223,0,.5);}}
+#qoins-screen .qoins-pill .coin{width:24px;height:24px;}
 #qoins-screen .qoins-pill .amt{color:#fff;font-weight:800;font-size:16px;line-height:1;letter-spacing:-.2px;padding-top:1px;}
 #qoins-screen .balance-pill{
   display:flex;align-items:center;gap:0;
-  height:48px;padding:0 5px 0 22px;
+  height:44px;padding:0 4px 0 16px;
 }
 #qoins-screen .balance-pill .bal{color:#fff;font-weight:800;font-size:16px;line-height:1;white-space:nowrap;padding-top:1px;}
 #qoins-screen .balance-pill .divider{width:1px;height:20px;background:rgba(255,255,255,.22);margin:0 12px;}
 #qoins-screen .balance-pill .avatar{
-  width:38px;height:38px;border-radius:50%;overflow:hidden;background:#fff;flex:none;
+  width:36px;height:36px;border-radius:50%;overflow:hidden;background:#fff;flex:none;
   border:2px solid rgba(8,24,100,.65);
 }
 #qoins-screen .balance-pill .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
