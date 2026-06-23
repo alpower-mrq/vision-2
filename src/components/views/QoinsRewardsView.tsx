@@ -25,7 +25,7 @@ import "./qoins.css";
  */
 
 const ASSETS = {
-  coinPng: "/assets/qoins-coin.png",
+  coinPng: "/assets/qoin.svg",
   westernGold: "/assets/qoins-western-gold.jpg",
   glasses1: "/assets/qoins-glasses1.png",
   glasses2: "/assets/qoins-glasses2.png",
@@ -380,7 +380,15 @@ export function QoinsRewardsView() {
             <div className="balance-pill">
               <span className="bal">£113.48</span>
               <span className="divider" />
-              <span className="avatar"><img src="/assets/avatar.png" alt="" /></span>
+              <button
+                type="button"
+                className="avatar"
+                onClick={() => router.push("/profile")}
+                aria-label="Open profile"
+                style={{ padding: 0, cursor: "pointer" }}
+              >
+                <img src="/assets/avatar.png" alt="" />
+              </button>
             </div>
           </div>
         </div>

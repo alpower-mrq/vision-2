@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useShell } from "@/lib/filter-context";
 import { CountUpAmount } from "@/components/CountUpAmount";
 
@@ -62,8 +62,13 @@ function backHrefFor(pathname: string): string {
 }
 
 export function BrandBar() {
-  const { openSideNav, openDeposit, bootDone } = useShell();
+  const { openDeposit, bootDone } = useShell();
   const pathname = usePathname();
+  const router = useRouter();
+  // /profile is a pushed page reached by tapping the avatar — its back
+  // arrow returns to wherever the user came from (router.back), not a
+  // fixed lobby/casino href like the other back-arrow routes.
+  const isProfile = pathname.startsWith("/profile");
   const backArrow = showsBackArrow(pathname);
   const backHref = backHrefFor(pathname);
   const backLabel =
@@ -83,7 +88,9 @@ export function BrandBar() {
   // the mobile-frame surface brand-blue on that route, so the
   // small wedge of "behind the BrandBar" that the curve exposes
   // shows blue (matching the BrandBar) instead of #f5f5f5.
-  const roundedBottom = pathname !== "/search";
+  // Flat bottom on /profile too, so the page's own brand-blue header
+  // (avatar + name + level) reads as a seamless continuation of the bar.
+  const roundedBottom = pathname !== "/search" && !isProfile;
 
   return (
     <header
@@ -153,7 +160,7 @@ export function BrandBar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/assets/qoins-coin.svg"
+              src="/assets/qoin.svg"
               alt=""
               // Square coin — sized to ~24px to sit proportionally
               // inside the 44px pill.
@@ -219,8 +226,8 @@ export function BrandBar() {
           />
           <button
             type="button"
-            onClick={openSideNav}
-            aria-label="Open account menu"
+            onClick={() => router.push("/profile")}
+            aria-label="Open profile"
             className="relative size-[36px] rounded-full overflow-hidden bg-white shrink-0 active:scale-[0.95] transition-transform"
             style={{
               border: "2px solid rgba(8, 24, 100, 0.65)",

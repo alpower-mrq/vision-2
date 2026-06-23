@@ -93,7 +93,7 @@
 }
 #qoins-screen .balance-pill .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
 #qoins-screen .coin{
-  background-image:url("/assets/qoins-coin.svg");
+  background-image:url("/assets/qoin.svg");
   background-repeat:no-repeat;
   background-position:center;
   background-size:contain;
@@ -113,7 +113,7 @@
   position:relative;
 }
 #qoins-screen .hero-top{display:flex;align-items:center;justify-content:center;gap:13px;}
-#qoins-screen .hero-coin{width:78px;height:78px;position:relative;background-image:url("/assets/qoins-coin-hero.svg");background-size:contain;}
+#qoins-screen .hero-coin{width:78px;height:78px;position:relative;background-image:url("/assets/qoin.svg");background-size:contain;}
 #qoins-screen .hero-coin::after{
   content:"";position:absolute;inset:6px;border-radius:50%;pointer-events:none;
   background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.4) 49%,rgba(255,255,255,.5) 50%,rgba(255,255,255,.4) 51%,transparent 60%);

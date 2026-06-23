@@ -119,7 +119,10 @@ const TABS: Tab[] = [
 /** Which tab is "active" for the current pathname. /casino and its
  *  sub-routes light up Explore — the user is inside the browse
  *  experience which Explore represents. */
-function activeTabFor(pathname: string): TabKey {
+function activeTabFor(pathname: string): TabKey | null {
+  // /profile is reached by tapping the avatar — it's not one of the
+  // four primary destinations, so no tab lights up while on it.
+  if (pathname.startsWith("/profile")) return null;
   if (pathname === "/" || pathname === "") return "lobby";
   if (pathname.startsWith("/discover")) return "discover";
   if (pathname.startsWith("/rewards")) return "rewards";
@@ -168,6 +171,12 @@ export function BottomNav() {
     const measure = () => {
       const row = rowRef.current;
       if (!row) return;
+
+      // No active tab (e.g. /profile) — hide the indicator pill entirely.
+      if (active === null) {
+        setPill(null);
+        return;
+      }
 
       if (active === "lobby") {
         // Pinned 4px from bar's left edge.

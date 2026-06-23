@@ -285,7 +285,7 @@ function RefreshIcon({ className }: { className?: string }) {
   );
 }
 
-function MenuGroup({ children }: { children: React.ReactNode }) {
+export function MenuGroup({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="rounded-[14px] bg-white overflow-hidden"
@@ -296,7 +296,7 @@ function MenuGroup({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MenuItem({
+export function MenuItem({
   icon,
   label,
   accent,
@@ -356,7 +356,7 @@ const STREAK_DAYS: StreakDay[] = [
   { label: "S", hit: false, isToday: false },
 ];
 
-function PlayStreakCard() {
+export function PlayStreakCard() {
   return (
     <section
       // Parent gap bumped 8 → 10 so the divider and weekly
@@ -588,25 +588,25 @@ function DayPip({
 
 /* ----------- Inline icons ----------- */
 
-function MinusIcon({ className }: { className?: string }) {
+export function MinusIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 14 14" fill="currentColor" className={className} aria-hidden><rect x="2" y="6" width="10" height="2" rx="1" /></svg>;
 }
-function PlusIcon({ className }: { className?: string }) {
+export function PlusIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 14 14" fill="currentColor" className={className} aria-hidden><rect x="2" y="6" width="10" height="2" rx="1" /><rect x="6" y="2" width="2" height="10" rx="1" /></svg>;
 }
-function UserIcon() {
+export function UserIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><circle cx="10" cy="7" r="3.5" /><path d="M3 17c0-3.5 3-6 7-6s7 2.5 7 6" /></svg>;
 }
-function WalletIcon() {
+export function WalletIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><rect x="2" y="5" width="16" height="12" rx="2" /><path d="M14 11h2" /><path d="M2 8h13" /></svg>;
 }
-function HistoryIcon() {
+export function HistoryIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><path d="M3 10a7 7 0 1 0 2-5L3 7" /><path d="M3 3v4h4" /><path d="M10 6v4l3 2" /></svg>;
 }
-function HeartIcon() {
+export function HeartIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><path d="M10 17s-6-4-6-9a3.5 3.5 0 0 1 6-2.5A3.5 3.5 0 0 1 16 8c0 5-6 9-6 9Z" /></svg>;
 }
-function GiftIcon() {
+export function GiftIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><rect x="2.5" y="6" width="15" height="3.5" rx="0.5" /><path d="M4 9.5V17a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9.5" /><path d="M10 6v12" /><path d="M10 6c-1.25-1.6-4.6-1.6-4.6 0 0 .85.85 1.3 2.1 1.3 1.25 0 2.5-.45 2.5-1.3Z" /><path d="M10 6c1.25-1.6 4.6-1.6 4.6 0 0 .85-.85 1.3-2.1 1.3-1.25 0-2.5-.45-2.5-1.3Z" /></svg>;
 }
 function ChevronRightIcon() {
@@ -652,15 +652,15 @@ function DiamondIcon() {
     </svg>
   );
 }
-function LockIcon() {
+export function LockIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><rect x="4" y="9" width="12" height="8" rx="2" /><path d="M7 9V7a3 3 0 0 1 6 0v2" /></svg>;
 }
-function DocIcon() {
+export function DocIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><path d="M5 2.5h7l3 3V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" /><path d="M7 8h6M7 11h6M7 14h4" /></svg>;
 }
-function QuestionIcon() {
+export function QuestionIcon() {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-full" aria-hidden><circle cx="10" cy="10" r="7.5" /><path d="M7.5 8a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7" /><circle cx="10" cy="14.5" r="0.6" fill="currentColor" /></svg>;
 }
-function LogoutIcon({ className }: { className?: string }) {
+export function LogoutIcon({ className }: { className?: string }) {
   return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden><path d="M12 4H4v12h8" /><path d="M8 10h10m0 0-3-3m3 3-3 3" /></svg>;
 }

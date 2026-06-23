@@ -99,6 +99,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   // search input.
   const isSearchSurface = pathname.startsWith("/search");
 
+  // /profile paints its own brand-blue header (avatar + name + level)
+  // flush under the flat-bottomed BrandBar — the y:6→0 wrapper would
+  // expose a hairline of mobile-frame surface between the two on mount.
+  const isProfileSurface = pathname.startsWith("/profile");
+
   // Skip the cross-route fade-up wrapper on any surface that
   // owns its own entrance motion. Otherwise every BottomNav tap
   // / link cross-fades content over ~260ms using the same
@@ -116,6 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     isDiscoverSurface ||
     isSearchSurface ||
     isBrandSurface ||
+    isProfileSurface ||
     reduce === true;
 
   return (
