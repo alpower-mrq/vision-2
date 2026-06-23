@@ -239,9 +239,11 @@ export function ProfileView() {
               See all
             </button>
           </div>
-          {/* -mx/px lets the cards scroll edge-to-edge under the page padding */}
+          {/* -mx/px lets the cards scroll edge-to-edge under the page
+              padding; py + -my keeps the card drop-shadow from being
+              clipped by the scroll container's overflow. */}
           <div
-            className="flex gap-[12px] overflow-x-auto -mx-[16px] px-[16px]"
+            className="flex gap-[12px] overflow-x-auto -mx-[16px] px-[16px] py-[10px] -my-[10px]"
             style={{ scrollbarWidth: "none" }}
           >
             <PurchaseCard
