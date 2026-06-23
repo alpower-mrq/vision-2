@@ -5,7 +5,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Image from "next/image";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFilter } from "@/lib/filter-context";
@@ -73,7 +73,15 @@ export function ProfileView() {
           transition: reduce ? undefined : "clip-path 0.58s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
-        <div className="flex items-center gap-[16px]">
+        {/* Content holds invisible while the blue bar drops, then fades
+            in once it's fully down (delay ≈ the header reveal duration). */}
+        <div
+          className="flex items-center gap-[16px]"
+          style={{
+            opacity: reduce || entered ? 1 : 0,
+            transition: reduce ? undefined : "opacity 0.4s ease 0.55s",
+          }}
+        >
           {/* Avatar + pencil edit badge */}
           <div className="relative size-[104px] shrink-0">
             <div className="relative size-[104px] rounded-full overflow-hidden bg-white">
@@ -120,7 +128,7 @@ export function ProfileView() {
                 style={{
                   width: reduce || entered ? `${LEVEL_PROGRESS * 100}%` : "0%",
                   backgroundColor: "#FFDF00",
-                  transition: reduce ? undefined : "width 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s",
+                  transition: reduce ? undefined : "width 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.95s",
                 }}
               >
                 {/* gloss — lighter rounded highlight along the top of the fill */}
@@ -171,9 +179,9 @@ export function ProfileView() {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-[8px]">
-            <Badge img="/assets/profile-badge-streak-7735ea.png" label="7 Day Streak" />
-            <Badge img="/assets/profile-badge-explorer-23a91e.png" label="Game Explorer" />
-            <Badge img="/assets/profile-badge-king-59a2fb.png" label="Slot King" />
+            <Badge img="/assets/profile-badge-streak-7735ea.png" label="7 Day Streak" index={0} reduce={reduce} />
+            <Badge img="/assets/profile-badge-explorer-23a91e.png" label="Game Explorer" index={1} reduce={reduce} />
+            <Badge img="/assets/profile-badge-king-59a2fb.png" label="Slot King" index={2} reduce={reduce} />
           </div>
         </section>
 
@@ -235,10 +243,37 @@ export function ProfileView() {
   );
 }
 
-function Badge({ img, label }: { img: string; label: string }) {
+function Badge({
+  img,
+  label,
+  index,
+  reduce,
+}: {
+  img: string;
+  label: string;
+  index: number;
+  reduce: boolean | null;
+}) {
   return (
     <div className="flex flex-col items-center gap-[8px]">
-      <img src={img} alt="" className="block w-full h-auto" draggable={false} />
+      {/* Pop in with a staggered spring (left → right), echoing the
+          streak card's fire pips. */}
+      <motion.img
+        src={img}
+        alt=""
+        className="block w-full h-auto"
+        draggable={false}
+        style={{ transformOrigin: "center bottom" }}
+        initial={reduce ? false : { scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          delay: reduce ? 0 : 0.5 + index * 0.12,
+          type: "spring",
+          stiffness: 400,
+          damping: 15,
+          mass: 0.7,
+        }}
+      />
       <span className="text-[13px] font-extrabold text-black text-center leading-tight">
         {label}
       </span>
