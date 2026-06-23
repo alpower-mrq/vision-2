@@ -6,8 +6,7 @@
    for the whole file. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useRef, useState } from "react";
 import "./qoins.css";
 
 /**
@@ -38,14 +37,6 @@ const ASSETS = {
 } as const;
 
 /* ---------- icons ---------- */
-function BackArrow() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 5l-7 7 7 7" />
-    </svg>
-  );
-}
 function CheckIcon() {
   return (
     <svg className="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -116,7 +107,9 @@ function celebrate(layer: HTMLElement | null, btnRect: DOMRect | null, style: st
   if (!layer || !btnRect) return;
   const f = layer.getBoundingClientRect();
   const o = { x: btnRect.left + btnRect.width / 2 - f.left, y: btnRect.top + btnRect.height / 2 - f.top };
-  const pill = document.querySelector<HTMLElement>(".qoins-pill");
+  // Fly destination is the global BrandBar's coin pill (the in-page pill
+  // was removed in favour of the shared top bar).
+  const pill = document.querySelector<HTMLElement>('a[aria-label="Open Qoins Rewards"]');
   let w = { x: o.x, y: o.y - 200 };
   if (pill) { const pr = pill.getBoundingClientRect(); w = { x: pr.left + pr.width / 2 - f.left, y: pr.top + pr.height / 2 - f.top }; }
   const popPill = () => pill && pill.animate(
@@ -240,7 +233,6 @@ const CLAIM_AMOUNT = 5;
 const CELEBRATION = "coins";
 
 export function QoinsRewardsView() {
-  const router = useRouter();
   const [balance, setBalance] = useState(START_BALANCE);
   const [display, setDisplay] = useState(START_BALANCE);
   const [claimed, setClaimed] = useState(false);
@@ -253,12 +245,6 @@ export function QoinsRewardsView() {
     setHowClosing(true);
     setTimeout(() => { setHowOpen(false); setHowClosing(false); }, 420);
   };
-  const [intro, setIntro] = useState(true);
-  useEffect(() => {
-    const tm = setTimeout(() => setIntro(false), 1700);
-    return () => clearTimeout(tm);
-  }, []);
-
   const claimRef = useRef<HTMLButtonElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const fxRef = useRef<HTMLDivElement>(null);
@@ -367,32 +353,13 @@ export function QoinsRewardsView() {
   const spinsItems = collection.filter((c) => c.type === "spins");
 
   return (
-    <div id="qoins-screen" className={intro ? "intro" : ""} style={{ ["--accent" as string]: ACCENT }}>
-      {/* ---------------- HEADER ---------------- */}
+    <div id="qoins-screen" style={{ ["--accent" as string]: ACCENT }}>
+      {/* ---------------- HEADER ----------------
+          No in-page top bar here — the global BrandBar (logo + Qoins
+          pill + wallet/avatar) sits above this, same as every other
+          page, so there's no component swap / jump on entry. This blue
+          header holds just the balance hero + owned spins. */}
       <div className="header">
-        <div className="nav">
-          <button className="iconbtn" aria-label="Back" onClick={() => router.back()}><BackArrow /></button>
-          <div className="nav-right">
-            <div className="qoins-pill">
-              <span className="coin" />
-              <span className="amt">{display}</span>
-            </div>
-            <div className="balance-pill">
-              <span className="bal">£113.48</span>
-              <span className="divider" />
-              <button
-                type="button"
-                className="avatar"
-                onClick={() => router.push("/profile")}
-                aria-label="Open profile"
-                style={{ padding: 0, cursor: "pointer" }}
-              >
-                <img src="/assets/avatar.png" alt="" />
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* balance card + your free spins all live in the blue */}
         <div className="hero-stack">
           <div className="hero-card">

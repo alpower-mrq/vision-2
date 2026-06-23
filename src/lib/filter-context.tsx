@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -53,7 +54,18 @@ type ShellContextValue = {
 
   bootDone: boolean;
   markBootDone: () => void;
+
+  /**
+   * Player's chosen avatar image src (from the avatar picker). `null`
+   * falls back to the built-in default. Shared here so the BrandBar
+   * pill, the Profile header, and the picker all stay in sync, and
+   * persisted to localStorage so the choice survives a reload.
+   */
+  avatarSrc: string | null;
+  setAvatar: (src: string | null) => void;
 };
+
+const AVATAR_KEY = "selectedAvatar";
 
 const ShellContext = createContext<ShellContextValue | null>(null);
 
@@ -62,6 +74,30 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [depositOpen, setDepositOpen] = useState(false);
   const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
   const [bootDone, setBootDone] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  // Hydrate the saved avatar after mount (localStorage is client-only).
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AVATAR_KEY);
+      // Hydrate post-mount so server + first client render match (null),
+      // then adopt the saved value — the idiomatic localStorage pattern.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved) setAvatarSrc(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setAvatar = useCallback((src: string | null) => {
+    setAvatarSrc(src);
+    try {
+      if (src) localStorage.setItem(AVATAR_KEY, src);
+      else localStorage.removeItem(AVATAR_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   // Stable identities for the action callbacks. Previously these were
   // inline arrow functions inside the provider value, which meant a new
@@ -92,6 +128,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       closeGameDetails,
       bootDone,
       markBootDone,
+      avatarSrc,
+      setAvatar,
     }),
     [
       sideNavOpen,
@@ -105,6 +143,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       closeGameDetails,
       bootDone,
       markBootDone,
+      avatarSrc,
+      setAvatar,
     ],
   );
 

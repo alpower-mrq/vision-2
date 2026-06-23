@@ -62,7 +62,7 @@ function backHrefFor(pathname: string): string {
 }
 
 export function BrandBar() {
-  const { openDeposit, bootDone } = useShell();
+  const { openDeposit, bootDone, avatarSrc } = useShell();
   const pathname = usePathname();
   const router = useRouter();
   // /profile is a pushed page reached by tapping the avatar — its back
@@ -90,7 +90,7 @@ export function BrandBar() {
   // shows blue (matching the BrandBar) instead of #f5f5f5.
   // Flat bottom on /profile too, so the page's own brand-blue header
   // (avatar + name + level) reads as a seamless continuation of the bar.
-  const roundedBottom = pathname !== "/search" && !isProfile;
+  const roundedBottom = pathname !== "/search" && !isProfile && !pathname.startsWith("/qoins");
 
   return (
     <header
@@ -233,14 +233,19 @@ export function BrandBar() {
               border: "2px solid rgba(8, 24, 100, 0.65)",
             }}
           >
-            <Image
-              src="/assets/avatar.png"
-              alt=""
-              fill
-              sizes="36px"
-              className="object-cover"
-              priority
-            />
+            {avatarSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarSrc} alt="" className="absolute inset-0 size-full object-cover" />
+            ) : (
+              <Image
+                src="/assets/avatar.png"
+                alt=""
+                fill
+                sizes="36px"
+                className="object-cover"
+                priority
+              />
+            )}
           </button>
           </div>
         </div>

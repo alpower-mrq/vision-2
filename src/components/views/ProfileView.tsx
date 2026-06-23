@@ -5,10 +5,11 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFilter } from "@/lib/filter-context";
+import { AvatarPicker } from "@/components/AvatarPicker";
 import {
   PlayStreakCard,
   MenuGroup,
@@ -43,7 +44,7 @@ const LEVEL_PROGRESS = 0.66; // Level 3 — ~two-thirds toward the next level
 export function ProfileView() {
   const router = useRouter();
   const reduce = useReducedMotion();
-  const { openDeposit } = useFilter();
+  const { openDeposit, avatarSrc } = useFilter();
 
   // Entrance: render the start state, then flip one frame later (a short
   // timeout, NOT a single rAF — React flushes rAF-scheduled updates
@@ -55,6 +56,20 @@ export function ProfileView() {
     const id = setTimeout(() => setEntered(true), 90);
     return () => clearTimeout(id);
   }, []);
+
+  // Avatar picker (full-page takeover) — opened from the avatar / pencil.
+  // The chosen avatar lives in shared shell state (avatarSrc) so it also
+  // updates the BrandBar pill.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Bounce the avatar into place when a new one is picked.
+  const avatarControls = useAnimationControls();
+  const bounceAvatar = () => {
+    if (reduce) return;
+    avatarControls.start({
+      scale: [0.5, 1.15, 0.92, 1],
+      transition: { duration: 0.5, times: [0, 0.5, 0.78, 1], ease: "easeOut", delay: 0.12 },
+    });
+  };
 
   return (
     <div className="bg-[#f2f3f3] min-h-screen">
@@ -82,18 +97,34 @@ export function ProfileView() {
             transition: reduce ? undefined : "opacity 0.4s ease 0.55s",
           }}
         >
-          {/* Avatar + pencil edit badge */}
-          <div className="relative size-[104px] shrink-0">
-            <div className="relative size-[104px] rounded-full overflow-hidden bg-white">
-              <Image
-                src="/assets/profile-avatar.png"
-                alt=""
-                fill
-                sizes="104px"
-                className="object-cover"
-                priority
-              />
-            </div>
+          {/* Avatar + pencil edit badge — tapping either opens the
+              full-page avatar picker. */}
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            aria-label="Change your avatar"
+            className="relative size-[104px] shrink-0 active:scale-[0.97] transition-transform"
+          >
+            <motion.div
+              className="relative size-[104px] rounded-full overflow-hidden bg-white"
+              // Subtle light stroke so a blue avatar doesn't blend into
+              // the blue header.
+              style={{ boxShadow: "0 0 0 2px rgba(255,255,255,0.4)", transformOrigin: "center" }}
+              animate={avatarControls}
+            >
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="" className="block size-full object-cover" />
+              ) : (
+                <Image
+                  src="/assets/profile-avatar.png"
+                  alt=""
+                  fill
+                  sizes="104px"
+                  className="object-cover"
+                  priority
+                />
+              )}
+            </motion.div>
             <span
               className="absolute bottom-[2px] right-[2px] grid size-[32px] place-items-center rounded-full bg-white"
               style={{ border: "1px solid #9DABEA" }}
@@ -106,15 +137,12 @@ export function ProfileView() {
                 draggable={false}
               />
             </span>
-          </div>
+          </button>
 
           {/* Name + since + level */}
           <div className="flex min-w-0 flex-1 flex-col gap-[4px]">
             <p className="text-[24px] font-extrabold leading-tight text-white truncate">
               Leigh Taylor
-            </p>
-            <p className="text-[12px] font-medium leading-tight text-white/85">
-              Since January 2019
             </p>
             {/* Level progress — Duolingo-style bar: a light track with an
                 inset rounded fill that carries a glossy highlight stripe,
@@ -141,6 +169,10 @@ export function ProfileView() {
                 Level 3
               </span>
             </div>
+            {/* Tiny progress hint under the level bar */}
+            <span className="mt-[5px] text-[12px] font-semibold text-white/80">
+              2 badges until Level 4
+            </span>
           </div>
         </div>
       </header>
@@ -185,7 +217,7 @@ export function ProfileView() {
           </div>
         </section>
 
-        {/* Upgrade to Q+ banner (taps through to the Weekly Pass) */}
+        {/* Upgrade to Q+ / season pass banner (taps through to the Weekly Pass) */}
         <button
           type="button"
           onClick={() => router.push("/passes")}
@@ -198,6 +230,37 @@ export function ProfileView() {
             draggable={false}
           />
         </button>
+
+        {/* Your Purchases — horizontal rail of redeemed reward offers */}
+        <section className="pt-[2px]">
+          <div className="flex items-baseline justify-between mb-[14px]">
+            <h2 className="text-[20px] font-extrabold text-[#0e1120]">Your Purchases</h2>
+            <button type="button" className="text-[14px] font-extrabold text-mrq-blue">
+              See all
+            </button>
+          </div>
+          {/* -mx/px lets the cards scroll edge-to-edge under the page padding */}
+          <div
+            className="flex gap-[12px] overflow-x-auto -mx-[16px] px-[16px]"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <PurchaseCard
+              img="/assets/purchase-starbucks.png"
+              title="Starbucks Gift Card"
+              desc="Get a free coffee on MrQ at your nearest Starbucks"
+            />
+            <PurchaseCard
+              img="/assets/purchase-nike-2c8573.png"
+              title="Nike Gift Voucher"
+              desc="Get £20 off your next purchase on Nike.com"
+            />
+            <PurchaseCard
+              img="/assets/purchase-greggs.png"
+              title="Greggs Sausage Roll"
+              desc="Get a free sausage roll at Greggs"
+            />
+          </div>
+        </section>
 
         {/* Menu — two grouped cards (account links / legal + promo),
             reusing the SideNav's MenuGroup + MenuItem. */}
@@ -238,6 +301,30 @@ export function ProfileView() {
           <RefreshIcon className="size-[14px]" />
           Reset onboarding (dev)
         </button>
+      </div>
+
+      {/* Full-page avatar picker — writes to shared avatarSrc state */}
+      <AvatarPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={bounceAvatar}
+      />
+    </div>
+  );
+}
+
+function PurchaseCard({ img, title, desc }: { img: string; title: string; desc: string }) {
+  return (
+    <div
+      className="flex-none w-[150px] rounded-[12px] bg-white overflow-hidden"
+      style={{ boxShadow: "0 2px 6px rgba(204, 205, 208, 0.64)" }}
+    >
+      <img src={img} alt="" className="block w-full h-[86px] object-cover" draggable={false} />
+      <div className="px-[12px] py-[10px] flex flex-col gap-[3px]">
+        <p className="text-[13px] font-extrabold text-mrq-blue leading-tight truncate">{title}</p>
+        <p className="text-[11px] font-medium leading-snug line-clamp-2" style={{ color: "#676972" }}>
+          {desc}
+        </p>
       </div>
     </div>
   );

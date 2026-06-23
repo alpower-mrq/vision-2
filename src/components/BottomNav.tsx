@@ -120,9 +120,9 @@ const TABS: Tab[] = [
  *  sub-routes light up Explore — the user is inside the browse
  *  experience which Explore represents. */
 function activeTabFor(pathname: string): TabKey | null {
-  // /profile is reached by tapping the avatar — it's not one of the
-  // four primary destinations, so no tab lights up while on it.
-  if (pathname.startsWith("/profile")) return null;
+  // /profile and /qoins are reached by tapping chrome (avatar / coin
+  // pill) — they're not primary destinations, so no tab lights up.
+  if (pathname.startsWith("/profile") || pathname.startsWith("/qoins")) return null;
   if (pathname === "/" || pathname === "") return "lobby";
   if (pathname.startsWith("/discover")) return "discover";
   if (pathname.startsWith("/rewards")) return "rewards";

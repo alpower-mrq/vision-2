@@ -74,16 +74,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   // step out the way — same treatment as /play/*.
   const isPassesSurface = pathname.startsWith("/passes");
 
-  // /qoins is the Qoins Rewards page (loyalty currency). Like /passes it
-  // paints its own brand-blue header (back arrow + Qoins/wallet pills),
-  // so the global BrandBar, BottomNav, and ResumePlayingBar step aside.
-  // The mobile-frame surface is set brand-blue so a top overscroll shows
-  // the header colour rather than #f5f5f5.
+  // /qoins is the Qoins Rewards page (loyalty currency). It uses the
+  // SAME global chrome as the rest of the app (BrandBar + BottomNav) so
+  // the top bar is the persistent BrandBar — no swap/jump when entering
+  // from another page. It paints its own brand-blue header (the balance
+  // hero) flush under the flat-bottomed BrandBar, so the mobile-frame is
+  // brand-blue and the mount transition is skipped (like /profile).
   const isQoinsSurface = pathname.startsWith("/qoins");
 
   // Surfaces that own their entire chrome (no global BrandBar /
   // BottomNav / ResumePlayingBar).
-  const ownsChrome = isGameSurface || isPassesSurface || isQoinsSurface;
+  const ownsChrome = isGameSurface || isPassesSurface;
 
   // /discover is the Top Picks reels feed — scroll-snap based,
   // touching its mount with an opacity/y tween would fight the
@@ -122,6 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     isSearchSurface ||
     isBrandSurface ||
     isProfileSurface ||
+    isQoinsSurface ||
     reduce === true;
 
   return (
