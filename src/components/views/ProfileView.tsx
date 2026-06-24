@@ -295,7 +295,9 @@ export function ProfileView() {
           onClick={() => {
             if (typeof window === "undefined") return;
             localStorage.removeItem("hasLoggedIn");
-            window.location.reload();
+            // Send to the lobby (not reload on /profile) so the
+            // welcome → login flow runs over My Q and lands there.
+            window.location.href = "/";
           }}
           className="flex items-center gap-[8px] text-[12px] font-bold px-[8px] py-[8px]"
           style={{ color: "rgba(10, 17, 32, 0.55)" }}

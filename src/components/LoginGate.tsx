@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useShell } from "@/lib/filter-context";
 
 /**
@@ -58,6 +59,8 @@ export function LoginGate() {
   // gate stays mounted but invisible (visible=false) until the
   // splash has fully cleared the screen.
   const { bootDone } = useShell();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Default `visible=false` for SSR/CSR parity (we can't read
   // sessionStorage on the server). The effect below decides whether
@@ -109,6 +112,10 @@ export function LoginGate() {
     if (typeof window !== "undefined") {
       localStorage.setItem(PERSIST_KEY, "1");
     }
+    // Always land on the My Q lobby after logging in — the gate fades
+    // over whatever route happened to be underneath (e.g. /profile if
+    // onboarding was reset from there), so steer back to the lobby.
+    if (pathname !== "/") router.replace("/");
     setExiting(true);
     setTimeout(() => setVisible(false), 280);
   };
