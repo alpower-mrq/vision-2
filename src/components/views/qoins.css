@@ -31,7 +31,7 @@
 }
 #qoins-screen .hero-stack{
   display:flex;flex-direction:column;gap:0;
-  padding:16px 17px 18px;
+  padding:12px 17px 18px;
 }
 #qoins-screen .statusbar{
   height:54px;
@@ -259,6 +259,17 @@
 #qoins-screen .bigcard{
   background:#fff;border-radius:16px;overflow:hidden;padding:0;
 }
+/* free-to-play game tile (carousel card) — square art + title + Play CTA */
+#qoins-screen .gamecard{
+  flex:0 0 168px;scroll-snap-align:start;
+  background:#fff;border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+#qoins-screen .gamecard-img{
+  width:100%;aspect-ratio:1/1;
+  background:#0a2ecb center/cover no-repeat;
+}
+#qoins-screen .gamecard .offer-title{font-size:16px;margin-bottom:0;}
 #qoins-screen .bigcard-img{width:100%;height:160px;overflow:hidden;background:#0a2ecb center/cover no-repeat;}
 #qoins-screen .bigcard-img img{width:100%;height:100%;object-fit:cover;display:block;}
 #qoins-screen .bigcard-body{padding:14px;}
@@ -429,7 +440,8 @@
 }
 /* No fake status bar in-app — pad the nav clear of the notch instead. */
 /* The global BrandBar sits above and handles the safe-area top now, so
-   the blue hero header just needs a small gap below the bar. */
-#qoins-screen .header{ padding-top:14px; }
+   the blue hero header needs no extra top padding — the hero-stack's own
+   top padding is the only gap above the white card. */
+#qoins-screen .header{ padding-top:0; }
 /* No global BottomNav on this route — keep the last block clear of the home indicator. */
 #qoins-screen .body{ padding-bottom:calc(40px + env(safe-area-inset-bottom)); }

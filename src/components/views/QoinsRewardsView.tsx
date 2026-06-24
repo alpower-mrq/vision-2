@@ -6,7 +6,8 @@
    for the whole file. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import "./qoins.css";
 
 /**
@@ -97,6 +98,35 @@ function OfferCard({
             {cost}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- free-to-play game card (carousel tile) ---------- */
+function GameCard({
+  img,
+  title,
+  cost,
+  affordable = true,
+  onPlay,
+}: {
+  img: string;
+  title: string;
+  cost: number;
+  affordable?: boolean;
+  onPlay?: () => void;
+}) {
+  return (
+    <div className="gamecard">
+      <div className="gamecard-img" style={{ backgroundImage: `url(${img})` }} />
+      <div className="offer-body">
+        <div className="offer-title">{title}</div>
+        <button className="cost-btn" onClick={onPlay} disabled={!affordable} aria-disabled={!affordable}>
+          <span>Play</span>
+          <span className="coin" />
+          <span>{cost}</span>
+        </button>
       </div>
     </div>
   );
@@ -233,6 +263,25 @@ const CLAIM_AMOUNT = 5;
 const CELEBRATION = "coins";
 
 export function QoinsRewardsView() {
+  const reduce = useReducedMotion();
+  // Opening transition: the blue header reveals (clip grows down) on
+  // entry, then the hero + page content fade in. Flip one frame after
+  // mount so the start state paints first and the CSS transitions run.
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    // Double rAF: let the start state (clipped header / faded content)
+    // paint in one frame, then flip on the next so the CSS transitions
+    // actually run instead of coalescing into a single paint.
+    let id2 = 0;
+    const id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setEntered(true));
+    });
+    return () => {
+      cancelAnimationFrame(id1);
+      if (id2) cancelAnimationFrame(id2);
+    };
+  }, []);
+
   const [balance, setBalance] = useState(START_BALANCE);
   const [display, setDisplay] = useState(START_BALANCE);
   const [claimed, setClaimed] = useState(false);
@@ -318,6 +367,11 @@ export function QoinsRewardsView() {
     { img: ASSETS.glasses1, hoverImg: ASSETS.glasses2, avatar: true, type: "avatar", title: "Buy sunglasses", desc: "Grab some fresh shades for your avatar", cost: 25 },
     { img: ASSETS.circle1, hoverImg: ASSETS.circle2, avatar: true, type: "avatar", title: "Golden line", desc: "Ever wanted a fancy gold avatar ring? Now's your chance", cost: 40 },
   ];
+  const games = [
+    { img: "/assets/spin.png", title: "Spin the Wheel", cost: 10 },
+    { img: "/assets/higher.png", title: "Higher or Lower", cost: 10 },
+    { img: "/assets/love.png", title: "Love It or Hate It", cost: 10 },
+  ];
 
   const redeem = (offer: Offer) => {
     if (display < offer.cost) { showToast(`Need ${offer.cost - display} more Qoins for that`); return; }
@@ -359,9 +413,25 @@ export function QoinsRewardsView() {
           pill + wallet/avatar) sits above this, same as every other
           page, so there's no component swap / jump on entry. This blue
           header holds just the balance hero + owned spins. */}
-      <div className="header">
+      <div
+        className="header"
+        style={{
+          clipPath: reduce
+            ? undefined
+            : entered
+              ? "inset(0% 0% 0% 0% round 0px 0px 24px 24px)"
+              : "inset(0% 0% 100% 0% round 0px 0px 24px 24px)",
+          transition: reduce ? undefined : "clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
         {/* balance card + your free spins all live in the blue */}
-        <div className="hero-stack">
+        <div
+          className="hero-stack"
+          style={{
+            opacity: reduce || entered ? 1 : 0,
+            transition: reduce ? undefined : "opacity 0.4s ease 0.42s",
+          }}
+        >
           <div className="hero-card">
             <div className="hero-top">
               <span className="coin hero-coin" />
@@ -397,7 +467,13 @@ export function QoinsRewardsView() {
       </div>
 
       {/* ---------------- BODY ---------------- */}
-      <div className="body">
+      <div
+        className="body"
+        style={{
+          opacity: reduce || entered ? 1 : 0,
+          transition: reduce ? undefined : "opacity 0.45s ease 0.5s",
+        }}
+      >
         {/* how Qoins works — swipeable carousel (leads the page) */}
         {howOpen && <HowQoinsWorks closing={howClosing} onClose={dismissHow} />}
 
@@ -411,24 +487,22 @@ export function QoinsRewardsView() {
           </div>
         </div>
 
-        {/* free to play */}
+        {/* free to play — swipeable carousel of game tiles */}
         <div className="section">
           <h2 className="section-title">Q Free to Play Games</h2>
-          <div className="bigcard">
-            <div className="bigcard-img"><img src={ASSETS.headsOrTails} alt="Heads or Tails" /></div>
-            <div className="bigcard-body">
-              <div className="offer-title">Heads or Tails</div>
-              <p className="offer-desc">Play Heads or Tails game to be in with a chance to double your pot of Qoins!</p>
-              <button
-                className="play-btn"
-                onClick={() => display >= 10 && showToast("Loading Heads or Tails — good luck!")}
-                disabled={display < 10}
-                aria-disabled={display < 10}
-              >
-                <span className="play-label">Play Now</span>
-                <span className="play-cost"><span className="coin" />10</span>
-              </button>
-            </div>
+          <div className="rail">
+            {games.map((g) => (
+              <GameCard
+                key={g.title}
+                {...g}
+                affordable={display >= g.cost}
+                onPlay={() =>
+                  display >= g.cost
+                    ? showToast(`Loading ${g.title} — good luck!`)
+                    : showToast(`Need ${g.cost - display} more Qoins to play`)
+                }
+              />
+            ))}
           </div>
         </div>
 
