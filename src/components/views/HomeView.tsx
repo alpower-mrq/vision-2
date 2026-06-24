@@ -137,6 +137,12 @@ export function HomeView() {
 
       <BigWinsRow title="My Recent Big Wins" items={RECENT_WINS} />
 
+      {/* Q Rewards summary — Figma 255:37506. Brand-blue card with
+          "My Q Rewards" heading + gift sticker, two active reward
+          rows (Free Spins, Free Bingo Bash) and a "See all Rewards"
+          CTA routing to /rewards. */}
+      <QRewardsCard />
+
       <SameVibeRail
         title="Same Vibe as Tiki Tumble"
         items={SAME_VIBE_TIKI_TUMBLE}
@@ -150,14 +156,6 @@ export function HomeView() {
       />
 
       <LatestBigWinsRow title="Latest Big Wins" items={LATEST_WINS} />
-
-      {/* Q Rewards summary — Figma 255:37506. Brand-blue card with
-          "My Q Rewards" heading + gift sticker, two active reward
-          rows (Free Spins, Free Bingo Bash) and a "See all Rewards"
-          CTA routing to /rewards. Replaces the previous scroll-
-          expand QClubCard treatment with a tighter, on-brand
-          rewards summary at the bottom of the feed. */}
-      <QRewardsCard />
     </>
   );
 }
